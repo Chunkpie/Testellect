@@ -1,0 +1,102 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: parakh-postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=parakh_db
+    ports:
+      - "5434:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: parakh-ollama
+    volumes:
+      - ollama_models:/root/.ollama
+    ports:
+      - "11434:11434"
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  model-puller:
+    image: curlimages/curl:latest
+    container_name: parakh-model-puller
+    depends_on:
+      ollama:
+        condition: service_healthy
+    env_file:
+      - .env
+    command: >
+      sh -c 'echo "Pulling model $$OLLAMA_MODEL..." && curl -s -X POST http://ollama:11434/api/pull -d "{\"name\": \"$$OLLAMA_MODEL\"}"'
+
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: parakh-chromadb
+    volumes:
+      - chroma_data:/chroma/chroma
+    ports:
+      - "8001:8000"
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    container_name: parakh-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+      chromadb:
+        condition: service_started
+    volumes:
+      - ./backend:/app
+      - ./uploads:/app/uploads
+      - ./reports:/app/reports
+      - ./database:/app/database
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    container_name: parakh-frontend
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  ollama_models:
+  chroma_data:
