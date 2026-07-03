@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/presentation/logo.jpg" alt="PARAKH Logo" width="120" height="120" style="border-radius: 20%;" />
+  <img src="assets/images/logo.jpg" alt="PARAKH Logo" width="120" height="120" style="border-radius: 20%;" />
 
   <h1>GSEB PARAKH AI Assessment Platform</h1>
   
@@ -18,7 +18,7 @@
     <em>Generate competency-tagged questions, create OMR sheets, grade via computer vision, and view district-wide analytics—all without internet or API costs.</em>
   </p>
 
-  <img src="docs/presentation/preview.jpg" alt="Application Dashboard Preview" style="max-width: 800px; width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />
+  <img src="assets/images/preview.jpg" alt="Application Dashboard Preview" style="max-width: 800px; width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />
 </div>
 
 <br />
