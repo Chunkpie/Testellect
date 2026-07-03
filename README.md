@@ -103,10 +103,10 @@ Once the containers are running, access the platform at:
 
 | Role | Login Portal | Email | Password |
 | :--- | :--- | :--- | :--- |
-| **Teacher** | `/login` | `teacher@demo.local` | `Demo@123` |
-| **Principal** | `/login` | `principal@demo.local` | `Demo@123` |
-| **DEO** | `/admin/login` | `deo@demo.local` | `Demo@123` |
-| **System Admin** | `/admin/login` | `admin@demo.local` | `Demo@123` |
+| **Teacher** | `/login` | `r.sharma@gseb.org` | `Teacher@123` |
+| **Principal** | `/login` | `a.patel@gseb.org` | `Principal@123` |
+| **DEO** | `/login` | `v.singh@gseb.org` | `Deo@123` |
+| **System Admin** | `/login` | `admin@gseb.org` | `Admin@123` |
 
 ---
 
