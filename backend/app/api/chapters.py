@@ -211,9 +211,12 @@ async def extract_book_text(
     }
 
 
+from fastapi import BackgroundTasks
+
 @router.post("/{book_id}/analyze")
 async def analyze_book(
     book_id: int,
+    background_tasks: BackgroundTasks,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -222,16 +225,21 @@ async def analyze_book(
     if not book:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
 
-    ai = AiService()
-    pipeline_result = await ai.analyze_book(db, book_id, user_id=str(user.id) if hasattr(user, "id") else None)
+    book.processing_status = "processing"
+    await db.commit()
+
+    async def run_analysis(b_id: int, u_id: str | None):
+        from app.core.database import async_session_factory
+        async with async_session_factory() as session:
+            ai = AiService()
+            await ai.analyze_book(session, b_id, user_id=u_id)
+
+    background_tasks.add_task(run_analysis, book_id, str(user.id) if hasattr(user, "id") else None)
 
     return {
         "id": book.id,
-        "status": book.processing_status,
-        "job_id": pipeline_result.get("job_id"),
-        "stages": pipeline_result.get("stages", {}),
-        "success": pipeline_result.get("success", False),
-        "message": "Pipeline completed" if pipeline_result.get("success") else "Pipeline completed with errors",
+        "status": "processing",
+        "message": "Pipeline started in the background",
     }
 
 
