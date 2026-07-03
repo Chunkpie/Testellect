@@ -17,37 +17,39 @@
   <p>
     <em>Generate competency-tagged questions, create OMR sheets, grade via computer vision, and view district-wide analytics—all without internet or API costs.</em>
   </p>
+
+  <img src="docs/presentation/preview.jpg" alt="Application Dashboard Preview" style="max-width: 800px; width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />
 </div>
 
 <br />
 
-## 🌟 Why This Exists
+## Project Overview
 
-India's **National Education Policy (NEP) 2020** mandates competency-based assessments via the PARAKH and NAS frameworks. However, government schools often lack the budget for cloud AI subscriptions or expensive pre-printed OMR sheets, and many operate in low-connectivity areas.
+India's National Education Policy (NEP) 2020 mandates competency-based assessments via the PARAKH and NAS frameworks. However, government schools often lack the budget for cloud AI subscriptions or expensive pre-printed OMR sheets, and many operate in low-connectivity areas.
 
-This platform solves these problems by providing a **100% offline, privacy-first AI assessment ecosystem** that runs directly on school hardware.
+This platform solves these problems by providing a 100% offline, privacy-first AI assessment ecosystem that runs directly on school hardware.
 
 ---
 
-## ✨ Key Features
+## Key Features
 
-### 🤖 1. Local AI Question Generation
+### 1. Local AI Question Generation
 *   **Zero Cloud Costs:** Uses local open-source LLMs (Llama 3.1 / Qwen) via Ollama. No OpenAI/Google API bills.
 *   **Curriculum Aligned:** Upload GSEB chapter PDFs and let the AI extract concepts mapped directly to Bloom's Taxonomy.
-*   **Multi-Language Mastery:** Automatically generates grammatically perfect MCQs in **English, Hindi, and Gujarati** with full Devanagari/Gujarati Unicode font support.
+*   **Multi-Language Mastery:** Automatically generates grammatically perfect MCQs in English, Hindi, and Gujarati with full Devanagari/Gujarati Unicode font support.
 
-### 📝 2. End-to-End Exam Management
+### 2. End-to-End Exam Management
 *   **Exam Blueprints:** Design test structures defining competency distributions and difficulty ratios.
 *   **Anti-Cheating Variants:** One click generates Set A, B, C, D with shuffled question orders.
 *   **Primary School Image Bank:** Supports visual scenario-based questions for Grades 1–5, auto-linking uploaded images to generated questions.
 
-### 📷 3. Computer Vision OMR Grading
-*   **Print on A4 Paper:** Generates custom OMR sheets embedded with QR codes that schools can print on standard A4 paper (saving ₹3-5 per student).
+### 3. Computer Vision OMR Grading
+*   **Print on A4 Paper:** Generates custom OMR sheets embedded with QR codes that schools can print on standard A4 paper.
 *   **Instant Grading:** Teachers scan filled sheets using any standard webcam or smartphone camera.
 *   **OpenCV Powered:** Accurately detects filled bubbles and maps them to student roll numbers instantly.
 
-### 📊 4. Deep Competency Analytics
-*   **Actionable Insights:** Tracks performance not just by total marks, but by specific competencies (e.g., *Knowledge, Understanding, Application*).
+### 4. Deep Competency Analytics
+*   **Actionable Insights:** Tracks performance not just by total marks, but by specific competencies (e.g., Knowledge, Understanding, Application).
 *   **Multi-Tier Dashboards:**
     *   **Teacher:** Class-level remediation tracking.
     *   **Principal:** School-wide subject comparisons.
@@ -56,7 +58,7 @@ This platform solves these problems by providing a **100% offline, privacy-first
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 <div align="center">
 
@@ -73,7 +75,7 @@ This platform solves these problems by providing a **100% offline, privacy-first
 
 ---
 
-## 🚀 Quick Start (Docker)
+## Quick Start (Docker)
 
 The fastest way to get the platform running is via Docker. 
 
@@ -88,7 +90,7 @@ cd gseb-parakh
 docker compose up -d --build
 ```
 
-*Note: On first run, the system will automatically pull the required AI language model. This is a ~5GB download and may take several minutes.*
+*Note: On first run, the system will automatically pull the required AI language model. This is a large download and may take several minutes.*
 
 ### Access Points
 
@@ -97,7 +99,7 @@ Once the containers are running, access the platform at:
 *   **Platform UI:** `http://localhost:80`
 *   **Backend API Docs:** `http://localhost:8000/docs`
 
-### 🔑 Demo Credentials
+### Demo Credentials
 
 | Role | Login Portal | Email | Password |
 | :--- | :--- | :--- | :--- |
@@ -108,7 +110,7 @@ Once the containers are running, access the platform at:
 
 ---
 
-## 💻 Manual Development Setup
+## Manual Development Setup
 
 If you prefer to run the services locally without Docker for active development:
 
@@ -136,7 +138,7 @@ ollama run qwen3:8b
 
 ---
 
-## 🔒 Security & Privacy Architecture
+## Security & Privacy Architecture
 
 *   **Role-Based Access Control (RBAC):** Strict separation between School operations and District/Admin operations.
 *   **JWT Authentication:** Uses secure, HttpOnly cookies for session management to prevent XSS token theft.
@@ -144,7 +146,7 @@ ollama run qwen3:8b
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```text
 gseb-parakh/
@@ -168,5 +170,5 @@ gseb-parakh/
 
 ---
 <div align="center">
-  <p>Made with ❤️ for the educators and students of Gujarat.</p>
+  <p>Engineered for the educators and students of Gujarat.</p>
 </div>
