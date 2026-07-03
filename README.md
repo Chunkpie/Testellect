@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://via.placeholder.com/150x150/1e293b/38bdf8?text=PARAKH" alt="PARAKH Logo" width="120" height="120" />
+  <img src="docs/presentation/logo.jpg" alt="PARAKH Logo" width="120" height="120" style="border-radius: 20%;" />
 
   <h1>GSEB PARAKH AI Assessment Platform</h1>
   
