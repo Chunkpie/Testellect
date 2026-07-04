@@ -9,7 +9,7 @@ from app.db.models.questions import QuestionBank, QuestionOption
 logger = logging.getLogger(__name__)
 
 GEMINI_API_KEY = "AQ.Ab8RN6IjLOZzm82IlK90EtOpIPOP4KfFAQvIpdcbkpopVlMXKg"
-GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={GEMINI_API_KEY}"
+GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
 
 TRANSLATION_PROMPT = """You are an expert translator for the Gujarat State Education Board (GSEB).
 Translate the following English school questions into {target_lang}.
