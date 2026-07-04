@@ -106,7 +106,7 @@ class OllamaClient:
                 raw = await self.generate(
                     prompt=prompt,
                     system=system,
-                    json_mode=False,
+                    json_mode=True,
                     temperature=temperature,
                     model=model,
                 )
