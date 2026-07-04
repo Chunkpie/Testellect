@@ -66,6 +66,8 @@ class ConceptAgent:
 
                     prompt = f"Topic: {topic.title_en}\n\nContent:\n{chunk_texts}\n\nExtract the distinct concepts taught in this topic."
 
+                    import asyncio
+                    await asyncio.sleep(4)
                     result_data = await self.ollama.generate_structured(
                         prompt=prompt,
                         system=CONCEPT_EXTRACTION_SYSTEM,

@@ -78,6 +78,7 @@ class CompetencyAgent:
                     "Map this concept to a learning outcome and the most appropriate existing competency or competencies."
                 )
 
+                await asyncio.sleep(4)
                 result_data = await self.ollama.generate_structured(
                     prompt=prompt,
                     system=COMPETENCY_MAPPING_SYSTEM,

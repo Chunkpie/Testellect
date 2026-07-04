@@ -82,21 +82,27 @@ export default function BooksPage() {
   const handleDelete = (id: string) => {
     if (!confirm('Delete this book?')) return
     deleteMutation.mutate(id, {
-      onSuccess: () => alert('Book deleted'),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['books'] })
+      },
       onError: (err: any) => alert(err?.response?.data?.detail || 'Delete failed'),
     })
   }
 
   const handleExtract = (id: string) => {
     extractMutation.mutate(id, {
-      onSuccess: () => alert('Text extraction started'),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['books'] })
+      },
       onError: (err: any) => alert(err?.response?.data?.detail || 'Extraction failed'),
     })
   }
 
   const handleAnalyze = (id: string) => {
     analyzeMutation.mutate(id, {
-      onSuccess: () => alert('AI analysis started'),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['books'] })
+      },
       onError: (err: any) => alert(err?.response?.data?.detail || 'Analysis failed'),
     })
   }
@@ -105,7 +111,9 @@ export default function BooksPage() {
     generateMutation.mutate(
       { id, params: { count: 10 } },
       {
-        onSuccess: (data) => alert(data?.message || 'Question generation started in the background.'),
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['books'] })
+        },
         onError: (err: any) => alert(err?.response?.data?.detail || 'Generation failed'),
       }
     )

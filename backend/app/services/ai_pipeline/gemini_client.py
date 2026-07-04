@@ -121,7 +121,16 @@ class GeminiClient:
                     if all(isinstance(i, dict) for i in parsed):
                         return {"items": parsed}
                 raise json.JSONDecodeError(f"Could not extract valid JSON object from response", raw, 0)
-            except (json.JSONDecodeError, httpx.HTTPStatusError) as e:
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code == 429:
+                    logger.warning(f"Rate limit exceeded (429). Waiting 60 seconds before retrying (attempt {attempt + 1}/{max_retries + 1})...")
+                    import asyncio
+                    await asyncio.sleep(60)
+                else:
+                    logger.warning(f"Gemini HTTP error (attempt {attempt + 1}/{max_retries + 1}): {e}")
+                    if attempt == max_retries:
+                        raise RuntimeError(f"Gemini generation failed after {max_retries + 1} retries") from e
+            except json.JSONDecodeError as e:
                 logger.warning(f"Gemini parse failed (attempt {attempt + 1}/{max_retries + 1}): {e}")
                 if attempt == max_retries:
                     raise RuntimeError(f"Gemini generation failed after {max_retries + 1} retries") from e
