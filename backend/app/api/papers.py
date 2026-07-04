@@ -103,6 +103,7 @@ async def get_paper_detail(
 
 
 @router.get("/{paper_id}/export")
+@router.get("/{paper_id}/download")
 async def export_paper_pdf(
     paper_id: int,
     lang: str = "english",
