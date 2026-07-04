@@ -28,7 +28,7 @@ class OllamaClient:
         return {
             "temperature": temperature if temperature is not None else self.temperature,
             "num_thread": self.num_thread,
-            "num_ctx": 16384,
+            "num_ctx": 4096,
             "num_predict": -1,
         }
 
