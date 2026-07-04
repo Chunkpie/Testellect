@@ -7,17 +7,18 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 class GeminiClient:
+    """Now acting as an OpenRouter Client, but keeping the name to prevent refactoring the whole codebase"""
     def __init__(
         self,
         api_key: str | None = None,
         model: str | None = None,
-        timeout_seconds: int = 60,
+        timeout_seconds: int = 120,
     ):
-        self.api_key = api_key or getattr(settings, "GEMINI_API_KEY", None)
-        self.model = "gemini-2.5-flash"
+        self.api_key = api_key or "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"
+        self.model = "llama-3.1-8b-instant"
         self.timeout_seconds = timeout_seconds
         self.timeout = httpx.Timeout(self.timeout_seconds)
-        self.base_url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
+        self.base_url = "https://api.groq.com/openai/v1/chat/completions"
 
     async def generate(
         self,
@@ -28,41 +29,48 @@ class GeminiClient:
         model: str | None = None,
     ) -> str:
         if not self.api_key:
-            raise RuntimeError("GEMINI_API_KEY is not set in the environment")
+            raise RuntimeError("OpenRouter API key is missing")
             
-        url = f"{self.base_url}?key={self.api_key}"
-        
-        # Gemini system instructions
-        system_instruction = None
-        if system:
-            system_instruction = {"parts": [{"text": system}]}
-            
-        contents = [{"role": "user", "parts": [{"text": prompt}]}]
-
-        payload: dict[str, Any] = {
-            "contents": contents,
-            "generationConfig": {
-                "temperature": temperature if temperature is not None else 0.2,
-            }
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://gseb-parakh.local",
+            "X-Title": "GSEB Parakh"
         }
         
-        if system_instruction:
-            payload["systemInstruction"] = system_instruction
+        messages = []
+        if system:
+            messages.append({"role": "system", "content": system})
+            
+        messages.append({"role": "user", "content": prompt})
+
+        payload: dict[str, Any] = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": temperature if temperature is not None else 0.2,
+        }
         
         if json_mode:
-            payload["generationConfig"]["responseMimeType"] = "application/json"
+            payload["response_format"] = {"type": "json_object"}
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:
-            response = await client.post(url, json=payload)
+            response = await client.post(self.base_url, headers=headers, json=payload)
             response.raise_for_status()
             data = response.json()
             try:
-                return data["candidates"][0]["content"]["parts"][0]["text"]
+                return data["choices"][0]["message"]["content"]
             except (KeyError, IndexError):
                 return ""
 
     def _extract_json(self, text: str) -> str | None:
         text = text.strip()
+        # Some models return json enclosed in markdown backticks
+        if text.startswith("```json"):
+            text = text[7:]
+        if text.endswith("```"):
+            text = text[:-3]
+        text = text.strip()
+
         for start_char, end_char in [("{", "}"), ("[", "]")]:
             start = text.find(start_char)
             if start >= 0:
@@ -87,12 +95,24 @@ class GeminiClient:
         return text
 
     def _parse_json_lenient(self, text: str) -> dict | list | None:
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError:
+            pass
+
+        extracted = self._extract_json(text)
+        if extracted:
+            try:
+                return json.loads(extracted)
+            except json.JSONDecodeError:
+                pass
+
         fixed = self._fix_json(text)
-        extracted = self._extract_json(fixed)
-        if not extracted:
+        extracted_fixed = self._extract_json(fixed)
+        if not extracted_fixed:
             return None
         try:
-            return json.loads(extracted)
+            return json.loads(extracted_fixed)
         except json.JSONDecodeError:
             return None
 
@@ -115,11 +135,15 @@ class GeminiClient:
                     model=model,
                 )
                 parsed = self._parse_json_lenient(raw)
+                import asyncio
                 if isinstance(parsed, dict):
+                    await asyncio.sleep(8)
                     return parsed
                 if isinstance(parsed, list):
                     if all(isinstance(i, dict) for i in parsed):
+                        await asyncio.sleep(8)
                         return {"items": parsed}
+                logger.error(f"Failed to parse JSON. Raw output: {raw}")
                 raise json.JSONDecodeError(f"Could not extract valid JSON object from response", raw, 0)
             except httpx.HTTPStatusError as e:
                 if e.response.status_code == 429:
@@ -127,11 +151,17 @@ class GeminiClient:
                     import asyncio
                     await asyncio.sleep(60)
                 else:
-                    logger.warning(f"Gemini HTTP error (attempt {attempt + 1}/{max_retries + 1}): {e}")
+                    logger.warning(f"HTTP error {e.response.status_code} (attempt {attempt + 1}/{max_retries + 1}): {e.response.text}")
                     if attempt == max_retries:
-                        raise RuntimeError(f"Gemini generation failed after {max_retries + 1} retries") from e
-            except json.JSONDecodeError as e:
-                logger.warning(f"Gemini parse failed (attempt {attempt + 1}/{max_retries + 1}): {e}")
+                        raise RuntimeError(f"OpenRouter generation failed after {max_retries + 1} retries") from e
+            except httpx.RequestError as e:
+                logger.warning(f"Network error {type(e).__name__} (attempt {attempt + 1}/{max_retries + 1}): {str(e)}")
+                import asyncio
+                await asyncio.sleep(5)
                 if attempt == max_retries:
-                    raise RuntimeError(f"Gemini generation failed after {max_retries + 1} retries") from e
+                    raise RuntimeError(f"OpenRouter generation failed after {max_retries + 1} retries") from e
+            except json.JSONDecodeError as e:
+                logger.warning(f"JSON parse failed (attempt {attempt + 1}/{max_retries + 1}): {str(e)}")
+                if attempt == max_retries:
+                    raise RuntimeError(f"OpenRouter generation failed after {max_retries + 1} retries") from e
         return {}

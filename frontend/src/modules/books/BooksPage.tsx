@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import * as subjectsApi from '@/api/subjects'
 import { useBooks, useUploadBook, useExtractBook, useAnalyzeBook, useGenerateQuestions, useDeleteBook } from '@/hooks/useBooks'
 import { useAuthStore } from '@/stores/authStore'
@@ -40,6 +40,7 @@ const statusColor: Record<string, string> = {
 export default function BooksPage() {
   const { t } = useTranslation()
   const user = useAuthStore((s) => s.user)
+  const queryClient = useQueryClient()
   const [uploadOpen, setUploadOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [grade, setGrade] = useState('10')
@@ -112,9 +113,10 @@ export default function BooksPage() {
       { id, params: { count: 10 } },
       {
         onSuccess: () => {
+          alert('Generating 15 papers in the background... This may take a few minutes. Check the Papers tab later!')
           queryClient.invalidateQueries({ queryKey: ['books'] })
         },
-        onError: (err: any) => alert(err?.response?.data?.detail || 'Generation failed'),
+        onError: (err: any) => alert(err?.response?.data?.detail || 'Paper generation failed'),
       }
     )
   }
@@ -208,7 +210,7 @@ export default function BooksPage() {
                               <Button variant="ghost" size="icon" title="AI Analysis" onClick={() => handleAnalyze(book.id)} disabled={analyzeMutation.isPending}>
                                 <Brain className="h-4 w-4" />
                               </Button>
-                              <Button variant="ghost" size="icon" title="Generate questions" onClick={() => handleGenerateQuestions(book.id)} disabled={generateMutation.isPending}>
+                              <Button variant="ghost" size="icon" title="Generate Papers (Auto)" onClick={() => handleGenerateQuestions(book.id)} disabled={generateMutation.isPending}>
                                 <Sparkles className="h-4 w-4" />
                               </Button>
                               <Button variant="ghost" size="icon" title="Delete" onClick={() => handleDelete(book.id)} disabled={deleteMutation.isPending}>

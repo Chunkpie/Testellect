@@ -9,6 +9,13 @@ export function useBooks(params?: {
   return useQuery({
     queryKey: ['books', params],
     queryFn: () => booksApi.getBooks(params),
+    refetchInterval: (query) => {
+      const data = query.state.data as { items: any[] } | undefined
+      if (data?.items && data.items.some((b: any) => !['ready', 'failed', 'uploaded', 'failed_extraction', 'failed_upload'].includes(b.processing_status))) {
+        return 3000
+      }
+      return false
+    },
   })
 }
 

@@ -32,7 +32,6 @@ REQUIREMENTS (strict):
 - Difficulty must match "{difficulty}" level
 - Question text must be self-contained (include the scenario)
 - All text MUST be exclusively in {language}
-- Ground the question in the provided context text
 {image_requirement}
 
 CRITICAL: Respond with ONLY a valid JSON object. No markdown, no code fences, no extra text.
@@ -163,7 +162,7 @@ class AiService:
         lo_result = await db.execute(
             select(LearningOutcome).where(LearningOutcome.concept_id == concept_id)
         )
-        learning_outcome = lo_result.scalar_one_or_none()
+        learning_outcome = lo_result.scalars().first()
 
         competency_name = "general"
         if learning_outcome:
@@ -172,22 +171,16 @@ class AiService:
                 .join(LearningOutcomeCompetency)
                 .where(LearningOutcomeCompetency.c.learning_outcome_id == learning_outcome.id)
             )
-            competency = comp_result.scalar_one_or_none()
+            competency = comp_result.scalars().first()
             if competency:
                 competency_name = competency.name_en
 
-        context_chunks: list = []
-        if book:
-            chk_result = await db.execute(
-                select(KnowledgeChunk)
-                .where(KnowledgeChunk.book_id == book.id)
-                .limit(5)
-            )
-            context_chunks = chk_result.scalars().all() if chk_result else []
-
         context_list = [
-            {"text": c.chunk_text, "chapter_title": "", "topic_title": topic.title_en if topic else ""}
-            for c in context_chunks
+            {
+                "text": f"Concept: {concept.name_en}", 
+                "chapter_title": chapter.title_en if chapter else "", 
+                "topic_title": topic.title_en if topic else ""
+            }
         ]
 
         return grade, concept.name_en, competency_name, context_list
@@ -211,7 +204,7 @@ class AiService:
             try:
                 sp, prompt = build_prompt(system_prompt, context_list, task_variant)
                 result = await self.ollama.generate_structured(
-                    prompt=prompt, system=sp, temperature=temperature, max_retries=1,
+                    prompt=prompt, system=sp, temperature=temperature, max_retries=5,
                 )
                 error = _validate_question(result)
                 if error:
@@ -506,3 +499,76 @@ class AiService:
             "intent": intent,
             "conversation_id": conversation_id,
         }
+
+    async def generate_and_create_papers(
+        self,
+        db: AsyncSession,
+        book_id: int,
+        user_id: int,
+        school_id: int | None = None,
+        total_questions: int = 150,
+        num_papers: int = 15,
+        questions_per_paper: int = 40,
+    ) -> None:
+        from app.services.paper_generator import create_blueprint_and_papers
+        
+        # 1. Fetch all concepts for this book
+        concepts_result = await db.execute(
+            select(Concept)
+            .join(Concept.topic)
+            .join(Topic.chapter)
+            .where(Chapter.book_id == book_id)
+        )
+        concepts = concepts_result.scalars().all()
+        if not concepts:
+            logger.error(f"No concepts found for book {book_id}")
+            return
+            
+        import random
+        random.shuffle(concepts)
+        
+        # 2. Loop and generate questions
+        generated_questions = []
+        for i in range(total_questions):
+            c = concepts[i % len(concepts)]
+            logger.info(f"Generating question {i+1}/{total_questions} from concept: {c.name_en}")
+            
+            # Use generate_questions_batched to automatically save to DB
+            try:
+                # We fetch the exact DB object since generate_questions_batched returns dicts
+                # But it actually commits them. Let's just grab all questions for this book after generation.
+                await self.generate_questions_batched(
+                    db=db,
+                    concept_id=c.id,
+                    total_count=1,
+                    batch_size=1,
+                    school_id=school_id
+                )
+            except Exception as e:
+                logger.error(f"Error generating question for concept {c.id}: {e}")
+
+        logger.info("Questions generated. Fetching all questions for this book to create papers...")
+        # Fetch the newly generated questions for this book
+        q_res = await db.execute(
+            select(QuestionBank)
+            .join(QuestionBank.concept)
+            .join(Concept.topic)
+            .join(Topic.chapter)
+            .where(Chapter.book_id == book_id)
+            .order_by(QuestionBank.created_at.desc())
+            .limit(total_questions * 2) # Get recent
+        )
+        all_book_qs = q_res.scalars().all()
+        
+        if len(all_book_qs) >= questions_per_paper:
+            await create_blueprint_and_papers(
+                db=db,
+                book_id=book_id,
+                user_id=user_id,
+                school_id=school_id or 0,
+                questions=all_book_qs,
+                num_papers=num_papers,
+                questions_per_paper=questions_per_paper
+            )
+        else:
+            logger.error("Not enough questions generated to create papers")

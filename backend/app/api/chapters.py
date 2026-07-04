@@ -260,46 +260,25 @@ async def generate_questions_for_book(
     if not book:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
 
-    async def run_generation(b_id: int, c_id: int | None, u_school_id: int | None):
+    async def run_generation(b_id: int, u_id: int, u_school_id: int | None):
         from app.core.database import async_session_factory
         async with async_session_factory() as session:
             ai = AiService()
-            if c_id:
-                try:
-                    await ai.generate_questions(
-                        db=session,
-                        concept_id=c_id,
-                        count=count,
-                        bloom_level=bloom_level,
-                        difficulty=difficulty,
-                        question_type=question_type,
-                        school_id=u_school_id,
-                    )
-                except ValueError:
-                    pass
-            else:
-                concepts_result = await session.execute(
-                    select(Concept)
-                    .join(Concept.topic)
-                    .join(Topic.chapter)
-                    .where(Chapter.book_id == b_id)
+            try:
+                await ai.generate_and_create_papers(
+                    db=session,
+                    book_id=b_id,
+                    user_id=u_id,
+                    school_id=u_school_id,
+                    total_questions=150,
+                    num_papers=15,
+                    questions_per_paper=40
                 )
-                concepts = concepts_result.scalars().all()
-                for c in concepts[:5]:
-                    try:
-                        await ai.generate_questions(
-                            db=session,
-                            concept_id=c.id,
-                            count=max(1, count // 5),
-                            bloom_level=bloom_level,
-                            difficulty=difficulty,
-                            question_type=question_type,
-                            school_id=u_school_id,
-                        )
-                    except ValueError:
-                        continue
+            except Exception as e:
+                import logging
+                logging.error(f"Error in generate_and_create_papers: {e}")
 
-    background_tasks.add_task(run_generation, book_id, concept_id, user.school_id)
+    background_tasks.add_task(run_generation, book_id, user.id, user.school_id)
 
     return {
         "book_id": book_id,

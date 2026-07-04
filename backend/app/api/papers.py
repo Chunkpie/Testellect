@@ -127,6 +127,9 @@ async def export_paper_pdf(
     if scope is not None and blueprint and blueprint.school_id != user.school_id:
         raise HTTPException(status_code=403, detail="Access denied")
 
+    from app.services.translation_service import translate_paper_questions
+    await translate_paper_questions(db, paper_id, lang)
+
     pqs_result = await db.execute(
         select(PaperQuestion).where(PaperQuestion.paper_id == paper_id).order_by(PaperQuestion.sequence)
     )
@@ -183,10 +186,14 @@ async def export_paper_pdf(
                 "options": options_list
             })
 
+    from app.db.models.curriculum import Subject
+    subject = await db.get(Subject, blueprint.subject_id) if blueprint else None
+    
     paper_info = {
         "name": paper.variant_label,
         "grade": blueprint.grade if blueprint else 0,
         "subject_id": blueprint.subject_id if blueprint else 0,
+        "subject_name": subject.name_en if subject else "General",
         "total_marks": float(blueprint.total_marks) if blueprint else 0,
         "duration_minutes": blueprint.duration_minutes or 0,
     }

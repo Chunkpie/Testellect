@@ -261,6 +261,9 @@ export default function PapersPage() {
   const [viewingPaper, setViewingPaper] = useState<Paper | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Paper | null>(null)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [downloadTarget, setDownloadTarget] = useState<Paper | null>(null)
+  const [downloadLanguage, setDownloadLanguage] = useState<'english' | 'hindi' | 'gujarati'>('english')
+  const [isDownloading, setIsDownloading] = useState(false)
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['papers', offset],
@@ -400,30 +403,9 @@ export default function PapersPage() {
                             size="icon"
                             title={t('papers.download_pdf')}
                             className="text-blue-500 hover:text-blue-400"
-                            onClick={async () => {
-                              try {
-                                const blob = await papersApi.exportPaperPdf(paper.id)
-                                const url = window.URL.createObjectURL(blob)
-                                const a = document.createElement('a')
-                                a.href = url
-                                a.download = `${paper.name.replace(/\s+/g, '_')}.pdf`
-                                document.body.appendChild(a)
-                                a.click()
-                                document.body.removeChild(a)
-                                window.URL.revokeObjectURL(url)
-                              } catch {
-                                try {
-                                  const blob = await papersApi.downloadPaper(paper.id)
-                                  const url = window.URL.createObjectURL(blob)
-                                  const a = document.createElement('a')
-                                  a.href = url
-                                  a.download = `${paper.name.replace(/\s+/g, '_')}.pdf`
-                                  document.body.appendChild(a)
-                                  a.click()
-                                  document.body.removeChild(a)
-                                  window.URL.revokeObjectURL(url)
-                                } catch {}
-                              }
+                            onClick={() => {
+                              setDownloadLanguage('english')
+                              setDownloadTarget(paper)
                             }}
                           >
                             <Download className="h-4 w-4" />
@@ -484,6 +466,66 @@ export default function PapersPage() {
         onConfirm={handleDeleteConfirm}
         isPending={deleteMutation.isPending}
       />
+
+      <Dialog open={!!downloadTarget} onOpenChange={(v) => { if (!v) setDownloadTarget(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Download Question Paper</DialogTitle>
+            <DialogDescription>
+              Select the language you want to generate the PDF in.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 my-4">
+            <Button 
+              variant={downloadLanguage === 'english' ? 'default' : 'outline'} 
+              onClick={() => setDownloadLanguage('english')}
+            >
+              English
+            </Button>
+            <Button 
+              variant={downloadLanguage === 'hindi' ? 'default' : 'outline'} 
+              onClick={() => setDownloadLanguage('hindi')}
+            >
+              Hindi
+            </Button>
+            <Button 
+              variant={downloadLanguage === 'gujarati' ? 'default' : 'outline'} 
+              onClick={() => setDownloadLanguage('gujarati')}
+            >
+              Gujarati
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setDownloadTarget(null)}>Cancel</Button>
+            <Button 
+              disabled={isDownloading} 
+              onClick={async () => {
+                if (!downloadTarget) return;
+                setIsDownloading(true);
+                try {
+                  const blob = await papersApi.exportPaperPdf(downloadTarget.id, downloadLanguage);
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `${downloadTarget.name.replace(/\s+/g, '_')}_${downloadLanguage}.pdf`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  window.URL.revokeObjectURL(url);
+                  setDownloadTarget(null);
+                } catch {
+                   alert('Failed to download paper');
+                } finally {
+                  setIsDownloading(false);
+                }
+              }}
+            >
+              {isDownloading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+              {isDownloading ? 'Generating...' : 'Download PDF'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

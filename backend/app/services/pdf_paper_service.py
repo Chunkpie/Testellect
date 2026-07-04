@@ -1,6 +1,7 @@
 import os
 import io
 import urllib.request
+from datetime import datetime
 from typing import List, Dict, Any
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
@@ -14,11 +15,10 @@ from app.core.config import settings
 FONTS_DIR = os.path.join(settings.FILE_STORAGE_PATH, "fonts")
 os.makedirs(FONTS_DIR, exist_ok=True)
 
-# URLs for Noto Sans fonts for multi-language support
+# URLs for Mukta fonts for multi-language support (supports both Latin and Regional)
 FONTS_TO_DOWNLOAD = {
-    "NotoSans-Regular.ttf": "https://github.com/googlefonts/noto-fonts/raw/main/hinted/ttf/NotoSans/NotoSans-Regular.ttf",
-    "NotoSansDevanagari-Regular.ttf": "https://github.com/googlefonts/noto-fonts/raw/main/hinted/ttf/NotoSansDevanagari/NotoSansDevanagari-Regular.ttf",
-    "NotoSansGujarati-Regular.ttf": "https://github.com/googlefonts/noto-fonts/raw/main/hinted/ttf/NotoSansGujarati/NotoSansGujarati-Regular.ttf"
+    "Mukta-Regular.ttf": "https://raw.githubusercontent.com/google/fonts/main/ofl/mukta/Mukta-Regular.ttf",
+    "MuktaVaani-Regular.ttf": "https://raw.githubusercontent.com/google/fonts/main/ofl/muktavaani/MuktaVaani-Regular.ttf"
 }
 
 def ensure_fonts():
@@ -37,9 +37,8 @@ class PDFPaperService:
         
     def _register_fonts(self):
         try:
-            pdfmetrics.registerFont(TTFont('NotoSans', os.path.join(FONTS_DIR, 'NotoSans-Regular.ttf')))
-            pdfmetrics.registerFont(TTFont('NotoDevanagari', os.path.join(FONTS_DIR, 'NotoSansDevanagari-Regular.ttf')))
-            pdfmetrics.registerFont(TTFont('NotoGujarati', os.path.join(FONTS_DIR, 'NotoSansGujarati-Regular.ttf')))
+            pdfmetrics.registerFont(TTFont('HindiFont', os.path.join(FONTS_DIR, 'Mukta-Regular.ttf')))
+            pdfmetrics.registerFont(TTFont('GujaratiFont', os.path.join(FONTS_DIR, 'MuktaVaani-Regular.ttf')))
         except Exception:
             pass # Fallback to default if fonts missing
 
@@ -63,9 +62,9 @@ class PDFPaperService:
         # Determine font based on language
         font_name = 'Helvetica'
         if language.lower() == 'hindi':
-            font_name = 'NotoDevanagari'
+            font_name = 'HindiFont'
         elif language.lower() == 'gujarati':
-            font_name = 'NotoGujarati'
+            font_name = 'GujaratiFont'
             
         # Fallback to Helvetica if TTF wasn't loaded
         if font_name not in pdfmetrics.getRegisteredFontNames():
@@ -76,7 +75,8 @@ class PDFPaperService:
             parent=styles['Heading1'],
             fontName=font_name,
             alignment=1, # Center
-            spaceAfter=12
+            spaceAfter=16,
+            textColor=colors.HexColor('#1e3a8a') # Dark blue
         )
         
         info_style = ParagraphStyle(
@@ -84,7 +84,9 @@ class PDFPaperService:
             parent=styles['Normal'],
             fontName=font_name,
             alignment=1,
-            spaceAfter=24
+            spaceAfter=8,
+            fontSize=11,
+            textColor=colors.HexColor('#4b5563') # Gray
         )
         
         question_style = ParagraphStyle(
@@ -106,10 +108,18 @@ class PDFPaperService:
         )
 
         # Header
-        Story.append(Paragraph(f"Paper: {paper_info['name']} (Language: {language.title()})", title_style))
-        info_text = f"Grade: {paper_info['grade']} | Subject ID: {paper_info['subject_id']} | Total Marks: {paper_info['total_marks']} | Duration: {paper_info['duration_minutes']} min"
+        current_date = datetime.now().strftime("%d %B %Y")
+        Story.append(Paragraph("<b>GSEB-NAS Model Test Paper</b>", title_style))
+        Story.append(Paragraph(f"Paper Variant: {paper_info.get('name', 'N/A')} | Date: {current_date} | Language: {language.title()}", info_style))
+        
+        # We try to show the actual subject name if available instead of just subject ID
+        sub_name = paper_info.get('subject_name', f"ID {paper_info.get('subject_id', 'N/A')}")
+        duration = paper_info.get('duration_minutes')
+        if not duration:
+            duration = 60
+        info_text = f"Grade: {paper_info.get('grade', 'N/A')} | Subject: {sub_name} | Total Marks: {paper_info.get('total_marks', 'N/A')} | Duration: {duration} min"
         Story.append(Paragraph(info_text, info_style))
-        Story.append(Spacer(1, 12))
+        Story.append(Spacer(1, 24))
 
         # Questions
         for q in questions:

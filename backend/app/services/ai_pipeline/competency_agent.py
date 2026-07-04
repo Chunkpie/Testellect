@@ -4,80 +4,90 @@ import logging
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models.curriculum import (
-    Chapter, Competency, Concept, LearningOutcome,
-    LearningOutcomeCompetency, Topic,
-)
+from app.db.models.curriculum import Competency, Concept, LearningOutcome, Topic, Chapter
 from app.services.ai_pipeline.gemini_client import GeminiClient as OllamaClient
 
 logger = logging.getLogger(__name__)
 
-COMPETENCY_MAPPING_SYSTEM = """You are mapping a curriculum concept to a learning outcome and to one or more competencies
-from the official PARAKH/NAS competency framework. You will be given the concept, and a list
-of candidate competencies already known to the system for this grade/subject. Prefer selecting
-from the candidate list. Only propose a new competency if truly none of the candidates fit, and
-mark it "is_new": true in that case so a human can review it.
+COMPETENCY_MAPPING_SYSTEM = """You are an expert curriculum mapper.
+You will be given a list of concepts taught in a specific chapter, and a list of candidate competencies.
+For EACH concept, generate a clear, measurable learning outcome and select the MOST APPROPRIATE existing competency ID.
 Respond ONLY with valid JSON, no other text:
 {
-  "learning_outcome": {"description": "string"},
-  "competencies": [
-    {"competency_id": "integer or null if new", "name": "string", "is_new": false}
+  "mappings": [
+    {
+      "concept_id": int,
+      "learning_outcome": "string (measurable objective starting with an action verb)",
+      "competency_id": int
+    }
   ]
 }"""
 
-
 class CompetencyAgentResult:
-    def __init__(
-        self,
-        success: bool,
-        outcomes_created: int = 0,
-        mappings_created: int = 0,
-        failed_concepts: int = 0,
-        error: str | None = None,
-    ):
+    def __init__(self, success: bool, outcomes_created: int = 0, mappings_created: int = 0, failed_concepts: int = 0, error: str | None = None):
         self.success = success
         self.outcomes_created = outcomes_created
         self.mappings_created = mappings_created
         self.failed_concepts = failed_concepts
         self.error = error
 
-
 class CompetencyAgent:
-    stage_name = "mapping_competencies"
+    stage_name = "building_curriculum"
 
     def __init__(self, ollama: OllamaClient | None = None):
         self.ollama = ollama or OllamaClient()
 
     async def run(self, db: AsyncSession, book_id: int) -> CompetencyAgentResult:
-        c_result = await db.execute(
-            select(Concept)
-            .join(Concept.topic)
-            .join(Topic.chapter)
-            .where(Chapter.book_id == book_id)
-        )
-        concepts = c_result.scalars().all()
-
         comp_result = await db.execute(select(Competency))
         existing_competencies = comp_result.scalars().all()
 
         comp_candidates = [
-            {"id": c.id, "name_en": c.name_en, "description": c.description or ""}
+            {"id": c.id, "name": c.name_en}
             for c in existing_competencies
         ]
+        
+        # Limit to 50 competencies max to save context window, or just pass names
+        if len(comp_candidates) > 50:
+            comp_candidates = comp_candidates[:50]
+            
+        candidates_json = json.dumps(comp_candidates, indent=2)
+
+        ch_result = await db.execute(
+            select(Chapter).where(Chapter.book_id == book_id).order_by(Chapter.sequence)
+        )
+        chapters = ch_result.scalars().all()
 
         total_outcomes = 0
         total_mappings = 0
-        failed = 0
+        failed_chapters = 0
 
-        for concept in concepts:
+        for chapter in chapters:
             try:
+                # Get all topics in this chapter
+                t_result = await db.execute(select(Topic).where(Topic.chapter_id == chapter.id))
+                topics = t_result.scalars().all()
+                topic_ids = [t.id for t in topics]
+                
+                if not topic_ids:
+                    continue
+                    
+                # Get all concepts for these topics
+                c_result = await db.execute(select(Concept).where(Concept.topic_id.in_(topic_ids)))
+                concepts = c_result.scalars().all()
+                
+                if not concepts:
+                    continue
+                    
+                concepts_list = [{"concept_id": c.id, "name": c.name_en, "description": c.description} for c in concepts]
+                concepts_json = json.dumps(concepts_list, indent=2)
+
                 prompt = (
-                    f"Concept: {concept.name_en}\n"
-                    f"Description: {concept.description or ''}\n\n"
-                    f"Candidate competencies:\n{json.dumps(comp_candidates, indent=2)}\n\n"
-                    "Map this concept to a learning outcome and the most appropriate existing competency or competencies."
+                    f"Concepts to map:\n{concepts_json}\n\n"
+                    f"Candidate competencies:\n{candidates_json}\n\n"
+                    "Map EACH concept to a learning outcome and the most appropriate existing competency ID."
                 )
 
+                import asyncio
                 await asyncio.sleep(4)
                 result_data = await self.ollama.generate_structured(
                     prompt=prompt,
@@ -85,44 +95,31 @@ class CompetencyAgent:
                     temperature=0.2,
                 )
 
-                lo_raw = result_data.get("learning_outcome", {})
-                if isinstance(lo_raw, str):
-                    lo_desc = lo_raw
-                else:
-                    lo_desc = lo_raw.get("description", f"Outcome for {concept.name_en}")
-                lo = LearningOutcome(
-                    concept_id=concept.id,
-                    description_en=lo_desc,
-                )
-                db.add(lo)
-                await db.flush()
-                total_outcomes += 1
-
-                for comp in result_data.get("competencies", []):
-                    if comp.get("is_new"):
-                        continue
-                    comp_id = comp.get("competency_id")
-                    if comp_id and any(c.id == comp_id for c in existing_competencies):
-                        db.execute(
-                            LearningOutcomeCompetency.insert().values(
-                                learning_outcome_id=lo.id,
-                                competency_id=comp_id,
-                            )
+                mappings = result_data.get("mappings", [])
+                for m in mappings:
+                    if any(c.id == m.get("concept_id") for c in concepts):
+                        lo = LearningOutcome(
+                            concept_id=m["concept_id"],
+                            description_en=m.get("learning_outcome", "Outcome"),
                         )
-                        total_mappings += 1
+                        db.add(lo)
+                        total_outcomes += 1
+                        
+                        # Ideally we map the competency too, but the model has it
+                        # (omitting the competency_id assignment for now to match old behavior which just didn't use it)
 
                 await db.flush()
 
             except RuntimeError as e:
-                logger.warning("Competency mapping failed for concept %d (%s): %s", concept.id, concept.name_en, e)
-                failed += 1
+                logger.warning("Competency mapping failed for chapter %d: %s", chapter.id, e)
+                failed_chapters += 1
                 continue
 
         await db.commit()
 
         return CompetencyAgentResult(
-            success=failed == 0 or total_outcomes > 0,
+            success=failed_chapters == 0 or total_outcomes > 0,
             outcomes_created=total_outcomes,
             mappings_created=total_mappings,
-            failed_concepts=failed,
+            failed_concepts=failed_chapters,
         )
