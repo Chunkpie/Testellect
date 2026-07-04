@@ -105,7 +105,7 @@ export default function BooksPage() {
     generateMutation.mutate(
       { id, params: { count: 10 } },
       {
-        onSuccess: (data) => alert(`Generated ${data?.questions_generated || 0} questions`),
+        onSuccess: (data) => alert(data?.message || 'Question generation started in the background.'),
         onError: (err: any) => alert(err?.response?.data?.detail || 'Generation failed'),
       }
     )

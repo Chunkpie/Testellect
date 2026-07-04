@@ -161,7 +161,7 @@ async def export_paper_pdf(
                     
             ordered_opts = opts
             if order and len(order) == len(opts):
-                ordered_opts = [opts[i] for i in order]
+                ordered_opts = [opts[int(i)] for i in order]
 
             options_list = []
             prefixes = ['A)', 'B)', 'C)', 'D)']

@@ -246,6 +246,7 @@ async def analyze_book(
 @router.post("/{book_id}/generate-questions")
 async def generate_questions_for_book(
     book_id: int,
+    background_tasks: BackgroundTasks,
     concept_id: int | None = Query(None),
     count: int = Query(5, ge=1, le=50),
     bloom_level: str = Query("understand"),
@@ -259,47 +260,50 @@ async def generate_questions_for_book(
     if not book:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
 
-    ai = AiService()
-
-    if concept_id:
-        try:
-            questions = await ai.generate_questions(
-                db=db,
-                concept_id=concept_id,
-                count=count,
-                bloom_level=bloom_level,
-                difficulty=difficulty,
-                question_type=question_type,
-                school_id=user.school_id,
-            )
-        except ValueError as e:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    else:
-        concepts_result = await db.execute(
-            select(Concept)
-            .join(Concept.topic)
-            .join(Topic.chapter)
-            .where(Chapter.book_id == book_id)
-        )
-        concepts = concepts_result.scalars().all()
-        questions = []
-        for c in concepts[:5]:
-            try:
-                qs = await ai.generate_questions(
-                    db=db,
-                    concept_id=c.id,
-                    count=max(1, count // 5),
-                    bloom_level=bloom_level,
-                    difficulty=difficulty,
-                    question_type=question_type,
-                    school_id=user.school_id,
+    async def run_generation(b_id: int, c_id: int | None, u_school_id: int | None):
+        from app.core.database import async_session_factory
+        async with async_session_factory() as session:
+            ai = AiService()
+            if c_id:
+                try:
+                    await ai.generate_questions(
+                        db=session,
+                        concept_id=c_id,
+                        count=count,
+                        bloom_level=bloom_level,
+                        difficulty=difficulty,
+                        question_type=question_type,
+                        school_id=u_school_id,
+                    )
+                except ValueError:
+                    pass
+            else:
+                concepts_result = await session.execute(
+                    select(Concept)
+                    .join(Concept.topic)
+                    .join(Topic.chapter)
+                    .where(Chapter.book_id == b_id)
                 )
-                questions.extend(qs)
-            except ValueError:
-                continue
+                concepts = concepts_result.scalars().all()
+                for c in concepts[:5]:
+                    try:
+                        await ai.generate_questions(
+                            db=session,
+                            concept_id=c.id,
+                            count=max(1, count // 5),
+                            bloom_level=bloom_level,
+                            difficulty=difficulty,
+                            question_type=question_type,
+                            school_id=u_school_id,
+                        )
+                    except ValueError:
+                        continue
+
+    background_tasks.add_task(run_generation, book_id, concept_id, user.school_id)
 
     return {
         "book_id": book_id,
-        "questions_generated": len(questions),
-        "questions": questions[:count],
+        "questions_generated": 0,
+        "message": "Question generation started in the background",
+        "questions": [],
     }
