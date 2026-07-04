@@ -4,7 +4,7 @@ from typing import Any
 import httpx
 
 from app.core.config import settings
-from app.services.ai_pipeline.ollama_client import OllamaClient
+from app.services.ai_pipeline.gemini_client import GeminiClient as OllamaClient
 
 logger = logging.getLogger(__name__)
 

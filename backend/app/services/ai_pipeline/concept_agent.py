@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.curriculum import Chapter, Concept, KnowledgeChunk, Topic
-from app.services.ai_pipeline.ollama_client import OllamaClient
+from app.services.ai_pipeline.gemini_client import GeminiClient as OllamaClient
 
 logger = logging.getLogger(__name__)
 

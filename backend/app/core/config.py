@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 14
     OLLAMA_BASE_URL: str = "http://ollama:11434"
     OLLAMA_MODEL: str = "qwen2.5:1.5b"
+    GEMINI_API_KEY: str | None = None
     OLLAMA_FALLBACK_MODELS: list[str] = []
     OLLAMA_TIMEOUT: int = 300
     OLLAMA_NUM_THREAD: int = 8

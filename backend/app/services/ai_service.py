@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.db.models.curriculum import Book, Chapter, Competency, Concept, KnowledgeChunk, LearningOutcome, LearningOutcomeCompetency, Topic
 from app.db.models.questions import QuestionBank, QuestionOption
-from app.services.ai_pipeline.ollama_client import OllamaClient
+from app.services.ai_pipeline.gemini_client import GeminiClient as OllamaClient
 from app.services.ai_pipeline.prompt_builder import build_prompt
 from app.services.ai_pipeline.pipeline_orchestrator import PipelineOrchestrator
 from app.services.ai_pipeline.retrieval import ChromaDBClient

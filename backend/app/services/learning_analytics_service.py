@@ -5,7 +5,7 @@ from typing import Dict, Any, List
 
 from app.db.models.assessments import StudentResult, CompetencyResult, Assessment, Student
 from app.db.models.curriculum import Competency
-from app.services.ai_pipeline.ollama_client import OllamaClient
+from app.services.ai_pipeline.gemini_client import GeminiClient as OllamaClient
 from app.services.ai_pipeline.prompt_builder import build_prompt
 
 logger = logging.getLogger(__name__)

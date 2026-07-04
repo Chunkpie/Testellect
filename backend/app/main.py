@@ -20,9 +20,9 @@ _warmup_task: asyncio.Task | None = None
 
 async def _warmup_ollama():
     try:
-        from app.services.ai_pipeline.ollama_client import OllamaClient
+        from app.services.ai_pipeline.gemini_client import GeminiClient as OllamaClient
         client = OllamaClient(timeout_seconds=900)
-        logger.info("Pre-warming Ollama model (num_thread=%d, timeout=%d)...", client.num_thread, client.timeout_seconds)
+        logger.info("Pre-warming model (timeout=%d)...", client.timeout_seconds)
         await client.generate(
             prompt="Reply with just the word 'ready'.",
             system="You are a helpful assistant. Be concise.",

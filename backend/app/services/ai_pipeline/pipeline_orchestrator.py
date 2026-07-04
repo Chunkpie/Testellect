@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.admin import Job
 from app.db.models.curriculum import Book
-from app.services.ai_pipeline.ollama_client import OllamaClient
+from app.services.ai_pipeline.gemini_client import GeminiClient as OllamaClient
 from app.services.ai_pipeline.document_agent import DocumentAgent
 from app.services.ai_pipeline.curriculum_agent import CurriculumAgent
 from app.services.ai_pipeline.concept_agent import ConceptAgent

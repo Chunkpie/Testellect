@@ -13,7 +13,7 @@ from app.db.models.mcq_engine import (
     MCQEGenerationJob, MCQEngineCurriculum, MCQETextbook, MCQEConcept, MCQEMcq,
     MCQEQuestionPaper, MCQEQuestionPaperItem
 )
-from app.services.ai_pipeline.ollama_client import OllamaClient
+from app.services.ai_pipeline.gemini_client import GeminiClient as OllamaClient
 
 logger = logging.getLogger(__name__)
 
