@@ -151,8 +151,8 @@ async def list_students(
     stmt = stmt.order_by(Student.full_name).offset(offset).limit(limit)
     result = await db.execute(stmt)
     students = result.scalars().all()
-
-    return {"items": students, "total": total, "limit": limit, "offset": offset}
+    items = [StudentResponse.model_validate(s) for s in students]
+    return {"items": items, "total": total, "limit": limit, "offset": offset}
 
 
 @router.get("/students/{student_id}")
