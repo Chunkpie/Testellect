@@ -57,6 +57,22 @@
     "principal": "Principal",
     "deo": "DEO"
   },
+  "students": {
+    "title": "Students",
+    "description": "Manage student records across schools.",
+    "addStudent": "Add Student",
+    "bulkImport": "Bulk Import",
+    "bulkImportDesc": "Upload a CSV file containing student data.",
+    "searchPlaceholder": "Search students...",
+    "name": "Name",
+    "rollNumber": "Roll Number",
+    "class": "Class",
+    "gender": "Gender",
+    "school": "School",
+    "actions": "Actions",
+    "editStudent": "Edit Student",
+    "editStudentDesc": "Update student information."
+  },
   "questions": {
     "title": "Question Bank",
     "generate": "Generate Questions",
