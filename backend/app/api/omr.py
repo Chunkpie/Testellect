@@ -506,6 +506,6 @@ async def delete_omr_session(
     
     await log_audit_entry(
         db, user_id=user.id,
-        action="delete", resource_type="omr_session", resource_id=batch_id,
-        details={"batch_id": batch_id}
+        action="delete", resource_type="omr_session",
+        extra_data={"batch_id": batch_id}
     )
