@@ -245,6 +245,7 @@ export default function OMRPage() {
             </Table>
           </CardContent>
         </Card>
+      {uploadBatchId && <ScannerDialog open={uploadOpen} onOpenChange={setUploadOpen} batchId={uploadBatchId} />}
       </div>
     )
   }
