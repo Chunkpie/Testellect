@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_db, get_current_user
 from app.core.audit import log_audit_entry
-from app.models.models import User, School
+from app.models.models import User, School, Class
 from app.schemas.schools import SchoolCreate, SchoolResponse, SchoolUpdate
 
 router = APIRouter()
@@ -77,6 +77,13 @@ async def create_school(
         resource_type="school",
         resource_id=school.id,
     )
+    # Auto-create grades 1-12 for the new school
+    from datetime import datetime
+    current_year = datetime.now().year
+    academic_year = f"{current_year}-{str(current_year + 1)[-2:]}"
+    for grade in range(1, 13):
+        db.add(Class(school_id=school.id, grade=grade, section="A", academic_year=academic_year))
+    await db.commit()
 
     return school
 
