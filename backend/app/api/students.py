@@ -180,8 +180,11 @@ async def create_student(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if current_user.role != "administrator":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only administrators can create students")
+    if current_user.role not in ("administrator", "deo", "principal", "teacher"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+
+    if current_user.role in ("principal", "teacher") and data.school_id != current_user.school_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot create students for another school")
 
     student = Student(**data.model_dump())
     db.add(student)
@@ -202,8 +205,8 @@ async def bulk_import_students(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if current_user.role != "administrator":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only administrators can bulk import students")
+    if current_user.role not in ("administrator", "deo", "principal", "teacher"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
 
     content = await file.read()
     text = content.decode("utf-8")
@@ -226,6 +229,9 @@ async def bulk_import_students(
                 class_id=int(row["class_id"]) if row.get("class_id") else None,
                 school_id=int(row["school_id"]),
             )
+            if current_user.role in ("principal", "teacher") and student.school_id != current_user.school_id:
+                errors.append(f"Row {row}: Cannot import student for another school")
+                continue
             students.append(student)
         except Exception as e:
             errors.append(f"Error parsing row {row}: {str(e)}")
@@ -252,8 +258,8 @@ async def update_student(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if current_user.role != "administrator":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only administrators can update students")
+    if current_user.role not in ("administrator", "deo", "principal", "teacher"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
 
     result = await db.execute(
         select(Student).where(Student.id == student_id, Student.is_deleted == False)
@@ -261,6 +267,9 @@ async def update_student(
     student = result.scalar_one_or_none()
     if not student:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
+
+    if current_user.role in ("principal", "teacher") and student.school_id != current_user.school_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
     for key, val in data.model_dump(exclude_unset=True).items():
         setattr(student, key, val)
@@ -282,8 +291,8 @@ async def delete_student(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if current_user.role != "administrator":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only administrators can delete students")
+    if current_user.role not in ("administrator", "deo", "principal", "teacher"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
 
     result = await db.execute(
         select(Student).where(Student.id == student_id, Student.is_deleted == False)
@@ -291,6 +300,9 @@ async def delete_student(
     student = result.scalar_one_or_none()
     if not student:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
+
+    if current_user.role in ("principal", "teacher") and student.school_id != current_user.school_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
     student.is_deleted = True
     await db.commit()
