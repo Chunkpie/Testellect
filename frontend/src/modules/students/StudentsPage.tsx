@@ -431,9 +431,9 @@ function EditStudentDialog({
               )}
             />
             <DialogFooter>
-              <DialogClose asChild>
-                <Button type="button" variant="outline">{t('common.cancel')}</Button>
-              </DialogClose>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                {t('common.cancel')}
+              </Button>
               <Button type="submit" disabled={updateMutation.isPending || !student}>
                 {updateMutation.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
