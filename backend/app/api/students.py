@@ -279,7 +279,7 @@ async def bulk_import_students(
                         class_id = int(raw_class)
                     
             student = Student(
-                name=row.get("name"),
+                full_name=row.get("name"),
                 roll_number=row.get("roll_number") or None,
                 gender=row.get("gender") or None,
                 class_id=class_id,
