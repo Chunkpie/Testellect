@@ -138,6 +138,7 @@ export default function OMRPage() {
   const [uploadBatchId, setUploadBatchId] = useState('')
   const [viewingSession, setViewingSession] = useState<OMRSessionDetail | null>(null)
   const [resultsData, setResultsData] = useState<{ results: EvaluatedAnswer[], summary: OMRSummary } | null>(null)
+  const [deleteBatchId, setDeleteBatchId] = useState<string | null>(null)
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['omr-sessions'],
@@ -148,6 +149,7 @@ export default function OMRPage() {
     mutationFn: omrApi.deleteSession,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['omr-sessions'] })
+      setDeleteBatchId(null)
     }
   })
 
@@ -303,7 +305,7 @@ export default function OMRPage() {
                         <Button variant="ghost" size="icon" onClick={() => handleViewResults(session)} title={t('omr.view_results')} className="text-primary hover:text-primary/80 hover:bg-primary/10">
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => { if(confirm('Are you sure you want to delete this session?')) deleteMutation.mutate(session.batch_id) }} disabled={deleteMutation.isPending} title="Delete Session" className="text-destructive hover:text-destructive/80 hover:bg-destructive/10">
+                        <Button variant="ghost" size="icon" onClick={() => setDeleteBatchId(session.batch_id)} disabled={deleteMutation.isPending} title="Delete Session" className="text-destructive hover:text-destructive/80 hover:bg-destructive/10">
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -325,6 +327,33 @@ export default function OMRPage() {
         }} 
       />
       {uploadBatchId && <ScannerDialog open={uploadOpen} onOpenChange={setUploadOpen} batchId={uploadBatchId} />}
+
+      <Dialog open={!!deleteBatchId} onOpenChange={(open) => !open && setDeleteBatchId(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center text-destructive">
+              <AlertCircle className="h-5 w-5 mr-2" />
+              Delete Session
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this session? All associated OMR sheets and evaluation results will be permanently removed.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setDeleteBatchId(null)} disabled={deleteMutation.isPending}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => deleteBatchId && deleteMutation.mutate(deleteBatchId)} 
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Trash2 className="h-4 w-4 mr-2" />}
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
