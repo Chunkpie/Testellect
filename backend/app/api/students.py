@@ -1,6 +1,7 @@
 import csv
 import io
 from fastapi import APIRouter, Depends, HTTPException, Query, status, File, UploadFile
+from sqlalchemy.orm import joinedload
 from sqlalchemy import select, func, or_, delete as sa_delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -134,7 +135,7 @@ async def list_students(
     if current_user.role not in ("teacher", "principal", "administrator"):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
 
-    stmt = select(Student).where(Student.is_deleted == False)
+    stmt = select(Student).options(joinedload(Student.school), joinedload(Student.class_obj)).where(Student.is_deleted == False)
     scope = _school_scope_filter(Student, current_user)
     if scope is not None:
         stmt = stmt.where(scope)

@@ -41,6 +41,8 @@ class StudentResponse(BaseModel):
     class_id: int
     full_name: str
     roll_number: str
+    class_name: Optional[str] = None
+    school_name: Optional[str] = None
     gr_number: Optional[str] = None
     gender: Optional[str] = None
     date_of_birth: Optional[date] = None
