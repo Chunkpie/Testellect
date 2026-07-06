@@ -234,18 +234,27 @@ async def bulk_import_students(
                 continue
             
             # Resolve School
-            if raw_school.isdigit():
-                school_id = int(raw_school)
+            if current_user.role in ("principal", "teacher"):
+                school_id = current_user.school_id
             else:
-                school_id = school_name_to_id.get(raw_school.lower())
-                if not school_id:
-                    # Fuzzy match
-                    matched = [s.id for s in schools if raw_school.lower() in s.name.lower()]
-                    if matched:
-                        school_id = matched[0]
-                    else:
-                        errors.append(f"Row {row}: Could not resolve school '{raw_school}'")
-                        continue
+                if raw_school.isdigit():
+                    school_id = int(raw_school)
+                else:
+                    school_id = school_name_to_id.get(raw_school.lower())
+                    if not school_id:
+                        # Fuzzy match
+                        matched = [s.id for s in schools if raw_school.lower() in s.name.lower()]
+                        if matched:
+                            school_id = matched[0]
+                        else:
+                            # Auto-create school
+                            new_school = School(name=raw_school)
+                            db.add(new_school)
+                            await db.commit()
+                            await db.refresh(new_school)
+                            schools.append(new_school)
+                            school_name_to_id[raw_school.lower()] = new_school.id
+                            school_id = new_school.id
 
             # Resolve Class
             class_id = None
@@ -257,6 +266,14 @@ async def bulk_import_students(
                     if clean_class.isdigit():
                         grade = int(clean_class)
                         class_id = school_grade_to_class_id.get((school_id, grade))
+                        if not class_id:
+                            # Auto-create class
+                            new_class = Class(school_id=school_id, grade=grade, academic_year="2026-2027")
+                            db.add(new_class)
+                            await db.commit()
+                            await db.refresh(new_class)
+                            school_grade_to_class_id[(school_id, grade)] = new_class.id
+                            class_id = new_class.id
                     
                     if not class_id and raw_class.isdigit():
                         class_id = int(raw_class)
@@ -268,9 +285,6 @@ async def bulk_import_students(
                 class_id=class_id,
                 school_id=school_id,
             )
-            if current_user.role in ("principal", "teacher") and student.school_id != current_user.school_id:
-                errors.append(f"Row {row}: Cannot import student for another school")
-                continue
             students.append(student)
         except Exception as e:
             errors.append(f"Error parsing row {row}: {str(e)}")
