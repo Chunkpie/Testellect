@@ -328,7 +328,7 @@ function EditStudentDialog({
   useEffect(() => {
     if (student) {
       form.reset({
-        name: student.name,
+        full_name: student.full_name,
         roll_number: student.roll_number || '',
         gender: (student.gender as any) || undefined,
         class_id: student.class_id ? String(student.class_id) : '',

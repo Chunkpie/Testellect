@@ -67,7 +67,7 @@ export function ScannerDialog({ open, onOpenChange, batchId }: ScannerDialogProp
 
   const studentOptions = [
     { value: '', label: 'Unassigned (Scan without Student)' },
-    ...(studentsData?.items || []).map(s => ({ value: String(s.id), label: `${s.name} (${s.roll_number || 'N/A'})` }))
+    ...(studentsData?.items || []).map(s => ({ value: String(s.id), label: `${s.full_name} (${s.roll_number || 'N/A'})` }))
   ]
 
   return (
