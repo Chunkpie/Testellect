@@ -57,6 +57,7 @@ class StudentResponse(BaseModel):
 class StudentUpdate(BaseModel):
     full_name: Optional[str] = None
     roll_number: Optional[str] = None
+    class_id: Optional[int] = None
     gr_number: Optional[str] = None
     gender: Optional[str] = None
     date_of_birth: Optional[date] = None
