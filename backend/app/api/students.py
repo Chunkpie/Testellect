@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_db, get_current_user
 from app.core.audit import log_audit_entry
-from app.models.models import User, Class, Student
+from app.models.models import User, Class, Student, School
 from app.schemas.students import ClassCreate, ClassResponse, StudentCreate, StudentResponse, StudentUpdate
 
 router = APIRouter()
@@ -212,22 +212,58 @@ async def bulk_import_students(
     text = content.decode("utf-8")
     reader = csv.DictReader(io.StringIO(text))
 
+    schools_result = await db.execute(select(School))
+    schools = schools_result.scalars().all()
+    school_name_to_id = {s.name.lower(): s.id for s in schools}
+    
+    classes_result = await db.execute(select(Class))
+    classes = classes_result.scalars().all()
+    class_name_to_id = {c.name.lower(): c.id for c in classes}
+    class_grade_to_id = {c.grade.lower(): c.id for c in classes}
+
     students = []
     errors = []
     
     for row in reader:
         try:
-            # Assuming headers: name, roll_number, gender, class_id, school_id
-            if not row.get("name") or not row.get("school_id"):
-                errors.append(f"Row missing required fields (name, school_id): {row}")
+            raw_school = str(row.get("school_id") or row.get("school") or "").strip()
+            raw_class = str(row.get("class_id") or row.get("class") or "").strip()
+
+            if not row.get("name") or not raw_school:
+                errors.append(f"Row missing required fields (name, school/school_id): {row}")
                 continue
             
+            # Resolve School
+            if raw_school.isdigit():
+                school_id = int(raw_school)
+            else:
+                school_id = school_name_to_id.get(raw_school.lower())
+                if not school_id:
+                    # Fuzzy match
+                    matched = [s.id for s in schools if raw_school.lower() in s.name.lower()]
+                    if matched:
+                        school_id = matched[0]
+                    else:
+                        errors.append(f"Row {row}: Could not resolve school '{raw_school}'")
+                        continue
+
+            # Resolve Class
+            class_id = None
+            if raw_class:
+                if raw_class.isdigit():
+                    class_id = int(raw_class)
+                else:
+                    clean_class = raw_class.lower().replace("th", "").replace("st", "").replace("nd", "").replace("rd", "").strip()
+                    class_id = class_grade_to_id.get(clean_class) or class_name_to_id.get(clean_class)
+                    if not class_id and clean_class.isdigit():
+                        class_id = int(clean_class)
+                    
             student = Student(
                 name=row.get("name"),
                 roll_number=row.get("roll_number") or None,
                 gender=row.get("gender") or None,
-                class_id=int(row["class_id"]) if row.get("class_id") else None,
-                school_id=int(row["school_id"]),
+                class_id=class_id,
+                school_id=school_id,
             )
             if current_user.role in ("principal", "teacher") and student.school_id != current_user.school_id:
                 errors.append(f"Row {row}: Cannot import student for another school")
