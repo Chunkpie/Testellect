@@ -6,7 +6,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Query, status, UploadFile, File, Form
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
-from sqlalchemy import func, select
+from sqlalchemy import func, select, delete as sa_delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit import log_audit_entry
@@ -489,3 +489,23 @@ async def scan_omr_upload(
         "scanned_sheets": scan_results,
         "evaluation": evaluation
     }
+
+@router.delete("/{batch_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_omr_session(
+    batch_id: str,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    if user.role not in ("admin", "deo", "principal", "teacher"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+        
+    # Delete all sheets (and cascading results) for this batch
+    stmt = sa_delete(OMRSheet).where(OMRSheet.batch_id == batch_id)
+    await db.execute(stmt)
+    await db.commit()
+    
+    await log_audit_entry(
+        db, user_id=user.id,
+        action="delete", resource_type="omr_session", resource_id=batch_id,
+        details={"batch_id": batch_id}
+    )

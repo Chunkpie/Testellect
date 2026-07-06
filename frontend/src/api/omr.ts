@@ -110,3 +110,7 @@ export async function getResults(batchId: string): Promise<OMRResultsResponse> {
   const { data } = await api.get(`/omr/${encodeURIComponent(batchId)}/results`)
   return data
 }
+
+export async function deleteSession(batchId: string): Promise<void> {
+  await api.delete(`/omr/${encodeURIComponent(batchId)}`)
+}

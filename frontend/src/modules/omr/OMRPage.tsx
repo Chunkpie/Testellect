@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog'
-import { Scan, Download, Eye, Loader2, ArrowLeft, Plus, CheckCircle2, XCircle, Upload, Camera, AlertCircle } from 'lucide-react'
+import { Scan, Download, Eye, Loader2, ArrowLeft, Plus, CheckCircle2, XCircle, Upload, Camera, AlertCircle, Trash2 } from 'lucide-react'
 import api from '@/api/client'
 import { ScannerDialog } from './ScannerDialog'
 
@@ -142,6 +142,13 @@ export default function OMRPage() {
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['omr-sessions'],
     queryFn: () => omrApi.listSessions(),
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: omrApi.deleteSession,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['omr-sessions'] })
+    }
   })
 
   const handleViewResults = useCallback(async (session: OMRSession) => {
@@ -295,6 +302,9 @@ export default function OMRPage() {
                         </Button>
                         <Button variant="ghost" size="icon" onClick={() => handleViewResults(session)} title={t('omr.view_results')} className="text-primary hover:text-primary/80 hover:bg-primary/10">
                           <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => { if(confirm('Are you sure you want to delete this session?')) deleteMutation.mutate(session.batch_id) }} disabled={deleteMutation.isPending} title="Delete Session" className="text-destructive hover:text-destructive/80 hover:bg-destructive/10">
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>
