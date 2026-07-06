@@ -245,7 +245,7 @@ export default function OMRPage() {
             </Table>
           </CardContent>
         </Card>
-      {uploadBatchId && <ScannerDialog open={uploadOpen} onOpenChange={setUploadOpen} batchId={uploadBatchId} />}
+      {uploadBatchId && <ScannerDialog open={uploadOpen} onOpenChange={setUploadOpen} batchId={uploadBatchId} grade={viewingSession.grade} />}
       </div>
     )
   }
@@ -327,7 +327,7 @@ export default function OMRPage() {
           setUploadOpen(true)
         }} 
       />
-      {uploadBatchId && <ScannerDialog open={uploadOpen} onOpenChange={setUploadOpen} batchId={uploadBatchId} />}
+      {uploadBatchId && <ScannerDialog open={uploadOpen} onOpenChange={setUploadOpen} batchId={uploadBatchId} grade={data?.items.find(s => s.batch_id === uploadBatchId)?.grade} />}
 
       <Dialog open={!!deleteBatchId} onOpenChange={(open) => !open && setDeleteBatchId(null)}>
         <DialogContent className="sm:max-w-md">

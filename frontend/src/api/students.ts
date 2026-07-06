@@ -31,6 +31,7 @@ export interface Class {
 export async function getStudents(params?: {
   class_id?: string
   school_id?: string
+  grade?: number
   search?: string
   limit?: number
   offset?: number

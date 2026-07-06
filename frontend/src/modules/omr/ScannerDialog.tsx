@@ -15,9 +15,10 @@ interface ScannerDialogProps {
   open: boolean
   onOpenChange: (v: boolean) => void
   batchId: string
+  grade?: number
 }
 
-export function ScannerDialog({ open, onOpenChange, batchId }: ScannerDialogProps) {
+export function ScannerDialog({ open, onOpenChange, batchId, grade }: ScannerDialogProps) {
   const queryClient = useQueryClient()
   const webcamRef = useRef<Webcam>(null)
   
@@ -26,8 +27,8 @@ export function ScannerDialog({ open, onOpenChange, batchId }: ScannerDialogProp
   const [mode, setMode] = useState<'webcam' | 'upload'>('webcam')
 
   const { data: studentsData, isLoading: studentsLoading } = useQuery({
-    queryKey: ['students'],
-    queryFn: () => getStudents({ limit: 500 }),
+    queryKey: ['students', grade],
+    queryFn: () => getStudents({ limit: 200, grade }),
     enabled: open,
   })
 

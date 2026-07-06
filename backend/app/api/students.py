@@ -125,6 +125,7 @@ async def delete_class(
 @router.get("/students")
 async def list_students(
     class_id: int | None = Query(None),
+    grade: int | None = Query(None),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
@@ -139,6 +140,8 @@ async def list_students(
         stmt = stmt.where(scope)
     if class_id is not None:
         stmt = stmt.where(Student.class_id == class_id)
+    if grade is not None:
+        stmt = stmt.join(Class, Student.class_id == Class.id).where(Class.grade == grade)
 
     count_stmt = select(func.count()).select_from(stmt.subquery())
     total_result = await db.execute(count_stmt)
