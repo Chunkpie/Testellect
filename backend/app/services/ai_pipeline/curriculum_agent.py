@@ -12,6 +12,7 @@ CURRICULUM_SEGMENTATION_SYSTEM = """You are a curriculum structuring assistant f
 You will be given raw extracted text from one section of a textbook, along with heuristically
 detected heading candidates. Your job is to confirm or correct the chapter/topic boundaries and
 produce clean titles. Only use the text provided. Do not invent content not present in the text.
+CRITICAL: You MUST completely IGNORE non-academic frontmatter and backmatter. Do NOT create chapters for "Foreword", "Preface", "Acknowledgements", "Index", "Academic Calendar", "Rationalisation of Content", or other preliminary/concluding sections. ONLY extract actual academic curriculum chapters.
 Respond ONLY with valid JSON matching this schema, with no other text:
 {
   "chapters": [
@@ -57,7 +58,7 @@ class CurriculumAgent:
         # Try LLM segmentation
         try:
             task = "Confirm or correct the chapter and topic boundaries and titles for the text above."
-            text_sample = full_text[:6000] if len(full_text) > 6000 else full_text
+            text_sample = full_text[:40000] if len(full_text) > 40000 else full_text
             prompt = f"Raw textbook text:\n\n{text_sample}\n\n{task}"
             result_data = await self.ollama.generate_structured(
                 prompt=prompt,
@@ -73,15 +74,18 @@ class CurriculumAgent:
 
         chapter_map: dict[str, Chapter] = {}
         for idx, ch_data in enumerate(chapters_data):
+            title = ch_data.get("title")
+            if not title:
+                title = f"Chapter {idx + 1}"
             chapter = Chapter(
                 book_id=book_id,
                 unit_name=ch_data.get("unit_name"),
                 sequence=idx + 1,
-                title_en=ch_data["title"],
+                title_en=title,
             )
             db.add(chapter)
             await db.flush()
-            chapter_map[ch_data["title"]] = chapter
+            chapter_map[ch_data.get("title") or title] = chapter
 
         topic_count = 0
         for t_data in topics_data:
@@ -89,10 +93,13 @@ class CurriculumAgent:
             parent = chapter_map.get(chapter_title)
             if not parent:
                 continue
+            title = t_data.get("title")
+            if not title:
+                title = f"Topic {topic_count + 1}"
             topic = Topic(
                 chapter_id=parent.id,
                 sequence=topic_count + 1,
-                title_en=t_data["title"],
+                title_en=title,
             )
             db.add(topic)
             topic_count += 1

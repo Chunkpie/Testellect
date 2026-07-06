@@ -1,8 +1,7 @@
 import io
 import logging
 import re
-
-import pdfplumber
+import fitz
 from PIL import Image
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -113,14 +112,17 @@ class DocumentAgent:
 
     @staticmethod
     def _ocr_extract(file_path: str) -> str:
-        with open(file_path, "rb") as f:
-            pdf_bytes = f.read()
-        images = convert_from_bytes(pdf_bytes, dpi=300)
+        from pdf2image import pdfinfo_from_path, convert_from_path
+        info = pdfinfo_from_path(file_path)
+        num_pages = info["Pages"]
+        
         all_text: list[str] = []
-        for img in images:
-            text = DocumentAgent._ocr_page(img)
-            if text:
-                all_text.append(text)
+        for i in range(1, num_pages + 1):
+            images = convert_from_path(file_path, dpi=300, first_page=i, last_page=i)
+            if images:
+                text = DocumentAgent._ocr_page(images[0])
+                if text:
+                    all_text.append(text)
         return "\n".join(all_text)
 
     async def run(self, db: AsyncSession, book_id: int) -> DocumentAgentResult:
@@ -132,19 +134,20 @@ class DocumentAgent:
         file_path = book.file_path
         try:
             text_parts: list[str] = []
-            with pdfplumber.open(file_path) as pdf:
-                page_count = len(pdf.pages)
-                for page in pdf.pages:
-                    page_text = page.extract_text()
+            with fitz.open(file_path) as doc:
+                page_count = len(doc)
+                for page in doc:
+                    page_text = page.get_text()
                     if page_text:
                         text_parts.append(page_text)
 
             raw_text = "\n".join(text_parts)
             cleaned = _clean_text(raw_text)
 
-            if page_count > 0 and not cleaned:
+            # If there's suspiciously little text for the number of pages, it's likely a scanned PDF with just metadata text.
+            if page_count > 0 and len(cleaned) < page_count * 50:
                 if HAS_OCR:
-                    logger.info("No selectable text found; falling back to OCR for %s", file_path)
+                    logger.info("Insufficient selectable text found (only %d chars for %d pages); falling back to OCR for %s", len(cleaned), page_count, file_path)
                     ocr_text = self._ocr_extract(file_path)
                     cleaned = _clean_text(ocr_text)
                     if not cleaned:

@@ -6,13 +6,18 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Loader2, Users, School, TrendingUp, BookOpen } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, Cell, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts'
+import { QRSyncModal } from './QRSyncModal'
+import { QrCode, Download } from 'lucide-react'
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
 
 export default function AnalyticsPage() {
   const { t } = useTranslation()
   const { view } = useParams()
   const user = useAuthStore((s) => s.user)
   const navigate = useNavigate()
+  const [qrOpen, setQrOpen] = useState(false)
 
   const tabViews = [
     { value: 'teacher', label: 'Teacher', roles: ['admin', 'teacher'] },
@@ -51,6 +56,11 @@ export default function AnalyticsPage() {
     queryFn: () => analyticsApi.getSubjectPerformance(),
   })
 
+  const { data: competencies } = useQuery({
+    queryKey: ['analytics-competencies', activeView],
+    queryFn: () => analyticsApi.getCompetencies(),
+  })
+
   const isLoading = studentLoading || schoolLoading || districtLoading
 
   if (!user) return null
@@ -62,15 +72,22 @@ export default function AnalyticsPage() {
         <p className="text-muted-foreground text-sm mt-1">Detailed performance insights and analytics</p>
       </div>
 
-      <Tabs value={activeView} onValueChange={(v) => navigate(`/analytics/${v}`)}>
-        <TabsList className="bg-muted/50 p-1">
-          {allowedViews.map((tab) => (
-            <TabsTrigger key={tab.value} value={tab.value} className="capitalize">
-              {tab.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
+      <div className="flex items-center justify-between">
+        <Tabs value={activeView} onValueChange={(v) => navigate(`/analytics/${v}`)}>
+          <TabsList className="bg-muted/50 p-1">
+            {allowedViews.map((tab) => (
+              <TabsTrigger key={tab.value} value={tab.value} className="capitalize">
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+
+        <Button variant="outline" className="gap-2" onClick={() => setQrOpen(true)}>
+          <QrCode className="w-4 h-4" />
+          Offline Sync
+        </Button>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="border-none shadow-md bg-gradient-to-br from-blue-500/10 to-transparent">
@@ -139,7 +156,7 @@ export default function AnalyticsPage() {
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted))" />
                       <XAxis dataKey="date" tickFormatter={(val) => new Date(val).toLocaleDateString(undefined, {month: 'short', day: 'numeric'})} axisLine={false} tickLine={false} tick={{fill: 'hsl(var(--muted-foreground))', fontSize: 12}} dy={10} />
                       <YAxis axisLine={false} tickLine={false} tick={{fill: 'hsl(var(--muted-foreground))', fontSize: 12}} />
-                      <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} labelFormatter={(val) => new Date(val).toLocaleDateString()} />
+                      <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} labelFormatter={(val) => new Date(val).toLocaleDateString()} />
                       <Area type="monotone" dataKey="score" stroke="hsl(var(--primary))" strokeWidth={3} fillOpacity={1} fill="url(#colorScore2)" />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -163,7 +180,7 @@ export default function AnalyticsPage() {
                       <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--muted))" />
                       <XAxis type="number" domain={[0, 100]} hide />
                       <YAxis dataKey="subject_name" type="category" axisLine={false} tickLine={false} tick={{fill: 'hsl(var(--foreground))', fontSize: 13, fontWeight: 500}} width={100} />
-                      <Tooltip cursor={{fill: 'hsl(var(--muted)/0.5)'}} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                      <RechartsTooltip cursor={{fill: 'hsl(var(--muted)/0.5)'}} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
                       <Bar dataKey="average_score" radius={[0, 4, 4, 0]} barSize={24}>
                         {subjects.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={`hsl(var(--primary) / ${0.6 + (entry.average_score / 200)})`} />
@@ -179,6 +196,37 @@ export default function AnalyticsPage() {
           </Card>
         </div>
       )}
+
+      {/* Competency Radar Chart */}
+      {!isLoading && competencies && (
+        <div className="grid grid-cols-1 gap-6 mt-6">
+          <Card className="shadow-sm border-muted/50 overflow-hidden">
+            <CardHeader className="bg-muted/10 border-b border-muted/20">
+              <CardTitle>Competency Analytics</CardTitle>
+              <CardDescription>Mastery across cognitive levels (Bloom's Taxonomy)</CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="h-[400px] w-full flex items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart cx="50%" cy="50%" outerRadius="70%" data={competencies}>
+                    <PolarGrid />
+                    <PolarAngleAxis dataKey="subject" tick={{ fill: 'hsl(var(--foreground))', fontSize: 13, fontWeight: 500 }} />
+                    <PolarRadiusAxis angle={30} domain={[0, 100]} />
+                    <Radar name="Score %" dataKey="A" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.4} />
+                    <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      <QRSyncModal 
+        open={qrOpen} 
+        onOpenChange={setQrOpen} 
+        data={studentData || schoolData || districtData} 
+      />
     </div>
   )
 }

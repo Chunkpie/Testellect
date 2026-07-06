@@ -110,7 +110,7 @@ async def export_paper_pdf(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    from fastapi.responses import StreamingResponse
+    from fastapi.responses import Response
     from app.services.pdf_paper_service import PDFPaperService
     from app.db.models.image_bank import ImageAsset
     from app.db.models.questions import QuestionOption
@@ -203,8 +203,119 @@ async def export_paper_pdf(
     
     filename = f"Paper_{paper_id}_{lang}.pdf"
     
-    return StreamingResponse(
-        pdf_buffer,
-        media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    return Response(
+        content=pdf_buffer.getvalue(),
+        media_type="application/x-custom-pdf"
     )
+
+from pydantic import BaseModel
+from typing import List
+import random
+from app.db.models.curriculum import Topic, Concept
+from app.core.constants import ApprovalStatus
+
+class CustomPaperRequest(BaseModel):
+    grade: int
+    subject_id: int
+    chapter_ids: List[int]
+    total_questions: int
+    difficulty: str = "medium"
+
+@router.post("/custom-generate")
+async def generate_custom_paper(
+    req: CustomPaperRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    if user.role not in ("teacher", "administrator"):
+        raise HTTPException(status_code=403, detail="Not allowed")
+
+    topic_res = await db.execute(select(Topic.id).where(Topic.chapter_id.in_(req.chapter_ids)))
+    topic_ids = topic_res.scalars().all()
+    if not topic_ids:
+        raise HTTPException(status_code=400, detail="No topics found for these chapters")
+
+    concept_res = await db.execute(select(Concept.id).where(Concept.topic_id.in_(topic_ids)))
+    concept_ids = concept_res.scalars().all()
+    if not concept_ids:
+        raise HTTPException(status_code=400, detail="No concepts found for these chapters")
+
+    # Distribute the total_questions across a subset of concepts
+    import random
+    from app.services.ai_service import AiService
+    
+    num_concepts_to_use = min(len(concept_ids), req.total_questions)
+    chosen_concepts = random.sample(concept_ids, num_concepts_to_use)
+    
+    base_count = req.total_questions // num_concepts_to_use
+    remainder = req.total_questions % num_concepts_to_use
+    
+    ai_service = AiService()
+    generated_question_ids = []
+    
+    import asyncio
+    from app.core.database import async_session_factory
+    
+    async def generate_for_concept(cid, count):
+        async with async_session_factory() as session:
+            return await ai_service.generate_questions_batched(
+                db=session,
+                concept_id=cid,
+                total_count=count,
+                difficulty=req.difficulty,
+                school_id=user.school_id
+            )
+
+    tasks = []
+    for i, cid in enumerate(chosen_concepts):
+        count = base_count + (1 if i < remainder else 0)
+        tasks.append(generate_for_concept(cid, count))
+
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    for res in results:
+        if isinstance(res, Exception):
+            print(f"Error in generation task: {res}")
+            continue
+        for nq in res:
+            if "id" in nq:
+                generated_question_ids.append(nq["id"])
+                
+    if not generated_question_ids:
+        raise HTTPException(status_code=500, detail="AI failed to generate questions.")
+
+    import json
+    bp = Blueprint(
+        school_id=user.school_id,
+        name=f"Custom Blueprint - Grade {req.grade}",
+        grade=req.grade,
+        subject_id=req.subject_id,
+        total_marks=float(len(generated_question_ids)),
+        total_questions=len(generated_question_ids),
+        duration_minutes=len(generated_question_ids) * 2,
+        bloom_distribution="{}",
+        difficulty_distribution="{}",
+        chapter_ids=json.dumps(req.chapter_ids)
+    )
+    db.add(bp)
+    await db.flush()
+
+    paper = Paper(
+        blueprint_id=bp.id,
+        variant_label=f"Custom Paper - Grade {req.grade}",
+        generated_by=user.id
+    )
+    db.add(paper)
+    await db.flush()
+    
+    from app.db.models.papers import PaperQuestion
+    for i, q_id in enumerate(generated_question_ids):
+        pq = PaperQuestion(
+            paper_id=paper.id,
+            question_id=q_id,
+            sequence=i+1
+        )
+        db.add(pq)
+
+    await db.commit()
+    return {"message": "Paper generated successfully", "paper_id": paper.id}

@@ -8,7 +8,6 @@ const LoginPage = lazy(() => import('@/modules/auth/LoginPage'))
 const DashboardPage = lazy(() => import('@/modules/dashboard/DashboardPage'))
 const BooksPage = lazy(() => import('@/modules/books/BooksPage'))
 const KnowledgeBasePage = lazy(() => import('@/modules/knowledge-base/KnowledgeBasePage'))
-const QuestionBankPage = lazy(() => import('@/modules/question-bank/QuestionBankPage'))
 const BlueprintsPage = lazy(() => import('@/modules/blueprints/BlueprintsPage'))
 const PapersPage = lazy(() => import('@/modules/papers/PapersPage'))
 const OMRPage = lazy(() => import('@/modules/omr/OMRPage'))
@@ -67,8 +66,6 @@ export default function App() {
             <Route path="/books" element={<SuspenseWrapper><BooksPage /></SuspenseWrapper>} />
             <Route path="/books/:id" element={<SuspenseWrapper><BooksPage /></SuspenseWrapper>} />
             <Route path="/knowledge-base" element={<SuspenseWrapper><KnowledgeBasePage /></SuspenseWrapper>} />
-            <Route path="/question-bank" element={<SuspenseWrapper><QuestionBankPage /></SuspenseWrapper>} />
-            <Route path="/question-bank/review-queue" element={<SuspenseWrapper><QuestionBankPage /></SuspenseWrapper>} />
             <Route path="/blueprints" element={<SuspenseWrapper><BlueprintsPage /></SuspenseWrapper>} />
             <Route path="/blueprints/:id" element={<SuspenseWrapper><BlueprintsPage /></SuspenseWrapper>} />
             <Route path="/papers" element={<SuspenseWrapper><PapersPage /></SuspenseWrapper>} />

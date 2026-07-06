@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import * as questionsApi from '@/api/questions'
 import * as aiApi from '@/api/ai'
+import * as imageApi from '@/api/imageBank'
 import { useBooks } from '@/hooks/useBooks'
 import {
   Table,
@@ -46,6 +47,7 @@ import {
   Trash2,
   Sparkles,
   Plus,
+  ImageIcon,
 } from 'lucide-react'
 import type { Question } from '@/types'
 
@@ -277,6 +279,66 @@ function DeleteConfirmDialog({
   )
 }
 
+function AttachImageDialog({
+  questionId,
+  open,
+  onOpenChange,
+  onConfirm,
+  isPending,
+}: {
+  questionId: string | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onConfirm: (imageId: number) => void
+  isPending: boolean
+}) {
+  const { data: imagesData, isLoading: imagesLoading } = useQuery({
+    queryKey: ['images'],
+    queryFn: () => imageApi.getImages(),
+    enabled: open,
+  })
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Attach Image</DialogTitle>
+          <DialogDescription>Select an image from the Image Bank to attach to this question.</DialogDescription>
+        </DialogHeader>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto p-2">
+          {imagesLoading ? (
+            <div className="col-span-full flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
+          ) : !imagesData?.items?.length ? (
+            <div className="col-span-full text-center p-8 text-muted-foreground">No images found in the Image Bank.</div>
+          ) : (
+            imagesData.items.map(img => (
+              <div 
+                key={img.id} 
+                className="relative group cursor-pointer border rounded-md overflow-hidden hover:border-primary transition-colors"
+                onClick={() => onConfirm(img.id)}
+              >
+                <img 
+                  src={`${import.meta.env.VITE_API_URL}${img.file_path}`} 
+                  alt={img.tags} 
+                  className="w-full h-32 object-cover"
+                />
+                <div className="absolute bottom-0 w-full bg-black/60 text-white text-xs p-1 truncate">
+                  {img.tags}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+        <DialogFooter>
+          <DialogClose>
+            <Button type="button" variant="outline">Cancel</Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 export default function QuestionsPage() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
@@ -298,6 +360,8 @@ export default function QuestionsPage() {
   const [rejectOpen, setRejectOpen] = useState(false)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [attachImageId, setAttachImageId] = useState<string | null>(null)
+  const [attachImageOpen, setAttachImageOpen] = useState(false)
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['questions', bloomFilter, difficultyFilter, statusFilter, bookFilter, offset],
@@ -341,6 +405,16 @@ export default function QuestionsPage() {
     },
   })
 
+  const attachImageMutation = useMutation({
+    mutationFn: ({ id, image_asset_id }: { id: string; image_asset_id: number }) => 
+      questionsApi.updateQuestion(id, { image_asset_id: image_asset_id } as any),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['questions'] })
+      setAttachImageOpen(false)
+      setAttachImageId(null)
+    },
+  })
+
   const handleView = useCallback((q: Question) => {
     setViewQuestion(q)
     setViewOpen(true)
@@ -371,6 +445,17 @@ export default function QuestionsPage() {
       deleteMutation.mutate(deleteId)
     }
   }, [deleteId, deleteMutation])
+
+  const handleAttachImageClick = useCallback((id: string) => {
+    setAttachImageId(id)
+    setAttachImageOpen(true)
+  }, [])
+
+  const handleAttachImageConfirm = useCallback((imageId: number) => {
+    if (attachImageId) {
+      attachImageMutation.mutate({ id: attachImageId, image_asset_id: imageId })
+    }
+  }, [attachImageId, attachImageMutation])
 
   const [generateDialogOpen, setGenerateDialogOpen] = useState(false)
   const [currentJobId, setCurrentJobId] = useState<string | null>(null)
@@ -574,6 +659,16 @@ export default function QuestionsPage() {
                           <Button
                             variant="ghost"
                             size="icon"
+                            onClick={() => handleAttachImageClick(question.id)}
+                            disabled={attachImageMutation.isPending}
+                            title="Attach Image"
+                            className="text-blue-500 hover:text-blue-400"
+                          >
+                            <ImageIcon className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => handleDeleteClick(question.id)}
                             disabled={deleteMutation.isPending}
                             title={t('questions.actions.delete')}
@@ -640,6 +735,14 @@ export default function QuestionsPage() {
         onOpenChange={(v) => { setDeleteOpen(v); if (!v) setDeleteId(null) }}
         onConfirm={handleDeleteConfirm}
         isPending={deleteMutation.isPending}
+      />
+
+      <AttachImageDialog
+        questionId={attachImageId}
+        open={attachImageOpen}
+        onOpenChange={(v) => { setAttachImageOpen(v); if (!v) setAttachImageId(null) }}
+        onConfirm={handleAttachImageConfirm}
+        isPending={attachImageMutation.isPending}
       />
 
       <Dialog open={generateDialogOpen} onOpenChange={setGenerateDialogOpen}>

@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+import csv
+import io
+from fastapi import APIRouter, Depends, HTTPException, Query, status, File, UploadFile
 from sqlalchemy import select, func, or_, delete as sa_delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -196,26 +198,51 @@ async def create_student(
 
 @router.post("/students/bulk-import", status_code=status.HTTP_201_CREATED)
 async def bulk_import_students(
-    data: list[StudentCreate],
+    file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role != "administrator":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only administrators can bulk import students")
 
-    students = [Student(**item.model_dump()) for item in data]
-    db.add_all(students)
-    await db.commit()
-    for s in students:
-        await db.refresh(s)
+    content = await file.read()
+    text = content.decode("utf-8")
+    reader = csv.DictReader(io.StringIO(text))
 
-    await log_audit_entry(
-        db=db, user_id=current_user.id, school_id=students[0].school_id if students else None,
-        action="bulk_import", resource_type="student",
-        extra_data={"count": len(students)},
-    )
+    students = []
+    errors = []
+    
+    for row in reader:
+        try:
+            # Assuming headers: name, roll_number, gender, class_id, school_id
+            if not row.get("name") or not row.get("school_id"):
+                errors.append(f"Row missing required fields (name, school_id): {row}")
+                continue
+            
+            student = Student(
+                name=row.get("name"),
+                roll_number=row.get("roll_number") or None,
+                gender=row.get("gender") or None,
+                class_id=int(row["class_id"]) if row.get("class_id") else None,
+                school_id=int(row["school_id"]),
+            )
+            students.append(student)
+        except Exception as e:
+            errors.append(f"Error parsing row {row}: {str(e)}")
 
-    return {"items": students, "total": len(students)}
+    if students:
+        db.add_all(students)
+        await db.commit()
+        for s in students:
+            await db.refresh(s)
+
+        await log_audit_entry(
+            db=db, user_id=current_user.id, school_id=students[0].school_id,
+            action="bulk_import", resource_type="student",
+            extra_data={"count": len(students)},
+        )
+
+    return {"imported": len(students), "errors": errors}
 
 
 @router.patch("/students/{student_id}")

@@ -7,6 +7,8 @@ from app.core.deps import get_db, get_current_user
 from app.db.models.auth import User, School
 from app.db.models.assessments import Student, Assessment, StudentResult, CompetencyResult
 from app.db.models.omr import OMRSheet, OMRResult
+from app.db.models.questions import QuestionBank
+import json
 from app.services.learning_analytics_service import LearningAnalyticsService
 
 router = APIRouter()
@@ -126,3 +128,70 @@ async def student_analytics(student_id: int, user: User = Depends(get_current_us
         "results": [{"id": r.id, "score": r.total_score, "percentage": r.percentage, "max_score": r.max_score} for r in results],
         "insights": insights
     }
+
+@router.get("/competencies")
+async def get_competency_radar(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    # Fetch all OMR results that belong to the user's scope
+    # For simplicity, we fetch all for now, or filter by user's school
+    stmt = select(OMRResult).join(OMRSheet).where(OMRSheet.assessment_id.is_not(None))
+    if user.school_id:
+        stmt = stmt.join(Assessment, OMRSheet.assessment_id == Assessment.id).where(Assessment.school_id == user.school_id)
+        
+    result = await db.execute(stmt)
+    omr_results = result.scalars().all()
+    
+    # Extract all question IDs answered and whether they were correct
+    question_stats = {}
+    for r in omr_results:
+        if not r.detected_answers:
+            continue
+        try:
+            answers = json.loads(r.detected_answers)
+            for ans in answers:
+                qid = ans.get("question_id")
+                if not qid:
+                    continue
+                if qid not in question_stats:
+                    question_stats[qid] = {"attempted": 0, "correct": 0}
+                question_stats[qid]["attempted"] += 1
+                if ans.get("is_correct"):
+                    question_stats[qid]["correct"] += 1
+        except:
+            continue
+            
+    if not question_stats:
+        return []
+        
+    # Lookup bloom levels for these questions
+    q_stmt = select(QuestionBank.id, QuestionBank.bloom_level).where(QuestionBank.id.in_(list(question_stats.keys())))
+    q_res = await db.execute(q_stmt)
+    
+    bloom_agg = {}
+    for qid, bloom in q_res.all():
+        b = bloom or "Knowledge"
+        b = b.capitalize()
+        if b not in bloom_agg:
+            bloom_agg[b] = {"attempted": 0, "correct": 0}
+        bloom_agg[b]["attempted"] += question_stats[qid]["attempted"]
+        bloom_agg[b]["correct"] += question_stats[qid]["correct"]
+        
+    # Format for RadarChart
+    radar_data = []
+    for bloom, stats in bloom_agg.items():
+        perc = round((stats["correct"] / stats["attempted"]) * 100) if stats["attempted"] > 0 else 0
+        radar_data.append({
+            "subject": bloom,
+            "A": perc,
+            "fullMark": 100
+        })
+        
+    # Default data if nothing found
+    if not radar_data:
+        radar_data = [
+            {"subject": "Knowledge", "A": 0, "fullMark": 100},
+            {"subject": "Understanding", "A": 0, "fullMark": 100},
+            {"subject": "Application", "A": 0, "fullMark": 100},
+            {"subject": "Analysis", "A": 0, "fullMark": 100},
+        ]
+        
+    return radar_data

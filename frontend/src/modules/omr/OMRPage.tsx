@@ -12,8 +12,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog'
-import { Scan, Download, Eye, Loader2, AlertCircle, ArrowLeft, Plus, CheckCircle2, XCircle, Upload } from 'lucide-react'
+import { Scan, Download, Eye, Loader2, ArrowLeft, Plus, CheckCircle2, XCircle, Upload, Camera, AlertCircle } from 'lucide-react'
 import api from '@/api/client'
+import { ScannerDialog } from './ScannerDialog'
 
 function ResultsView({ results, summary, onBack }: { results: EvaluatedAnswer[], summary: OMRSummary, onBack: () => void }) {
   const { t } = useTranslation()
@@ -75,11 +76,10 @@ function ResultsView({ results, summary, onBack }: { results: EvaluatedAnswer[],
   )
 }
 
-function GenerateDialog({ open, onOpenChange }: { open: boolean, onOpenChange: (v: boolean) => void }) {
+function StartSessionDialog({ open, onOpenChange, onSuccess }: { open: boolean, onOpenChange: (v: boolean) => void, onSuccess: (batchId: string) => void }) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [paperId, setPaperId] = useState('')
-  const [studentCount, setStudentCount] = useState('30')
 
   const { data: papersData, isLoading: papersLoading } = useQuery({
     queryKey: ['papers'],
@@ -88,12 +88,12 @@ function GenerateDialog({ open, onOpenChange }: { open: boolean, onOpenChange: (
   })
 
   const generateMutation = useMutation({
-    mutationFn: () => omrApi.generateOMR({ paper_id: parseInt(paperId, 10), student_count: parseInt(studentCount, 10) }),
-    onSuccess: () => {
+    mutationFn: () => omrApi.generateOMR({ paper_id: parseInt(paperId, 10), student_count: 1 }),
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['omr-sessions'] })
       onOpenChange(false)
       setPaperId('')
-      setStudentCount('30')
+      onSuccess(data.batch_id)
     },
   })
 
@@ -103,8 +103,8 @@ function GenerateDialog({ open, onOpenChange }: { open: boolean, onOpenChange: (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t('omr.generate')}</DialogTitle>
-          <DialogDescription>Generate OMR answer sheets for a paper.</DialogDescription>
+          <DialogTitle>Start New Scanning Session</DialogTitle>
+          <DialogDescription>Select a paper to start evaluating OMR sheets.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
@@ -115,16 +115,12 @@ function GenerateDialog({ open, onOpenChange }: { open: boolean, onOpenChange: (
               <Select id="paper" options={paperOptions} placeholder={t('omr.form.select_paper')} value={paperId} onChange={(e) => setPaperId(e.target.value)} />
             )}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="count">{t('omr.form.student_count')}</Label>
-            <Input id="count" type="number" min={1} max={200} value={studentCount} onChange={(e) => setStudentCount(e.target.value)} />
-          </div>
         </div>
         <DialogFooter>
-          <DialogClose><Button type="button" variant="outline">{t('common.cancel')}</Button></DialogClose>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t('common.cancel')}</Button>
           <Button onClick={() => generateMutation.mutate()} disabled={!paperId || generateMutation.isPending}>
             {generateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Scan className="h-4 w-4 mr-2" />}
-            {t('omr.form.generate')}
+            Start Session
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -132,46 +128,7 @@ function GenerateDialog({ open, onOpenChange }: { open: boolean, onOpenChange: (
   )
 }
 
-function UploadDialog({ open, onOpenChange, batchId }: { open: boolean, onOpenChange: (v: boolean) => void, batchId: string }) {
-  const queryClient = useQueryClient()
-  const [file, setFile] = useState<File | null>(null)
-  
-  const uploadMutation = useMutation({
-    mutationFn: async (f: File) => {
-      const formData = new FormData()
-      formData.append('file', f)
-      await api.post(`/omr/${batchId}/scan-upload`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['omr-sessions'] })
-      onOpenChange(false)
-      setFile(null)
-    }
-  })
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Upload Scanned OMR Sheet</DialogTitle>
-          <DialogDescription>Upload an image or PDF of the completed OMR sheet for AI evaluation.</DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4 py-4">
-          <Input type="file" accept="image/*,.pdf" onChange={(e) => setFile(e.target.files?.[0] || null)} />
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={() => file && uploadMutation.mutate(file)} disabled={!file || uploadMutation.isPending}>
-            {uploadMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
-            Upload & Evaluate
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
-}
+// Removed inline UploadDialog
 
 export default function OMRPage() {
   const { t } = useTranslation()
@@ -216,7 +173,7 @@ export default function OMRPage() {
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
-      window.URL.revokeObjectURL(url)
+      setTimeout(() => window.URL.revokeObjectURL(url), 1000)
     } catch {
       console.error('Download failed')
     }
@@ -287,12 +244,11 @@ export default function OMRPage() {
     <div className="space-y-6 animate-in fade-in duration-300">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">OMR Automation</h1>
-          <p className="text-muted-foreground text-sm mt-1">{data ? `${data.total} assessment sessions` : 'Manage optical mark recognition sessions'}</p>
+          <h1 className="text-3xl font-bold text-foreground">OMR Automation</h1>
+          <p className="text-muted-foreground">{data ? `${data.total} assessment sessions` : 'Manage optical mark recognition sessions'}</p>
         </div>
-        <Button onClick={() => setGenerateOpen(true)} className="shadow-lg shadow-primary/20">
-          <Plus className="h-4 w-4 mr-2" />
-          {t('omr.generate')}
+        <Button onClick={() => setGenerateOpen(true)}>
+          <Scan className="mr-2 h-4 w-4" /> Start Scanning Session
         </Button>
       </div>
 
@@ -350,8 +306,15 @@ export default function OMRPage() {
         </CardContent>
       </Card>
 
-      <GenerateDialog open={generateOpen} onOpenChange={setGenerateOpen} />
-      <UploadDialog open={uploadOpen} onOpenChange={setUploadOpen} batchId={uploadBatchId} />
+      <StartSessionDialog 
+        open={generateOpen} 
+        onOpenChange={setGenerateOpen} 
+        onSuccess={(batchId) => {
+          setUploadBatchId(batchId)
+          setUploadOpen(true)
+        }} 
+      />
+      {uploadBatchId && <ScannerDialog open={uploadOpen} onOpenChange={setUploadOpen} batchId={uploadBatchId} />}
     </div>
   )
 }

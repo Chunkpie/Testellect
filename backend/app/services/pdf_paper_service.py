@@ -60,10 +60,8 @@ class PDFPaperService:
         styles = getSampleStyleSheet()
         
         # Determine font based on language
-        font_name = 'Helvetica'
-        if language.lower() == 'hindi':
-            font_name = 'HindiFont'
-        elif language.lower() == 'gujarati':
+        font_name = 'HindiFont'
+        if language.lower() == 'gujarati':
             font_name = 'GujaratiFont'
             
         # Fallback to Helvetica if TTF wasn't loaded

@@ -76,7 +76,10 @@ export async function getBloomDistribution(): Promise<BloomDistribution[]> {
   const { data } = await api.get('/reports/bloom-distribution')
   return data
 }
-
+export async function getCompetencies(): Promise<Array<{subject: string, A: number, fullMark: number}>> {
+  const { data } = await api.get('/analytics/competencies')
+  return data
+}
 export async function getScoreTrends(days = 30): Promise<TrendData[]> {
   const { data } = await api.get('/reports/score-trends', { params: { days } })
   return data

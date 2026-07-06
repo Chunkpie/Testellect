@@ -102,8 +102,7 @@ async def download_papers(job_id: int, db: AsyncSession = Depends(get_db), curre
     zip_bytes = await generate_papers_zip(db, job_id)
     return Response(
         content=zip_bytes,
-        media_type="application/zip",
-        headers={"Content-Disposition": f"attachment; filename=papers_job_{job_id}.zip"}
+        media_type="application/x-custom-zip"
     )
 
 @router.post("/omr/upload")
@@ -134,8 +133,7 @@ async def download_marked_sheet(student_result_id: int, db: AsyncSession = Depen
         pdf_bytes = await generate_marked_answer_sheet(db, student_result_id)
         return Response(
             content=pdf_bytes,
-            media_type="application/pdf",
-            headers={"Content-Disposition": f"attachment; filename=marked_sheet_{student_result_id}.pdf"}
+            media_type="application/x-custom-pdf"
         )
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -148,8 +146,7 @@ async def download_concept_analysis(student_result_id: int, db: AsyncSession = D
         pdf_bytes = await generate_concept_analysis_report(db, student_result_id)
         return Response(
             content=pdf_bytes,
-            media_type="application/pdf",
-            headers={"Content-Disposition": f"attachment; filename=concept_analysis_{student_result_id}.pdf"}
+            media_type="application/x-custom-pdf"
         )
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

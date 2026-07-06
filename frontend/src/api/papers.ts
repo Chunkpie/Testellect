@@ -68,3 +68,15 @@ export async function downloadPaper(id: number): Promise<Blob> {
   })
   return data
 }
+
+export async function customGeneratePaper(params: {
+  grade: number
+  subject_id: number
+  chapter_ids: number[]
+  total_questions: number
+  difficulty: string
+}): Promise<{ message: string; paper_id: number }> {
+  const { data } = await api.post('/papers/custom-generate', params)
+  return data
+}
+

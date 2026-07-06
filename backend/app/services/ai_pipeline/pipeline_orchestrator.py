@@ -130,12 +130,15 @@ class PipelineOrchestrator:
 
         except Exception as e:
             logger.exception("Pipeline orchestrator error for book %d", book_id)
+            await db.rollback()
             all_success = False
             book.processing_status = "failed"
             book.processing_error = f"Pipeline error: {e}"
+            db.add(book)
             await db.commit()
             job.status = "failed"
             job.error = str(e)
+            db.add(job)
             await db.commit()
             return {"success": False, "job_id": job_id, "stages": stage_results, "error": str(e)}
 

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/stores/authStore'
@@ -47,6 +47,7 @@ import {
   ChevronRight,
   FileUp,
   UserPlus,
+  Edit2,
 } from 'lucide-react'
 
 const createStudentSchema = z.object({
@@ -299,6 +300,156 @@ function BulkImportDialog({
   )
 }
 
+function EditStudentDialog({
+  open,
+  onOpenChange,
+  student,
+  schoolId,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  student: studentsApi.Student | null
+  schoolId: string
+}) {
+  const { t } = useTranslation()
+  const queryClient = useQueryClient()
+
+  const form = useForm<CreateStudentForm>({
+    resolver: zodResolver(createStudentSchema),
+    defaultValues: { 
+      name: student?.name || '', 
+      roll_number: student?.roll_number || '', 
+      gender: (student?.gender as any) || undefined, 
+      class_id: student?.class_id ? String(student.class_id) : '' 
+    },
+  })
+
+  // Reset form when student changes
+  useEffect(() => {
+    if (student) {
+      form.reset({
+        name: student.name,
+        roll_number: student.roll_number || '',
+        gender: (student.gender as any) || undefined,
+        class_id: student.class_id ? String(student.class_id) : '',
+      })
+    }
+  }, [student, form])
+
+  const { data: classesData } = useQuery({
+    queryKey: ['classes', schoolId],
+    queryFn: () => studentsApi.getClasses({ school_id: schoolId, limit: 100 }),
+    enabled: !!schoolId,
+  })
+
+  const updateMutation = useMutation({
+    mutationFn: (data: CreateStudentForm) =>
+      studentsApi.updateStudent(student!.id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['students'] })
+      onOpenChange(false)
+    },
+  })
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t('students.editStudent')}</DialogTitle>
+          <DialogDescription>{t('students.editStudentDesc')}</DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit((data) => updateMutation.mutate(data))} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('students.name')}</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Enter student name" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="roll_number"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('students.rollNumber')}</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Roll number" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="gender"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('students.gender')}</FormLabel>
+                    <FormControl>
+                      <select
+                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        {...field}
+                      >
+                        <option value="">Select gender</option>
+                        {genderOptions.map((o) => (
+                          <option key={o.value} value={o.value}>{o.label}</option>
+                        ))}
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <FormField
+              control={form.control}
+              name="class_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('students.class')}</FormLabel>
+                  <FormControl>
+                    <select
+                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      {...field}
+                    >
+                      <option value="">Select class</option>
+                      {classesData?.items?.map((cls) => (
+                        <option key={cls.id} value={cls.id}>{cls.name} (Grade {cls.grade})</option>
+                      ))}
+                    </select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="outline">{t('common.cancel')}</Button>
+              </DialogClose>
+              <Button type="submit" disabled={updateMutation.isPending || !student}>
+                {updateMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Edit2 className="h-4 w-4 mr-2" />
+                )}
+                {t('common.save')}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 export default function StudentsPage() {
   const { t } = useTranslation()
   const user = useAuthStore((s) => s.user)
@@ -309,6 +460,8 @@ export default function StudentsPage() {
   const [offset, setOffset] = useState(0)
   const [createOpen, setCreateOpen] = useState(false)
   const [bulkOpen, setBulkOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
+  const [editingStudent, setEditingStudent] = useState<studentsApi.Student | null>(null)
 
   const { data: classesData } = useQuery({
     queryKey: ['classes', schoolId],
@@ -410,6 +563,7 @@ export default function StudentsPage() {
                     <TableHead>{t('students.class')}</TableHead>
                     <TableHead>{t('students.gender')}</TableHead>
                     <TableHead>{t('students.school')}</TableHead>
+                    <TableHead>{t('students.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -438,6 +592,11 @@ export default function StudentsPage() {
                         </TableCell>
                         <TableCell className="text-muted-foreground text-sm">
                           {student.school_name || '-'}
+                        </TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="sm" onClick={() => { setEditingStudent(student); setEditOpen(true); }}>
+                            <Edit2 className="h-4 w-4 mr-1" /> {t('students.edit')}
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))
@@ -478,6 +637,7 @@ export default function StudentsPage() {
           )}
         </CardContent>
       </Card>
+      <EditStudentDialog open={editOpen} onOpenChange={setEditOpen} student={editingStudent} schoolId={schoolId} />
     </div>
   )
 }

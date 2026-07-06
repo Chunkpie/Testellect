@@ -48,7 +48,19 @@ async def seed_demo_data():
 
         subject_science = Subject(name_en="Science", code="SCI10", grade=10)
         subject_math = Subject(name_en="Mathematics", code="MATH10", grade=10)
-        db.add_all([subject_science, subject_math])
+        subject_evs = Subject(name_en="Environmental Studies", code="EVS5", grade=5)
+        subject_eng = Subject(name_en="English", code="ENG", grade=10)
+        subject_guj = Subject(name_en="Gujarati", code="GUJ", grade=10)
+        subject_hin = Subject(name_en="Hindi", code="HIN", grade=10)
+        subject_sst = Subject(name_en="Social Science", code="SST", grade=10)
+        subject_cs = Subject(name_en="Computer Science", code="CS", grade=10)
+        subject_san = Subject(name_en="Sanskrit", code="SAN", grade=10)
+
+        db.add_all([
+            subject_science, subject_math, subject_evs, 
+            subject_eng, subject_guj, subject_hin, 
+            subject_sst, subject_cs, subject_san
+        ])
         await db.flush()
 
         class_ids_school1 = []

@@ -160,3 +160,26 @@ async def reject_question(
     q.approval_status = ApprovalStatus.REJECTED
     await db.commit()
     return {"status": "rejected"}
+
+from pydantic import BaseModel
+
+class QuestionPatch(BaseModel):
+    image_asset_id: Optional[int] = None
+
+@router.patch("/{question_id}")
+async def patch_question(
+    question_id: int,
+    payload: QuestionPatch,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    result = await db.execute(select(QuestionBank).where(QuestionBank.id == question_id))
+    q = result.scalar_one_or_none()
+    if not q:
+        raise HTTPException(status_code=404, detail="Question not found")
+    
+    if payload.image_asset_id is not None:
+        q.image_asset_id = payload.image_asset_id
+        
+    await db.commit()
+    return {"status": "updated"}

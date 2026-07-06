@@ -234,11 +234,8 @@ class AiService:
 
         all_questions: list[dict[str, Any]] = []
 
-        image_requirement = ""
+        image_requirement = "- DO NOT use or refer to any pictures, graphs, diagrams, or images in the question. The question must be entirely text-based and self-contained."
         image_tag_example = ""
-        if grade <= 5:
-            image_requirement = "- The question should reference a visual image. Include an 'image_tag' field with a single word (e.g. 'cat', 'triangle', 'mango') describing the required image."
-            image_tag_example = ',\n  "image_tag": "apple"'
 
         system_prompt = QUESTION_GENERATION_SYSTEM.format(
             question_type=question_type,
@@ -316,7 +313,7 @@ class AiService:
                     explanation_gu=result.get("explanation", "") if lang_lower == "gujarati" else "",
                     image_asset_id=image_asset_id,
                     generated_by="ai",
-                    approval_status="pending_review",
+                    approval_status="APPROVED",
                 )
                 db.add(question)
                 await db.flush()

@@ -139,7 +139,7 @@ function PaperDetailView({
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
-      window.URL.revokeObjectURL(url)
+      setTimeout(() => window.URL.revokeObjectURL(url), 1000)
     } catch {
       // fallback: try download endpoint
       try {
@@ -151,7 +151,7 @@ function PaperDetailView({
         document.body.appendChild(a)
         a.click()
         document.body.removeChild(a)
-        window.URL.revokeObjectURL(url)
+        setTimeout(() => window.URL.revokeObjectURL(url), 1000)
       } catch {
         console.error('Failed to download paper')
       }
@@ -253,10 +253,13 @@ function PaperDetailView({
   )
 }
 
+import { CustomPaperDialog } from './CustomPaperDialog'
+
 export default function PapersPage() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
 
+  const [customDialogOpen, setCustomDialogOpen] = useState(false)
   const [offset, setOffset] = useState(0)
   const [viewingPaper, setViewingPaper] = useState<Paper | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Paper | null>(null)
@@ -320,6 +323,9 @@ export default function PapersPage() {
             {data ? `${data.total} papers` : ''}
           </p>
         </div>
+        <Button onClick={() => setCustomDialogOpen(true)}>
+          Generate Custom Paper
+        </Button>
       </div>
 
       <Card>
@@ -511,7 +517,7 @@ export default function PapersPage() {
                   document.body.appendChild(a);
                   a.click();
                   document.body.removeChild(a);
-                  window.URL.revokeObjectURL(url);
+                  setTimeout(() => window.URL.revokeObjectURL(url), 1000);
                   setDownloadTarget(null);
                 } catch {
                    alert('Failed to download paper');
@@ -526,6 +532,7 @@ export default function PapersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <CustomPaperDialog open={customDialogOpen} onOpenChange={setCustomDialogOpen} />
     </div>
   )
 }

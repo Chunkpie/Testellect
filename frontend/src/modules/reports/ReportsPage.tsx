@@ -342,7 +342,7 @@ function ReportsTab() {
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
-      window.URL.revokeObjectURL(url)
+      setTimeout(() => window.URL.revokeObjectURL(url), 1000)
     } catch { console.error('Download failed') }
   }
 

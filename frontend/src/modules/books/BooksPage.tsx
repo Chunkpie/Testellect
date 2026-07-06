@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dialog'
 import { Select } from '@/components/ui/select'
 import { BookOpen, Upload, Loader2, AlertCircle, Trash2, FileText, Brain, Sparkles } from 'lucide-react'
+import { CustomLoader } from '@/components/ui/CustomLoader'
 
 function timeAgo(dateStr: string): string {
   const now = Date.now()
@@ -272,6 +273,9 @@ export default function BooksPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {generateMutation.isPending && (
+        <CustomLoader message="Generating Questions with AI..." />
+      )}
     </div>
   )
 }

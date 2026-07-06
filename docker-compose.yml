@@ -79,6 +79,7 @@ services:
       - ./uploads:/app/uploads
       - ./reports:/app/reports
       - ./database:/app/database
+      - ./Curriculum:/app/Curriculum
     env_file:
       - .env
     ports:

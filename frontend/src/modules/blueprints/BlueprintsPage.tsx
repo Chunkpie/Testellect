@@ -22,6 +22,7 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
+import { CustomLoader } from '@/components/ui/CustomLoader'
 import {
   Dialog,
   DialogContent,
@@ -662,6 +663,9 @@ export default function BlueprintsPage() {
         onConfirm={handleDeleteConfirm}
         isPending={deleteMutation.isPending}
       />
+      {generateMutation.isPending && (
+        <CustomLoader message="Generating Paper..." />
+      )}
     </div>
   )
 }

@@ -3,7 +3,7 @@ import os
 import time
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, Query, status, UploadFile, File, Form
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy import func, select
@@ -109,34 +109,19 @@ async def generate_omr(
         db.add(assessment)
         await db.flush()
 
-    # Generate the PDF
-    filepath = generate_omr_pdf(
+    # Create a template OMRSheet record for this batch
+    sheet = OMRSheet(
         paper_id=paper_id,
-        student_count=student_count,
-        school_id=user.school_id or blueprint.school_id,
-        paper_name=paper.variant_label,
-        total_questions=blueprint.total_questions,
+        assessment_id=assessment.id,
+        student_id=None,
+        qr_payload=batch_id,
+        sheet_pdf_path=None,
+        status="generated",
         batch_id=batch_id,
     )
-
-    # Create OMRSheet records
-    sheets_created = []
-    for i in range(student_count):
-        sheet = OMRSheet(
-            paper_id=paper_id,
-            assessment_id=assessment.id,
-            student_id=None,
-            qr_payload=batch_id,
-            sheet_pdf_path=filepath,
-            status="generated",
-            batch_id=batch_id,
-        )
-        db.add(sheet)
-        await db.flush()
-        sheets_created.append({
-            "id": sheet.id,
-            "student_number": i + 1,
-        })
+    db.add(sheet)
+    await db.flush()
+    sheets_created = [{"id": sheet.id, "student_number": 1}]
 
     await db.commit()
 
@@ -153,8 +138,8 @@ async def generate_omr(
         "batch_id": batch_id,
         "paper_id": paper_id,
         "paper_name": paper.variant_label,
-        "student_count": student_count,
-        "file_path": filepath,
+        "student_count": 0,
+        "file_path": None,
         "sheets_created": sheets_created,
     }
 
@@ -219,7 +204,7 @@ async def download_omr_pdf(
     paper = await db.get(Paper, sheet.paper_id)
     filename = f"omr_{paper.variant_label.replace(' ', '_') if paper else batch_id}.pdf"
 
-    return FileResponse(filepath, media_type="application/pdf", filename=filename)
+    return FileResponse(filepath, media_type="application/x-custom-pdf", filename=filename)
 
 
 @router.post("/{batch_id}/results")
@@ -246,6 +231,29 @@ async def submit_omr_results(
 
     bp = await db.get(Blueprint, paper.blueprint_id)
     max_score = float(bp.total_questions) if bp else float(len(answers))
+    
+    # Delegate to helper
+    eval_result = None
+    for sheet in sheets:
+        eval_result = await _evaluate_and_save_result(db, sheet, answers, user.id, max_score)
+
+    await db.commit()
+
+    await log_audit_entry(
+        db=db,
+        user_id=user.id,
+        school_id=user.school_id,
+        action="submit_omr_results",
+        resource_type="omr_result",
+        extra_data={"batch_id": batch_id, "score": eval_result["summary"]["correct"] if eval_result else 0, "max_score": max_score},
+    )
+
+    return eval_result or {
+        "evaluated": [],
+        "summary": {"correct": 0, "total": max_score, "percentage": 0}
+    }
+
+async def _evaluate_and_save_result(db: AsyncSession, sheet: OMRSheet, answers: list[dict], user_id: int, max_score: float) -> dict:
     correct_count = 0
 
     # Resolve correct answers from the question bank
@@ -334,32 +342,20 @@ async def submit_omr_results(
                 raw_score=float(score),
                 max_score=float(max_score),
                 scan_confidence=100.0,
-                scanned_by=user.id,
+                scanned_by=user_id,
                 scanned_at=datetime.utcnow(),
             )
             db.add(omr_result)
         sheet.status = "evaluated"
-
-    await db.commit()
-
-    await log_audit_entry(
-        db=db,
-        user_id=user.id,
-        school_id=user.school_id,
-        action="submit_omr_results",
-        resource_type="omr_result",
-        extra_data={"batch_id": batch_id, "score": score, "max_score": max_score},
-    )
-
+        
     return {
-        "batch_id": batch_id,
-        "paper_id": first.paper_id,
+        "batch_id": sheet.batch_id,
         "evaluated": evaluated_answers,
         "summary": {
             "correct": correct_count,
             "total": max_score,
             "percentage": percentage,
-        },
+        }
     }
 
 
@@ -425,6 +421,7 @@ async def get_omr_results(
 async def scan_omr_upload(
     batch_id: str,
     file: UploadFile = File(...),
+    student_id: int | None = Form(None),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -453,6 +450,34 @@ async def scan_omr_upload(
         else:
             res = await OMRCVService.process_image(tmp_path, total_q)
             scan_results = [res]
+            
+        # If Option A was used and student_id is provided, evaluate immediately
+        evaluation = None
+        if student_id and scan_results and len(scan_results) == 1:
+            answers = scan_results[0].get("answers", [])
+            # Find an available sheet for this student
+            sheet_stmt = select(OMRSheet).where(
+                OMRSheet.batch_id == batch_id,
+                (OMRSheet.student_id == student_id) | (OMRSheet.student_id.is_(None))
+            ).limit(1)
+            sheet_res = await db.execute(sheet_stmt)
+            target_sheet = sheet_res.scalar_one_or_none()
+            if not target_sheet:
+                target_sheet = OMRSheet(
+                    batch_id=batch_id,
+                    paper_id=sheet.paper_id,
+                    assessment_id=sheet.assessment_id,
+                    student_id=student_id,
+                    status="generated",
+                )
+                db.add(target_sheet)
+                await db.flush()
+            
+            if target_sheet:
+                target_sheet.student_id = student_id
+                evaluation = await _evaluate_and_save_result(db, target_sheet, answers, user.id, float(total_q))
+                await db.commit()
+                
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
@@ -461,5 +486,6 @@ async def scan_omr_upload(
             
     return {
         "batch_id": batch_id,
-        "scanned_sheets": scan_results
+        "scanned_sheets": scan_results,
+        "evaluation": evaluation
     }
