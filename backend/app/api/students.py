@@ -259,24 +259,18 @@ async def bulk_import_students(
             # Resolve Class
             class_id = None
             if raw_class:
-                if raw_class.isdigit():
-                    class_id = int(raw_class)
-                else:
-                    clean_class = raw_class.lower().replace("th", "").replace("st", "").replace("nd", "").replace("rd", "").strip()
-                    if clean_class.isdigit():
-                        grade = int(clean_class)
-                        class_id = school_grade_to_class_id.get((school_id, grade))
-                        if not class_id:
-                            # Auto-create class
-                            new_class = Class(school_id=school_id, grade=grade, academic_year="2026-2027")
-                            db.add(new_class)
-                            await db.commit()
-                            await db.refresh(new_class)
-                            school_grade_to_class_id[(school_id, grade)] = new_class.id
-                            class_id = new_class.id
-                    
-                    if not class_id and raw_class.isdigit():
-                        class_id = int(raw_class)
+                clean_class = raw_class.lower().replace("th", "").replace("st", "").replace("nd", "").replace("rd", "").strip()
+                if clean_class.isdigit():
+                    grade = int(clean_class)
+                    class_id = school_grade_to_class_id.get((school_id, grade))
+                    if not class_id:
+                        # Auto-create class
+                        new_class = Class(school_id=school_id, grade=grade, academic_year="2026-2027")
+                        db.add(new_class)
+                        await db.commit()
+                        await db.refresh(new_class)
+                        school_grade_to_class_id[(school_id, grade)] = new_class.id
+                        class_id = new_class.id
                     
             student = Student(
                 full_name=row.get("name"),
