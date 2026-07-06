@@ -3,7 +3,7 @@ import type { PaginatedResponse } from '@/types'
 
 export interface Student {
   id: string
-  name: string
+  full_name: string
   roll_number?: string
   class_id?: string
   class_name?: string
@@ -14,7 +14,7 @@ export interface Student {
 }
 
 export interface CreateStudentPayload {
-  name: string
+  full_name: string
   roll_number?: string
   class_id?: string
   gender?: string

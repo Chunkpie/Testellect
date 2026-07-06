@@ -50,14 +50,14 @@ import {
   Edit2,
 } from 'lucide-react'
 
-const createStudentSchema = z.object({
-  name: z.string().min(1, 'Student name is required'),
+const studentSchema = z.object({
+  full_name: z.string().min(1, 'Name is required'),
   roll_number: z.string().optional(),
   gender: z.enum(['male', 'female', 'other']).optional(),
   class_id: z.string().optional(),
 })
 
-type CreateStudentForm = z.infer<typeof createStudentSchema>
+type CreateStudentForm = z.infer<typeof studentSchema>
 
 const genderOptions = [
   { value: 'male', label: 'Male' },
@@ -80,8 +80,8 @@ function CreateStudentDialog({
   const queryClient = useQueryClient()
 
   const form = useForm<CreateStudentForm>({
-    resolver: zodResolver(createStudentSchema),
-    defaultValues: { name: '', roll_number: '', gender: undefined, class_id: '' },
+    resolver: zodResolver(studentSchema),
+    defaultValues: { full_name: '', roll_number: '', gender: undefined, class_id: '' },
   })
 
   const { data: classesData } = useQuery({
@@ -111,7 +111,7 @@ function CreateStudentDialog({
           <form onSubmit={form.handleSubmit((data) => createMutation.mutate(data))} className="space-y-4">
             <FormField
               control={form.control}
-              name="name"
+              name="full_name"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('students.name')}</FormLabel>
@@ -315,9 +315,9 @@ function EditStudentDialog({
   const queryClient = useQueryClient()
 
   const form = useForm<CreateStudentForm>({
-    resolver: zodResolver(createStudentSchema),
+    resolver: zodResolver(studentSchema),
     defaultValues: { 
-      name: student?.name || '', 
+      full_name: student?.full_name || '', 
       roll_number: student?.roll_number || '', 
       gender: (student?.gender as any) || undefined, 
       class_id: student?.class_id ? String(student.class_id) : '' 
@@ -362,7 +362,7 @@ function EditStudentDialog({
           <form onSubmit={form.handleSubmit((data) => updateMutation.mutate(data))} className="space-y-4">
             <FormField
               control={form.control}
-              name="name"
+              name="full_name"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('students.name')}</FormLabel>
@@ -579,7 +579,7 @@ export default function StudentsPage() {
                   ) : (
                     data?.items?.map((student) => (
                       <TableRow key={student.id} className="hover:bg-muted/5">
-                        <TableCell className="font-medium">{student.name}</TableCell>
+                        <TableCell className="font-medium">{student.full_name}</TableCell>
                         <TableCell className="text-muted-foreground font-mono text-sm">{student.roll_number || '-'}</TableCell>
                         <TableCell><Badge variant="outline" className="bg-background">{student.class_name || '-'}</Badge></TableCell>
                         <TableCell>
