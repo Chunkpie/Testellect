@@ -218,8 +218,8 @@ async def bulk_import_students(
     
     classes_result = await db.execute(select(Class))
     classes = classes_result.scalars().all()
-    class_name_to_id = {c.name.lower(): c.id for c in classes}
-    class_grade_to_id = {c.grade.lower(): c.id for c in classes}
+    # map (school_id, grade) to class_id
+    school_grade_to_class_id = {(c.school_id, c.grade): c.id for c in classes}
 
     students = []
     errors = []
@@ -254,9 +254,12 @@ async def bulk_import_students(
                     class_id = int(raw_class)
                 else:
                     clean_class = raw_class.lower().replace("th", "").replace("st", "").replace("nd", "").replace("rd", "").strip()
-                    class_id = class_grade_to_id.get(clean_class) or class_name_to_id.get(clean_class)
-                    if not class_id and clean_class.isdigit():
-                        class_id = int(clean_class)
+                    if clean_class.isdigit():
+                        grade = int(clean_class)
+                        class_id = school_grade_to_class_id.get((school_id, grade))
+                    
+                    if not class_id and raw_class.isdigit():
+                        class_id = int(raw_class)
                     
             student = Student(
                 name=row.get("name"),
