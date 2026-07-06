@@ -83,8 +83,8 @@ The fastest way to get the platform running is via Docker.
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-org/gseb-parakh.git
-cd gseb-parakh
+git clone https://github.com/Chunkpie/GSEB-NAS.git
+cd GSEB-NAS
 
 # 2. Build and start the containers
 docker compose up -d --build
