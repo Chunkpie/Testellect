@@ -66,9 +66,7 @@ export async function deleteStudent(id: string): Promise<void> {
 export async function bulkImportStudents(
   formData: FormData
 ): Promise<{ imported: number; errors?: string[] }> {
-  const { data } = await api.post('/students/bulk-import', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
+  const { data } = await api.post('/students/bulk-import', formData)
   return data
 }
 
