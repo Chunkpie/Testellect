@@ -5,7 +5,6 @@ const BASE_URL = '/api/v1'
 
 const api = axios.create({
   baseURL: BASE_URL,
-  headers: { 'Content-Type': 'application/json' },
 })
 
 api.interceptors.request.use((config) => {
