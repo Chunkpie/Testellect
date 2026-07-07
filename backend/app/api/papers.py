@@ -256,15 +256,18 @@ async def generate_custom_paper(
     import asyncio
     from app.core.database import async_session_factory
     
+    sem = asyncio.Semaphore(3)
+
     async def generate_for_concept(cid, count):
-        async with async_session_factory() as session:
-            return await ai_service.generate_questions_batched(
-                db=session,
-                concept_id=cid,
-                total_count=count,
-                difficulty=req.difficulty,
-                school_id=user.school_id
-            )
+        async with sem:
+            async with async_session_factory() as session:
+                return await ai_service.generate_questions_batched(
+                    db=session,
+                    concept_id=cid,
+                    total_count=count,
+                    difficulty=req.difficulty,
+                    school_id=user.school_id
+                )
 
     tasks = []
     for i, cid in enumerate(chosen_concepts):
