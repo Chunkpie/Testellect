@@ -137,11 +137,11 @@ class GeminiClient:
                 parsed = self._parse_json_lenient(raw)
                 import asyncio
                 if isinstance(parsed, dict):
-                    await asyncio.sleep(8)
+                    await asyncio.sleep(1.5)
                     return parsed
                 if isinstance(parsed, list):
                     if all(isinstance(i, dict) for i in parsed):
-                        await asyncio.sleep(8)
+                        await asyncio.sleep(1.5)
                         return {"items": parsed}
                 logger.error(f"Failed to parse JSON. Raw output: {raw}")
                 raise json.JSONDecodeError(f"Could not extract valid JSON object from response", raw, 0)
