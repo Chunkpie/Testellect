@@ -256,7 +256,7 @@ async def generate_custom_paper(
     import asyncio
     from app.core.database import async_session_factory
     
-    sem = asyncio.Semaphore(3)
+    sem = asyncio.Semaphore(1)
 
     async def generate_for_concept(cid, count):
         async with sem:
