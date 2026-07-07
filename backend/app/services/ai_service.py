@@ -253,8 +253,7 @@ class AiService:
         q_idx = 0
         while len(all_questions) < total_count:
             remaining = total_count - len(all_questions)
-            # Force current_batch to 1 to prevent rate limit exhaustion
-            current_batch = 1
+            current_batch = min(batch_size, remaining)
 
             # Fire concurrent calls
             coros = [

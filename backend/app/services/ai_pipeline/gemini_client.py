@@ -14,11 +14,11 @@ class GeminiClient:
         model: str | None = None,
         timeout_seconds: int = 120,
     ):
-        self.api_key = api_key or "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"
-        self.model = "llama-3.1-8b-instant"
+        self.api_key = api_key or settings.GEMINI_API_KEY
+        self.model = "gemini-1.5-flash"
         self.timeout_seconds = timeout_seconds
         self.timeout = httpx.Timeout(self.timeout_seconds)
-        self.base_url = "https://api.groq.com/openai/v1/chat/completions"
+        self.base_url = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
 
     async def generate(
         self,
