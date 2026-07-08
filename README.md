@@ -4,7 +4,7 @@
   <h1>Testellect</h1>
   
   <p>
-    <strong>An open-source, fully offline AI-powered competency assessment platform built for scale.</strong>
+    <strong>An open-source, AI-powered competency assessment platform built for scale.</strong>
   </p>
 
   <p>
