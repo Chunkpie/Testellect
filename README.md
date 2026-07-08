@@ -1,7 +1,7 @@
 <div align="center">
-  <img src="assets/images/logo.jpg" alt="PARAKH Logo" width="120" height="120" style="border-radius: 20%;" />
+  <img src="assets/images/logo.jpg" alt="Testellect Logo" width="120" height="120" style="border-radius: 20%;" />
 
-  <h1>GSEB PARAKH AI Assessment Platform</h1>
+  <h1>Testellect</h1>
   
   <p>
     <strong>An open-source, fully offline AI-powered competency assessment platform built for scale.</strong>
@@ -27,7 +27,7 @@
 
 India's National Education Policy (NEP) 2020 mandates competency-based assessments via the PARAKH and NAS frameworks. However, government schools often lack the budget for cloud AI subscriptions or expensive pre-printed OMR sheets, and many operate in low-connectivity areas.
 
-This platform solves these problems by providing a 100% offline, privacy-first AI assessment ecosystem that runs directly on school hardware.
+Testellect solves these problems by providing a 100% offline, privacy-first AI assessment ecosystem that runs directly on school hardware.
 
 ---
 
@@ -83,8 +83,8 @@ The fastest way to get the platform running is via Docker.
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/Chunkpie/GSEB-NAS.git
-cd GSEB-NAS
+git clone https://github.com/Chunkpie/Testellect.git
+cd Testellect
 
 # 2. Build and start the containers
 docker compose up -d --build
@@ -149,7 +149,7 @@ ollama run qwen3:8b
 ## Repository Structure
 
 ```text
-gseb-parakh/
+testellect/
 ├── backend/                  # FastAPI Application
 │   ├── app/
 │   │   ├── api/              # Route handlers
