@@ -7,13 +7,14 @@ class Settings(BaseSettings):
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 14
     OLLAMA_BASE_URL: str = "http://ollama:11434"
-    OLLAMA_MODEL: str = "qwen2.5:1.5b"
+    OLLAMA_MODEL: str = "llama3.2"
+    OLLAMA_VISION_MODEL: str = "llava"
     GEMINI_API_KEY: str | None = None
     OLLAMA_FALLBACK_MODELS: list[str] = []
     OLLAMA_TIMEOUT: int = 300
     OLLAMA_NUM_THREAD: int = 8
     OLLAMA_TEMPERATURE: float = 0.1
-    OLLAMA_BATCH_SIZE: int = 5
+    OLLAMA_BATCH_SIZE: int = 10
     CHROMA_BASE_URL: str = "http://chromadb:8001"
     FILE_STORAGE_PATH: str = "/data/storage"
     BACKUP_PATH: str = "/data/backups"

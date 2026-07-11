@@ -17,42 +17,6 @@ services:
       timeout: 5s
       retries: 5
 
-  ollama:
-    image: ollama/ollama:latest
-    container_name: parakh-ollama
-    volumes:
-      - ollama_models:/root/.ollama
-    ports:
-      - "11434:11434"
-    restart: unless-stopped
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-    environment:
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
-    healthcheck:
-      test: ["CMD", "ollama", "list"]
-      interval: 15s
-      timeout: 10s
-      retries: 10
-      start_period: 30s
-
-  model-puller:
-    image: curlimages/curl:latest
-    container_name: parakh-model-puller
-    depends_on:
-      ollama:
-        condition: service_healthy
-    env_file:
-      - .env
-    command: >
-      sh -c 'echo "Pulling model $$OLLAMA_MODEL..." && curl -s -X POST http://ollama:11434/api/pull -d "{\"name\": \"$$OLLAMA_MODEL\"}"'
-
   chromadb:
     image: chromadb/chroma:latest
     container_name: parakh-chromadb
@@ -62,6 +26,23 @@ services:
       - "8001:8000"
     restart: unless-stopped
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: parakh-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    # If the user has a GPU, they should uncomment this for hardware acceleration
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
   backend:
     build:
       context: .
@@ -69,8 +50,6 @@ services:
     container_name: parakh-backend
     depends_on:
       postgres:
-        condition: service_healthy
-      ollama:
         condition: service_healthy
       chromadb:
         condition: service_started
@@ -99,5 +78,5 @@ services:
 
 volumes:
   pgdata:
-  ollama_models:
   chroma_data:
+  ollama_data:

@@ -20,7 +20,7 @@ _warmup_task: asyncio.Task | None = None
 
 async def _warmup_ollama():
     try:
-        from app.services.ai_pipeline.gemini_client import GeminiClient as OllamaClient
+        from app.services.ai_pipeline.ollama_client import OllamaClient
         client = OllamaClient(timeout_seconds=900)
         logger.info("Pre-warming model (timeout=%d)...", client.timeout_seconds)
         await client.generate(
@@ -64,7 +64,7 @@ async def lifespan(app: FastAPI):
 
 def create_app() -> FastAPI:
     application = FastAPI(
-        title="GSEB PARAKH Platform",
+        title="Testellect Platform",
         version="1.0.0",
         docs_url="/docs",
         lifespan=lifespan,
@@ -76,6 +76,7 @@ def create_app() -> FastAPI:
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=["Content-Disposition"],
     )
 
     register_error_handlers(application)
@@ -87,11 +88,11 @@ def create_app() -> FastAPI:
 
     @application.get("/health")
     async def health():
-        return {"status": "ok", "app": settings.APP_NAME if hasattr(settings, "APP_NAME") else "GSEB PARAKH Platform"}
+        return {"status": "ok", "app": settings.APP_NAME if hasattr(settings, "APP_NAME") else "Testellect Platform"}
 
     @application.get("/health/ready")
     async def health_ready(request: Request):
-        return {"status": "ready", "app": settings.APP_NAME if hasattr(settings, "APP_NAME") else "GSEB PARAKH Platform"}
+        return {"status": "ready", "app": settings.APP_NAME if hasattr(settings, "APP_NAME") else "Testellect Platform"}
 
     return application
 

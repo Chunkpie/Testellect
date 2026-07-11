@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.db.models.curriculum import Book, Chapter, Competency, Concept, KnowledgeChunk, LearningOutcome, LearningOutcomeCompetency, Topic
 from app.db.models.questions import QuestionBank, QuestionOption
-from app.services.ai_pipeline.gemini_client import GeminiClient as OllamaClient
+from app.services.ai_pipeline.ollama_client import OllamaClient
 from app.services.ai_pipeline.prompt_builder import build_prompt
 from app.services.ai_pipeline.pipeline_orchestrator import PipelineOrchestrator
 from app.services.ai_pipeline.retrieval import ChromaDBClient
@@ -204,7 +204,7 @@ class AiService:
             try:
                 sp, prompt = build_prompt(system_prompt, context_list, task_variant)
                 result = await self.ollama.generate_structured(
-                    prompt=prompt, system=sp, temperature=temperature, max_retries=5,
+                    prompt=prompt, system=sp, temperature=temperature, max_retries=15,
                 )
                 error = _validate_question(result)
                 if error:
@@ -248,94 +248,109 @@ class AiService:
             image_requirement=image_requirement,
             image_tag_example=image_tag_example,
         )
-        task = f"Generate one {question_type} question in {language} as specified above."
+        task = f"Generate exactly {{current_batch}} {question_type} questions in {language} as specified above. Return a JSON array of these objects."
 
         q_idx = 0
         while len(all_questions) < total_count:
             remaining = total_count - len(all_questions)
             current_batch = min(batch_size, remaining)
 
-            # Fire concurrent calls
+            task_batch = task.format(current_batch=current_batch)
+            if all_questions:
+                existing_texts = [q.get("question_text", "") for q in all_questions if q.get("question_text")]
+                if existing_texts:
+                    task_batch += "\n\nCRITICAL: DO NOT repeat any of the following questions or concepts:\n"
+                    for ext in existing_texts[-10:]: # Limit to last 10 to save tokens
+                        task_batch += f"- {ext[:100]}...\n"
+
             coros = [
-                self._generate_single_question(system_prompt, context_list, task)
-                for _ in range(current_batch)
+                self._generate_single_question(system_prompt, context_list, task_batch)
+                # Just one call per batch
             ]
             results = await asyncio.gather(*coros, return_exceptions=True)
 
             for result in results:
-                q_idx += 1
                 if isinstance(result, Exception):
-                    logger.warning("Question %d: unhandled exception: %s", q_idx, str(result)[:120])
+                    logger.warning("Batch unhandled exception: %s", str(result)[:120])
                     continue
                 if result is None:
-                    logger.warning("Question %d: failed after all retries", q_idx)
+                    logger.warning("Batch failed after all retries")
                     continue
 
-                q_text = (result.get("question_text") or "").strip()
-                if not q_text:
-                    logger.warning("Question %d: empty question_text", q_idx)
-                    continue
+                items = result.get("items", [result]) if isinstance(result, dict) else result
+                if not isinstance(items, list):
+                    items = [items]
 
-                option_objects = _normalise_one_correct(_extract_options(result.get("options", [])))
-                if len(option_objects) < 2:
-                    logger.warning("Question %d: insufficient valid options (%d)", q_idx, len(option_objects))
-                    continue
+                for item in items:
+                    if len(all_questions) >= total_count:
+                        break
+                    
+                    q_idx += 1
+                    q_text = (item.get("question_text") or "").strip()
+                    if not q_text:
+                        logger.warning("Question %d: empty question_text", q_idx)
+                        continue
 
-                lang_lower = language.lower()
-                
-                image_asset_id = None
-                image_tag = result.get("image_tag")
-                if image_tag and school_id:
-                    from app.db.models.image_bank import ImageAsset
-                    img_result = await db.execute(
-                        select(ImageAsset).where(
-                            ImageAsset.school_id == school_id,
-                            ImageAsset.tags.ilike(f"%{image_tag}%")
-                        ).limit(1)
+                    option_objects = _normalise_one_correct(_extract_options(item.get("options", [])))
+                    if len(option_objects) < 2:
+                        logger.warning("Question %d: insufficient valid options (%d)", q_idx, len(option_objects))
+                        continue
+
+                    lang_lower = language.lower()
+                    
+                    image_asset_id = None
+                    image_tag = item.get("image_tag")
+                    if image_tag and school_id:
+                        from app.db.models.image_bank import ImageAsset
+                        img_result = await db.execute(
+                            select(ImageAsset).where(
+                                ImageAsset.school_id == school_id,
+                                ImageAsset.tags.ilike(f"%{image_tag}%")
+                            ).limit(1)
+                        )
+                        img = img_result.scalar_one_or_none()
+                        if img:
+                            image_asset_id = img.id
+
+                    question = QuestionBank(
+                        school_id=school_id or 0,
+                        concept_id=concept_id,
+                        question_text_en=q_text if lang_lower == "english" else "",
+                        question_text_hi=q_text if lang_lower == "hindi" else "",
+                        question_text_gu=q_text if lang_lower == "gujarati" else "",
+                        question_type=question_type or "mcq",
+                        bloom_level=bloom_level,
+                        difficulty=difficulty,
+                        marks=1.0,
+                        estimated_time_seconds=item.get("estimated_time_seconds", 60),
+                        explanation_en=item.get("explanation", "") if lang_lower == "english" else "",
+                        explanation_hi=item.get("explanation", "") if lang_lower == "hindi" else "",
+                        explanation_gu=item.get("explanation", "") if lang_lower == "gujarati" else "",
+                        image_asset_id=image_asset_id,
+                        generated_by="ai",
+                        approval_status="APPROVED",
                     )
-                    img = img_result.scalar_one_or_none()
-                    if img:
-                        image_asset_id = img.id
+                    db.add(question)
+                    await db.flush()
 
-                question = QuestionBank(
-                    school_id=school_id or 0,
-                    concept_id=concept_id,
-                    question_text_en=q_text if lang_lower == "english" else "",
-                    question_text_hi=q_text if lang_lower == "hindi" else "",
-                    question_text_gu=q_text if lang_lower == "gujarati" else "",
-                    question_type=question_type or "mcq",
-                    bloom_level=bloom_level,
-                    difficulty=difficulty,
-                    marks=1.0,
-                    estimated_time_seconds=result.get("estimated_time_seconds", 60),
-                    explanation_en=result.get("explanation", "") if lang_lower == "english" else "",
-                    explanation_hi=result.get("explanation", "") if lang_lower == "hindi" else "",
-                    explanation_gu=result.get("explanation", "") if lang_lower == "gujarati" else "",
-                    image_asset_id=image_asset_id,
-                    generated_by="ai",
-                    approval_status="APPROVED",
-                )
-                db.add(question)
-                await db.flush()
+                    for seq, opt in enumerate(option_objects):
+                        db.add(QuestionOption(
+                            question_id=question.id,
+                            option_text_en=opt["text"] if lang_lower == "english" else "",
+                            option_text_hi=opt["text"] if lang_lower == "hindi" else "",
+                            option_text_gu=opt["text"] if lang_lower == "gujarati" else "",
+                            is_correct=opt["is_correct"],
+                            sequence=seq,
+                        ))
 
-                for seq, opt in enumerate(option_objects):
-                    db.add(QuestionOption(
-                        question_id=question.id,
-                        option_text_en=opt["text"] if lang_lower == "english" else "",
-                        option_text_hi=opt["text"] if lang_lower == "hindi" else "",
-                        option_text_gu=opt["text"] if lang_lower == "gujarati" else "",
-                        is_correct=opt["is_correct"],
-                        sequence=seq,
-                    ))
-
-                all_questions.append({
-                    "id": question.id,
-                    "question_text": q_text,
-                    "options": option_objects,
-                    "explanation": result.get("explanation", ""),
-                    "bloom_level": bloom_level,
-                    "difficulty": difficulty,
-                })
+                    all_questions.append({
+                        "id": question.id,
+                        "question_text": q_text,
+                        "options": option_objects,
+                        "explanation": item.get("explanation", ""),
+                        "bloom_level": bloom_level,
+                        "difficulty": difficulty,
+                    })
 
             # Commit batch
             try:
