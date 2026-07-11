@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import {
@@ -33,6 +33,8 @@ export function CustomPaperDialog({
   const [selectedChapters, setSelectedChapters] = useState<number[]>([])
   const [totalQuestions, setTotalQuestions] = useState<number>(10)
   const [difficulty, setDifficulty] = useState<string>('medium')
+  const [numSets, setNumSets] = useState<number>(1)
+  const [activeJobId, setActiveJobId] = useState<string | null>(null)
 
   // Fetch subjects
   const { data: subjects } = useQuery({
@@ -65,17 +67,42 @@ export function CustomPaperDialog({
         chapter_ids: selectedChapters,
         total_questions: totalQuestions,
         difficulty: difficulty,
+        num_sets: numSets,
       }),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      setActiveJobId(data.job_id)
+    },
+    onError: (err: any) => {
+      alert(err?.response?.data?.detail || 'Failed to start generation job')
+    },
+  })
+
+  const jobQuery = useQuery({
+    queryKey: ['generationJob', activeJobId],
+    queryFn: () => papersApi.getGenerationJobStatus(activeJobId!),
+    enabled: !!activeJobId,
+    refetchInterval: (query) => {
+      const state = query.state?.data;
+      if (state?.status === 'completed' || state?.status === 'failed') {
+        return false;
+      }
+      return 2000;
+    }
+  })
+
+  useEffect(() => {
+    const status = jobQuery.data?.status
+    if (status === 'completed') {
       queryClient.invalidateQueries({ queryKey: ['papers'] })
       onOpenChange(false)
       setSelectedChapters([])
       setTotalQuestions(10)
-    },
-    onError: (err: any) => {
-      alert(err?.response?.data?.detail || 'Failed to generate custom paper')
-    },
-  })
+      setActiveJobId(null)
+    } else if (status === 'failed') {
+      alert('Generation job failed: ' + jobQuery.data?.error)
+      setActiveJobId(null)
+    }
+  }, [jobQuery.data?.status])
 
   const handleChapterToggle = (id: number) => {
     setSelectedChapters((prev) =>
@@ -142,7 +169,7 @@ export function CustomPaperDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Total Questions</label>
+              <label className="text-sm font-medium">Total Questions (Per Set)</label>
               <Input
                 type="number"
                 min={1}
@@ -163,6 +190,16 @@ export function CustomPaperDialog({
                 onChange={(e) => setDifficulty(e.target.value)}
               />
             </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Number of Sets</label>
+              <Input
+                type="number"
+                min={1}
+                max={10}
+                value={numSets}
+                onChange={(e) => setNumSets(parseInt(e.target.value) || 1)}
+              />
+            </div>
           </div>
         </div>
 
@@ -177,7 +214,10 @@ export function CustomPaperDialog({
         </DialogFooter>
       </DialogContent>
       {generateMutation.isPending && (
-        <CustomLoader message="Generating Custom Paper..." />
+        <CustomLoader message="Starting Job..." />
+      )}
+      {activeJobId && (
+        <CustomLoader message={`Generating Paper... ${jobQuery.data?.progress || 0}%`} />
       )}
     </Dialog>
   )

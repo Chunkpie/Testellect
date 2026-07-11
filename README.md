@@ -1,7 +1,7 @@
 <div align="center">
   <img src="assets/images/logo.jpg" alt="Testellect Logo" width="120" height="120" style="border-radius: 20%;" />
 
-  <h1>Testellect</h1>
+  <h1>Testellect AI Assessment Platform</h1>
   
   <p>
     <strong>An open-source AI-powered competency assessment platform built for scale — runs fully offline, or with free cloud APIs like Groq.</strong>

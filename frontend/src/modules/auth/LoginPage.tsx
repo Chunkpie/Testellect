@@ -50,7 +50,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-bold text-primary">
-            GSEB PARAKH
+            Testellect
           </h1>
           <p className="text-muted-foreground text-sm">
             {t('app.tagline')}

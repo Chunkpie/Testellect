@@ -16,15 +16,23 @@ interface ScannerDialogProps {
   onOpenChange: (v: boolean) => void
   batchId: string
   grade?: number
+  initialMode?: 'webcam' | 'upload'
 }
 
-export function ScannerDialog({ open, onOpenChange, batchId, grade }: ScannerDialogProps) {
+export function ScannerDialog({ open, onOpenChange, batchId, grade, initialMode = 'webcam' }: ScannerDialogProps) {
   const queryClient = useQueryClient()
   const webcamRef = useRef<Webcam>(null)
   
-  const [file, setFile] = useState<File | null>(null)
+  const [files, setFiles] = useState<File[]>([])
   const [studentId, setStudentId] = useState<string>('')
-  const [mode, setMode] = useState<'webcam' | 'upload'>('webcam')
+  const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0, isUploading: false })
+  const [mode, setMode] = useState<'webcam' | 'upload'>(initialMode)
+
+  useEffect(() => {
+    if (open) {
+      setMode(initialMode)
+    }
+  }, [open, initialMode])
 
   const { data: studentsData, isLoading: studentsLoading } = useQuery({
     queryKey: ['students', grade],
@@ -46,11 +54,27 @@ export function ScannerDialog({ open, onOpenChange, batchId, grade }: ScannerDia
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['omr-sessions'] })
-      onOpenChange(false)
-      setFile(null)
-      setStudentId('')
     }
   })
+
+  const handleBulkUpload = async () => {
+    if (!files.length) return
+    setUploadProgress({ current: 0, total: files.length, isUploading: true })
+    
+    for (let i = 0; i < files.length; i++) {
+      setUploadProgress(p => ({ ...p, current: i + 1 }))
+      try {
+        await uploadMutation.mutateAsync(files[i])
+      } catch (err) {
+        console.error('Failed to upload file:', files[i].name)
+      }
+    }
+    
+    setUploadProgress({ current: 0, total: 0, isUploading: false })
+    onOpenChange(false)
+    setFiles([])
+    setStudentId('')
+  }
 
   const handleCapture = useCallback(() => {
     if (!webcamRef.current) return
@@ -119,22 +143,32 @@ export function ScannerDialog({ open, onOpenChange, batchId, grade }: ScannerDia
             </TabsContent>
             
             <TabsContent value="upload" className="mt-4 space-y-4">
-              <Input type="file" accept="image/*,.pdf" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+              <Input type="file" multiple accept="image/*,.pdf,.zip" onChange={(e) => setFiles(Array.from(e.target.files || []))} />
+              {files.length > 0 && (
+                <div className="text-sm text-muted-foreground">
+                  {files.length} file(s) selected
+                </div>
+              )}
+              {uploadProgress.isUploading && (
+                <div className="text-sm text-blue-600 font-medium">
+                  Uploading {uploadProgress.current} of {uploadProgress.total}...
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={uploadProgress.isUploading}>Cancel</Button>
           {mode === 'webcam' ? (
             <Button onClick={handleCapture} disabled={uploadMutation.isPending}>
               {uploadMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Camera className="h-4 w-4 mr-2" />}
               Capture & Evaluate
             </Button>
           ) : (
-            <Button onClick={() => file && uploadMutation.mutate(file)} disabled={!file || uploadMutation.isPending}>
-              {uploadMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
-              Upload & Evaluate
+            <Button onClick={handleBulkUpload} disabled={files.length === 0 || uploadProgress.isUploading}>
+              {uploadProgress.isUploading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
+              {uploadProgress.isUploading ? 'Uploading...' : 'Upload & Evaluate'}
             </Button>
           )}
         </DialogFooter>

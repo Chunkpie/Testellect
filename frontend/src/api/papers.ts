@@ -54,6 +54,10 @@ export async function deletePaper(id: number): Promise<void> {
   await api.delete(`/papers/${id}`)
 }
 
+export async function renamePaper(id: number, name: string): Promise<void> {
+  await api.put(`/papers/${id}`, { name })
+}
+
 export async function exportPaperPdf(id: number, lang?: string): Promise<Blob> {
   const { data } = await api.get(`/papers/${id}/export`, {
     params: { lang },
@@ -75,8 +79,21 @@ export async function customGeneratePaper(params: {
   chapter_ids: number[]
   total_questions: number
   difficulty: string
-}): Promise<{ message: string; paper_id: number }> {
+  num_sets?: number
+}): Promise<{ message: string; job_id: string }> {
   const { data } = await api.post('/papers/custom-generate', params)
   return data
 }
 
+export interface GenerationJob {
+  id: string
+  status: 'pending' | 'running' | 'completed' | 'failed'
+  progress: number
+  error?: string
+  paper_ids?: number[]
+}
+
+export async function getGenerationJobStatus(jobId: string): Promise<GenerationJob> {
+  const { data } = await api.get(`/papers/custom-generate/jobs/${jobId}`)
+  return data
+}

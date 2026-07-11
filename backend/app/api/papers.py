@@ -1,6 +1,7 @@
 from datetime import datetime
+import json
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -220,10 +221,12 @@ class CustomPaperRequest(BaseModel):
     chapter_ids: List[int]
     total_questions: int
     difficulty: str = "medium"
+    num_sets: int = 1
 
 @router.post("/custom-generate")
 async def generate_custom_paper(
     req: CustomPaperRequest,
+    background_tasks: BackgroundTasks,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
@@ -240,22 +243,62 @@ async def generate_custom_paper(
     if not concept_ids:
         raise HTTPException(status_code=400, detail="No concepts found for these chapters")
 
-    # Distribute the total_questions across a subset of concepts
+    from app.db.models.admin import Job
+    import uuid
+
+    job_id = str(uuid.uuid4())
+    job = Job(
+        id=job_id,
+        type="paper_generation",
+        status="pending",
+        progress=0,
+        created_by=str(user.id)
+    )
+    db.add(job)
+    await db.commit()
+
+    background_tasks.add_task(
+        _bg_generate_custom_paper,
+        job_id,
+        req.dict(),
+        user.id,
+        user.school_id,
+        concept_ids
+    )
+
+    return {"message": "Generation started", "job_id": job_id}
+
+
+async def _bg_generate_custom_paper(
+    job_id: str,
+    req_dict: dict,
+    user_id: int,
+    school_id: int,
+    concept_ids: list[int]
+):
+    import asyncio
     import random
+    import json
+    from app.core.database import async_session_factory
     from app.services.ai_service import AiService
-    
-    num_concepts_to_use = min(len(concept_ids), req.total_questions)
+    from app.db.models.admin import Job
+    from app.db.models.papers import Blueprint, Paper, PaperQuestion
+
+    req_total_questions = req_dict["total_questions"]
+    req_num_sets = req_dict["num_sets"]
+    req_difficulty = req_dict["difficulty"]
+    req_grade = req_dict["grade"]
+    req_subject_id = req_dict["subject_id"]
+    req_chapter_ids = req_dict["chapter_ids"]
+
+    num_concepts_to_use = min(len(concept_ids), req_total_questions * req_num_sets)
     chosen_concepts = random.sample(concept_ids, num_concepts_to_use)
     
-    base_count = req.total_questions // num_concepts_to_use
-    remainder = req.total_questions % num_concepts_to_use
+    total_questions_to_generate = req_total_questions * req_num_sets
+    base_count = total_questions_to_generate // num_concepts_to_use
+    remainder = total_questions_to_generate % num_concepts_to_use
     
     ai_service = AiService()
-    generated_question_ids = []
-    
-    import asyncio
-    from app.core.database import async_session_factory
-    
     sem = asyncio.Semaphore(5)
 
     async def generate_for_concept(cid, count):
@@ -265,60 +308,153 @@ async def generate_custom_paper(
                     db=session,
                     concept_id=cid,
                     total_count=count,
-                    difficulty=req.difficulty,
-                    school_id=user.school_id
+                    difficulty=req_difficulty,
+                    school_id=school_id
                 )
 
-    tasks = []
-    for i, cid in enumerate(chosen_concepts):
-        count = base_count + (1 if i < remainder else 0)
-        tasks.append(generate_for_concept(cid, count))
+    try:
+        async with async_session_factory() as db:
+            job = await db.get(Job, job_id)
+            if job:
+                job.status = "running"
+                job.progress = 10
+                await db.commit()
 
-    results = await asyncio.gather(*tasks, return_exceptions=True)
+            tasks = []
+            for i, cid in enumerate(chosen_concepts):
+                count = base_count + (1 if i < remainder else 0)
+                tasks.append(generate_for_concept(cid, count))
 
-    for res in results:
-        if isinstance(res, Exception):
-            print(f"Error in generation task: {res}")
-            continue
-        for nq in res:
-            if "id" in nq:
-                generated_question_ids.append(nq["id"])
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+
+            generated_question_ids = []
+            for res in results:
+                if isinstance(res, Exception):
+                    continue
+                for nq in res:
+                    if "id" in nq:
+                        generated_question_ids.append(nq["id"])
+                        
+            if not generated_question_ids:
+                raise Exception("AI failed to generate questions.")
+
+            job = await db.get(Job, job_id)
+            if job:
+                job.progress = 80
+                await db.commit()
+
+            bp = Blueprint(
+                school_id=school_id,
+                name=f"Custom Blueprint - Grade {req_grade}",
+                grade=req_grade,
+                subject_id=req_subject_id,
+                total_marks=float(req_total_questions),
+                total_questions=req_total_questions,
+                duration_minutes=req_total_questions * 2,
+                bloom_distribution="{}",
+                difficulty_distribution="{}",
+                chapter_ids=json.dumps(req_chapter_ids)
+            )
+            db.add(bp)
+            await db.flush()
+
+            papers_created = []
+            for set_idx in range(req_num_sets):
+                variant_char = chr(65 + set_idx)
+                paper = Paper(
+                    blueprint_id=bp.id,
+                    variant_label=f"Set {variant_char} - Grade {req_grade}",
+                    generated_by=user_id
+                )
+                db.add(paper)
+                await db.flush()
+                papers_created.append(paper.id)
                 
-    if not generated_question_ids:
-        raise HTTPException(status_code=500, detail="AI failed to generate questions.")
+                start_idx = set_idx * req_total_questions
+                end_idx = start_idx + req_total_questions
+                set_questions = generated_question_ids[start_idx:end_idx]
+                
+                for i, q_id in enumerate(set_questions):
+                    pq = PaperQuestion(
+                        paper_id=paper.id,
+                        question_id=q_id,
+                        sequence=i+1
+                    )
+                    db.add(pq)
 
-    import json
-    bp = Blueprint(
-        school_id=user.school_id,
-        name=f"Custom Blueprint - Grade {req.grade}",
-        grade=req.grade,
-        subject_id=req.subject_id,
-        total_marks=float(len(generated_question_ids)),
-        total_questions=len(generated_question_ids),
-        duration_minutes=len(generated_question_ids) * 2,
-        bloom_distribution="{}",
-        difficulty_distribution="{}",
-        chapter_ids=json.dumps(req.chapter_ids)
-    )
-    db.add(bp)
-    await db.flush()
+            job.status = "completed"
+            job.progress = 100
+            job.params = json.dumps({"paper_ids": papers_created})
+            await db.commit()
+    except Exception as e:
+        async with async_session_factory() as db:
+            job = await db.get(Job, job_id)
+            if job:
+                job.status = "failed"
+                job.error = str(e)
+                await db.commit()
 
-    paper = Paper(
-        blueprint_id=bp.id,
-        variant_label=f"Custom Paper - Grade {req.grade}",
-        generated_by=user.id
-    )
-    db.add(paper)
-    await db.flush()
-    
-    from app.db.models.papers import PaperQuestion
-    for i, q_id in enumerate(generated_question_ids):
-        pq = PaperQuestion(
-            paper_id=paper.id,
-            question_id=q_id,
-            sequence=i+1
-        )
-        db.add(pq)
+@router.get("/custom-generate/jobs/{job_id}")
+async def get_generation_job_status(
+    job_id: str,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    from app.db.models.admin import Job
+    job = await db.get(Job, job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+        
+    return {
+        "id": job.id,
+        "status": job.status,
+        "progress": job.progress,
+        "error": job.error,
+        "paper_ids": json.loads(job.params).get("paper_ids", []) if job.params else []
+    }
 
+class RenamePaperRequest(BaseModel):
+    name: str
+
+@router.put("/{paper_id}")
+async def rename_paper(
+    paper_id: int,
+    req: RenamePaperRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(Paper).where(Paper.id == paper_id))
+    paper = result.scalar_one_or_none()
+    if not paper:
+        raise HTTPException(status_code=404, detail="Paper not found")
+        
+    bp_result = await db.execute(select(Blueprint).where(Blueprint.id == paper.blueprint_id))
+    blueprint = bp_result.scalar_one_or_none()
+    scope = _school_scope_filter(Blueprint, user)
+    if scope is not None and blueprint and blueprint.school_id != user.school_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+        
+    paper.variant_label = req.name
     await db.commit()
-    return {"message": "Paper generated successfully", "paper_id": paper.id}
+    return {"message": "Paper renamed successfully"}
+
+@router.delete("/{paper_id}")
+async def delete_paper(
+    paper_id: int,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(Paper).where(Paper.id == paper_id))
+    paper = result.scalar_one_or_none()
+    if not paper:
+        raise HTTPException(status_code=404, detail="Paper not found")
+        
+    bp_result = await db.execute(select(Blueprint).where(Blueprint.id == paper.blueprint_id))
+    blueprint = bp_result.scalar_one_or_none()
+    scope = _school_scope_filter(Blueprint, user)
+    if scope is not None and blueprint and blueprint.school_id != user.school_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+        
+    await db.delete(paper)
+    await db.commit()
+    return {"message": "Paper deleted successfully"}

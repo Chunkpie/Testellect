@@ -1,8 +1,9 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import * as papersApi from '@/api/papers'
 import type { Paper } from '@/api/papers'
+import { Input } from '@/components/ui/input'
 import {
   Table,
   TableBody,
@@ -41,6 +42,8 @@ import {
   ChevronRight,
   Trash2,
   ArrowLeft,
+  Pencil,
+  Scan,
 } from 'lucide-react'
 
 const PAGE_SIZE = 20
@@ -67,6 +70,59 @@ const subjectNames: Record<string, string> = {
   '4': 'Hindi',
   '5': 'Gujarati',
   '6': 'Social Science',
+}
+
+function RenameDialog({
+  paper,
+  open,
+  onOpenChange,
+  onConfirm,
+  isPending,
+}: {
+  paper: Paper | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onConfirm: (newName: string) => void
+  isPending: boolean
+}) {
+  const { t } = useTranslation()
+  const [name, setName] = useState('')
+
+  useEffect(() => {
+    if (paper) {
+      setName(paper.name)
+    }
+  }, [paper])
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Rename Paper</DialogTitle>
+        </DialogHeader>
+        <div className="py-4">
+          <Input 
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Enter new paper name"
+            disabled={isPending}
+          />
+        </div>
+        <DialogFooter>
+          <DialogClose>
+            <Button type="button" variant="outline">{t('common.cancel')}</Button>
+          </DialogClose>
+          <Button
+            onClick={() => onConfirm(name)}
+            disabled={isPending || !name.trim()}
+          >
+            {isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+            Save
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
 }
 
 function DeleteConfirmDialog({
@@ -264,6 +320,8 @@ export default function PapersPage() {
   const [viewingPaper, setViewingPaper] = useState<Paper | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Paper | null>(null)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [renameTarget, setRenameTarget] = useState<Paper | null>(null)
+  const [renameOpen, setRenameOpen] = useState(false)
   const [downloadTarget, setDownloadTarget] = useState<Paper | null>(null)
   const [downloadLanguage, setDownloadLanguage] = useState<'english' | 'hindi' | 'gujarati'>('english')
   const [isDownloading, setIsDownloading] = useState(false)
@@ -285,6 +343,15 @@ export default function PapersPage() {
     },
   })
 
+  const renameMutation = useMutation({
+    mutationFn: ({ id, name }: { id: number; name: string }) => papersApi.renamePaper(id, name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['papers'] })
+      setRenameOpen(false)
+      setRenameTarget(null)
+    },
+  })
+
   const handleView = useCallback(async (paper: Paper) => {
     try {
       const full = await papersApi.getPaper(paper.id)
@@ -293,6 +360,17 @@ export default function PapersPage() {
       setViewingPaper(paper)
     }
   }, [])
+
+  const handleRenameClick = useCallback((paper: Paper) => {
+    setRenameTarget(paper)
+    setRenameOpen(true)
+  }, [])
+
+  const handleRenameConfirm = useCallback((newName: string) => {
+    if (renameTarget) {
+      renameMutation.mutate({ id: renameTarget.id, name: newName })
+    }
+  }, [renameTarget, renameMutation])
 
   const handleDeleteClick = useCallback((paper: Paper) => {
     setDeleteTarget(paper)
@@ -419,6 +497,25 @@ export default function PapersPage() {
                           <Button
                             variant="ghost"
                             size="icon"
+                            title="Generate OMR Sheet"
+                            className="text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10"
+                            onClick={() => window.location.href = '/omr'}
+                          >
+                            <Scan className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleRenameClick(paper)}
+                            disabled={renameMutation.isPending}
+                            title="Rename"
+                            className="text-muted-foreground hover:text-primary"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => handleDeleteClick(paper)}
                             disabled={deleteMutation.isPending}
                             title={t('papers.delete')}
@@ -465,6 +562,13 @@ export default function PapersPage() {
         </CardContent>
       </Card>
 
+      <RenameDialog
+        paper={renameTarget}
+        open={renameOpen}
+        onOpenChange={(v) => { setRenameOpen(v); if (!v) setRenameTarget(null) }}
+        onConfirm={handleRenameConfirm}
+        isPending={renameMutation.isPending}
+      />
       <DeleteConfirmDialog
         paper={deleteTarget}
         open={deleteOpen}

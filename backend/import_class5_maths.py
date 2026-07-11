@@ -10,7 +10,7 @@ from sqlalchemy import select
 from app.core.database import async_session_factory as SessionLocal
 from app.db.models.curriculum import Subject, Book, Chapter, Topic, Concept, LearningOutcome
 
-JSON_DIR = r"/app/Curriculum/Class 5/Maths"
+JSON_DIR = "./Curriculum/Class 5/Maths"
 
 async def import_json():
     async with SessionLocal() as db:
@@ -18,7 +18,7 @@ async def import_json():
         res = await db.execute(select(Subject).where(Subject.name_en == "Mathematics"))
         subject = res.scalar_one_or_none()
         if not subject:
-            subject = Subject(name_en="Mathematics", description="Mathematics")
+            subject = Subject(name_en="Mathematics", code="MATH")
             db.add(subject)
             await db.flush()
 

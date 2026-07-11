@@ -49,7 +49,7 @@ export default function Sidebar() {
       <div className={cn('flex h-14 items-center border-b border-sidebar-border px-4', collapsed && 'justify-center')}>
         {!collapsed && (
           <div className="flex-1">
-            <h1 className="text-sm font-bold text-sidebar-foreground">GSEB PARAKH</h1>
+            <h1 className="text-sm font-bold text-sidebar-foreground">Testellect</h1>
             <p className="text-[10px] text-sidebar-foreground/60">Assessment Platform</p>
           </div>
         )}

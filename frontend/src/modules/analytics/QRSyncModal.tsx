@@ -27,7 +27,7 @@ export function QRSyncModal({ open, onOpenChange, data }: QRSyncModalProps) {
         <DialogHeader>
           <DialogTitle>Offline Data Sync</DialogTitle>
           <DialogDescription>
-            Scan this QR code with the Parakh District App to sync the latest analytics offline.
+            Scan this QR code with the Testellect District App to sync the latest analytics offline.
           </DialogDescription>
         </DialogHeader>
 

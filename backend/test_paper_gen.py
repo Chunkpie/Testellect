@@ -7,7 +7,7 @@ async def main():
         ai = AiService()
         await ai.generate_and_create_papers(
             db=db,
-            book_id=2,
+            book_id=1,
             user_id=1,
             school_id=1,
             total_questions=3, # Test with just 3 to see if it generates quickly

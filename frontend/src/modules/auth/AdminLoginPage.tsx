@@ -50,7 +50,7 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-bold text-slate-800">
-            GSEB PARAKH <span className="text-primary">Admin</span>
+            Testellect <span className="text-primary">Admin</span>
           </h1>
           <p className="text-muted-foreground text-sm">
             Administrator & DEO Portal

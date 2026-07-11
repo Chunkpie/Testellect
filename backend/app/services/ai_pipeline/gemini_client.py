@@ -14,11 +14,11 @@ class GeminiClient:
         model: str | None = None,
         timeout_seconds: int = 120,
     ):
-        self.api_key = api_key or settings.GEMINI_API_KEY
-        self.model = "gemini-1.5-flash"
+        self.api_key = api_key or "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"
+        self.model = "nvidia/nemotron-3-ultra-550b-a55b:free"
         self.timeout_seconds = timeout_seconds
         self.timeout = httpx.Timeout(self.timeout_seconds)
-        self.base_url = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+        self.base_url = "https://openrouter.ai/api/v1/chat/completions"
 
     async def generate(
         self,
@@ -34,8 +34,8 @@ class GeminiClient:
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
-            "HTTP-Referer": "https://gseb-parakh.local",
-            "X-Title": "GSEB Parakh"
+            "HTTP-Referer": "https://testellect.local",
+            "X-Title": "Testellect"
         }
         
         messages = []

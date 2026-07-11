@@ -23,8 +23,8 @@ export interface CreateStudentPayload {
 
 export interface Class {
   id: string
-  name: string
-  grade: string
+  grade: number
+  section?: string
   school_id: string
 }
 

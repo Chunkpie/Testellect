@@ -171,7 +171,7 @@ function CreateStudentDialog({
                     >
                       <option value="">Select class</option>
                       {classesData?.items?.map((cls) => (
-                        <option key={cls.id} value={cls.id}>{cls.name} (Grade {cls.grade})</option>
+                        <option key={cls.id} value={cls.id}>Class {cls.grade}{cls.section ? ` - ${cls.section}` : ''}</option>
                       ))}
                     </select>
                   </FormControl>
@@ -422,7 +422,7 @@ function EditStudentDialog({
                     >
                       <option value="">Select class</option>
                       {classesData?.items?.map((cls) => (
-                        <option key={cls.id} value={cls.id}>{cls.name} (Grade {cls.grade})</option>
+                        <option key={cls.id} value={cls.id}>Class {cls.grade}{cls.section ? ` - ${cls.section}` : ''}</option>
                       ))}
                     </select>
                   </FormControl>
@@ -533,7 +533,7 @@ export default function StudentsPage() {
             >
               <option value="">All classes</option>
               {classesData?.items?.map((cls) => (
-                <option key={cls.id} value={cls.id}>{cls.name}</option>
+                <option key={cls.id} value={cls.id}>Class {cls.grade}{cls.section ? ` - ${cls.section}` : ''}</option>
               ))}
             </select>
           </div>

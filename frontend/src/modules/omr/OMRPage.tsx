@@ -12,9 +12,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog'
-import { Scan, Download, Eye, Loader2, ArrowLeft, Plus, CheckCircle2, XCircle, Upload, Camera, AlertCircle, Trash2 } from 'lucide-react'
+import { Scan, Download, Eye, Loader2, ArrowLeft, Plus, CheckCircle2, XCircle, Upload, Camera, AlertCircle, Trash2, FileText } from 'lucide-react'
 import api from '@/api/client'
 import { ScannerDialog } from './ScannerDialog'
+import { useAuthStore } from '@/stores/authStore'
+import * as studentsApi from '@/api/students'
 
 function ResultsView({ results, summary, onBack }: { results: EvaluatedAnswer[], summary: OMRSummary, onBack: () => void }) {
   const { t } = useTranslation()
@@ -80,6 +82,9 @@ function StartSessionDialog({ open, onOpenChange, onSuccess }: { open: boolean, 
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [paperId, setPaperId] = useState('')
+  const [classId, setClassId] = useState('')
+  const [totalQuestions, setTotalQuestions] = useState('')
+  const user = useAuthStore((s) => s.user)
 
   const { data: papersData, isLoading: papersLoading } = useQuery({
     queryKey: ['papers'],
@@ -87,24 +92,40 @@ function StartSessionDialog({ open, onOpenChange, onSuccess }: { open: boolean, 
     enabled: open,
   })
 
+  const { data: classesData, isLoading: classesLoading } = useQuery({
+    queryKey: ['classes', user?.school_id],
+    queryFn: () => studentsApi.getClasses({ school_id: user?.school_id ? String(user.school_id) : undefined, limit: 200 }),
+    enabled: open && !!user?.school_id,
+  })
+
   const generateMutation = useMutation({
-    mutationFn: () => omrApi.generateOMR({ paper_id: parseInt(paperId, 10), student_count: 1 }),
+    mutationFn: () => omrApi.generateOMR({ 
+      paper_id: parseInt(paperId, 10), 
+      class_id: parseInt(classId, 10),
+      total_questions: totalQuestions ? parseInt(totalQuestions, 10) : undefined
+    }),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['omr-sessions'] })
       onOpenChange(false)
       setPaperId('')
+      setClassId('')
+      setTotalQuestions('')
       onSuccess(data.batch_id)
     },
   })
 
   const paperOptions = (papersData?.items || []).map((p) => ({ value: String(p.id), label: `${p.name} (Grade ${p.grade})` }))
+  const classOptions = (classesData?.items || []).map((c) => ({ 
+    value: String(c.id), 
+    label: `Class ${c.grade}${c.section ? ' - ' + c.section : ''}` 
+  }))
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Start New Scanning Session</DialogTitle>
-          <DialogDescription>Select a paper to start evaluating OMR sheets.</DialogDescription>
+          <DialogTitle>Generate OMR Sheets</DialogTitle>
+          <DialogDescription>Select a paper and class to generate personalized OMR sheets for each student.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
@@ -115,12 +136,67 @@ function StartSessionDialog({ open, onOpenChange, onSuccess }: { open: boolean, 
               <Select id="paper" options={paperOptions} placeholder={t('omr.form.select_paper')} value={paperId} onChange={(e) => setPaperId(e.target.value)} />
             )}
           </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="class">Select Class</Label>
+            {classesLoading ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Loading classes...</div>
+            ) : (
+              <Select id="class" options={classOptions} placeholder="Select Class (Updated)" value={classId} onChange={(e) => {
+                console.log("Class options:", classOptions);
+                setClassId(e.target.value);
+              }} />
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="totalQuestions">Total Questions (Optional)</Label>
+            <Input 
+              id="totalQuestions" 
+              type="number" 
+              placeholder="Leave blank to use default from blueprint" 
+              value={totalQuestions} 
+              onChange={(e) => setTotalQuestions(e.target.value)} 
+              min="1" 
+              max="100" 
+            />
+          </div>
         </div>
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t('common.cancel')}</Button>
-          <Button onClick={() => generateMutation.mutate()} disabled={!paperId || generateMutation.isPending}>
-            {generateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Scan className="h-4 w-4 mr-2" />}
-            Start Session
+          <Button onClick={() => generateMutation.mutate()} disabled={!paperId || !classId || generateMutation.isPending}>
+            {generateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileText className="h-4 w-4 mr-2" />}
+            Generate Sheets
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function ScanSelectDialog({ open, onOpenChange, sessions, onSuccess }: { open: boolean, onOpenChange: (v: boolean) => void, sessions: OMRSession[], onSuccess: (batchId: string) => void }) {
+  const { t } = useTranslation()
+  const [batchId, setBatchId] = useState('')
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Start Scanning Session</DialogTitle>
+          <DialogDescription>Select an OMR session to start scanning sheets.</DialogDescription>
+        </DialogHeader>
+        <div className="py-4">
+          <Select 
+            options={sessions.map(s => ({ value: s.batch_id, label: `${s.paper_name} (${new Date(s.created_at).toLocaleDateString()})` }))}
+            value={batchId}
+            onChange={(e) => setBatchId(e.target.value)}
+            placeholder="Select a session"
+          />
+        </div>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t('common.cancel')}</Button>
+          <Button onClick={() => { onOpenChange(false); onSuccess(batchId) }} disabled={!batchId}>
+            <Scan className="h-4 w-4 mr-2" /> Start Scanning
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -134,6 +210,7 @@ export default function OMRPage() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [generateOpen, setGenerateOpen] = useState(false)
+  const [scanSelectOpen, setScanSelectOpen] = useState(false)
   const [uploadOpen, setUploadOpen] = useState(false)
   const [uploadBatchId, setUploadBatchId] = useState('')
   const [viewingSession, setViewingSession] = useState<OMRSessionDetail | null>(null)
@@ -156,18 +233,10 @@ export default function OMRPage() {
   const handleViewResults = useCallback(async (session: OMRSession) => {
     if (!session.batch_id) return
     try {
-      const res = await omrApi.getResults(session.batch_id)
-      if (res.results.length > 0) {
-        setResultsData({ results: res.results, summary: res.summary })
-      } else {
-        const detail = await omrApi.getSession(session.batch_id)
-        setViewingSession(detail)
-      }
+      const detail = await omrApi.getSession(session.batch_id)
+      setViewingSession(detail)
     } catch {
-      try {
-        const detail = await omrApi.getSession(session.batch_id)
-        setViewingSession(detail)
-      } catch {}
+      console.error('Failed to view session details')
     }
   }, [])
 
@@ -185,6 +254,33 @@ export default function OMRPage() {
       setTimeout(() => window.URL.revokeObjectURL(url), 1000)
     } catch {
       console.error('Download failed')
+    }
+  }, [])
+
+  const handleDownloadReport = useCallback(async (batchId: string, studentId: number) => {
+    try {
+      const response = await api.get(`/omr/${encodeURIComponent(batchId)}/student/${studentId}/download-reports`, {
+        responseType: 'blob'
+      })
+      const url = window.URL.createObjectURL(response.data)
+      const a = document.createElement('a')
+      a.href = url
+      let filename = `Reports_Student_${studentId}.zip`
+      const disposition = response.headers['content-disposition']
+      if (disposition && disposition.indexOf('filename=') !== -1) {
+        const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition)
+        if (matches != null && matches[1]) { 
+          filename = matches[1].replace(/['"]/g, '')
+        }
+      }
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      setTimeout(() => window.URL.revokeObjectURL(url), 1000)
+    } catch (e) {
+      console.error('Failed to download report', e)
+      alert('Failed to download report')
     }
   }, [])
 
@@ -219,6 +315,7 @@ export default function OMRPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>#</TableHead>
+                  <TableHead>Student</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead>Action</TableHead>
@@ -228,16 +325,23 @@ export default function OMRPage() {
                 {viewingSession.sheets.map((s, idx) => (
                   <TableRow key={s.id}>
                     <TableCell>{idx + 1}</TableCell>
+                    <TableCell className="font-medium">{s.student_name || 'Unknown'}</TableCell>
                     <TableCell>
                       <Badge variant={s.status === 'generated' ? 'secondary' : 'success'}>{s.status}</Badge>
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {new Date(s.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </TableCell>
-                    <TableCell>
-                      <Button variant="outline" size="sm" onClick={() => handleUploadClick(viewingSession.batch_id)}>
-                        <Upload className="h-4 w-4 mr-2" /> Upload Scanned OMR
-                      </Button>
+                    <TableCell className="space-x-2">
+                      {s.status === 'generated' ? (
+                        <Button variant="outline" size="sm" onClick={() => handleUploadClick(viewingSession.batch_id)}>
+                          <Upload className="h-4 w-4 mr-2" /> Upload Scanned OMR
+                        </Button>
+                      ) : (
+                        <Button variant="default" size="sm" onClick={() => handleDownloadReport(viewingSession.batch_id, s.student_id || 1)}>
+                          <Download className="h-4 w-4 mr-2" /> Download Reports
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -245,7 +349,7 @@ export default function OMRPage() {
             </Table>
           </CardContent>
         </Card>
-      {uploadBatchId && <ScannerDialog open={uploadOpen} onOpenChange={setUploadOpen} batchId={uploadBatchId} grade={viewingSession.grade} />}
+      {uploadBatchId && <ScannerDialog open={uploadOpen} onOpenChange={setUploadOpen} batchId={uploadBatchId} grade={viewingSession.grade} initialMode="upload" />}
       </div>
     )
   }
@@ -257,9 +361,14 @@ export default function OMRPage() {
           <h1 className="text-3xl font-bold text-foreground">OMR Automation</h1>
           <p className="text-muted-foreground">{data ? `${data.total} assessment sessions` : 'Manage optical mark recognition sessions'}</p>
         </div>
-        <Button onClick={() => setGenerateOpen(true)}>
-          <Scan className="mr-2 h-4 w-4" /> Start Scanning Session
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" onClick={() => setGenerateOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" /> Generate OMR Sheets
+          </Button>
+          <Button onClick={() => setScanSelectOpen(true)}>
+            <Scan className="mr-2 h-4 w-4" /> Start Scanning Session
+          </Button>
+        </div>
       </div>
 
       <Card className="border-none shadow-md overflow-hidden">
@@ -323,11 +432,19 @@ export default function OMRPage() {
         open={generateOpen} 
         onOpenChange={setGenerateOpen} 
         onSuccess={(batchId) => {
-          setUploadBatchId(batchId)
-          setUploadOpen(true)
+          // Sheets are generated, user can now download them from the table
         }} 
       />
-      {uploadBatchId && <ScannerDialog open={uploadOpen} onOpenChange={setUploadOpen} batchId={uploadBatchId} grade={data?.items.find(s => s.batch_id === uploadBatchId)?.grade} />}
+      <ScanSelectDialog
+        open={scanSelectOpen}
+        onOpenChange={setScanSelectOpen}
+        sessions={data?.items || []}
+        onSuccess={(batchId) => {
+          setUploadBatchId(batchId)
+          setUploadOpen(true)
+        }}
+      />
+      {uploadBatchId && <ScannerDialog open={uploadOpen} onOpenChange={setUploadOpen} batchId={uploadBatchId} grade={data?.items.find(s => s.batch_id === uploadBatchId)?.grade} initialMode="upload" />}
 
       <Dialog open={!!deleteBatchId} onOpenChange={(open) => !open && setDeleteBatchId(null)}>
         <DialogContent className="sm:max-w-md">

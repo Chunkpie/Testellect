@@ -43,6 +43,7 @@ export interface OMRSessionDetail {
   sheets: Array<{
     id: number
     student_id: number | null
+    student_name?: string
     status: string
     created_at: string
   }>
@@ -77,7 +78,8 @@ export async function listSessions(): Promise<ListOMRSessionsResponse> {
 
 export async function generateOMR(params: {
   paper_id: number
-  student_count: number
+  class_id: number
+  total_questions?: number
 }): Promise<OMRGenerateResponse> {
   const { data } = await api.post('/omr/generate', params)
   return data
