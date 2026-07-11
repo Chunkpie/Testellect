@@ -82,7 +82,11 @@ async def create_school(
     current_year = datetime.now().year
     academic_year = f"{current_year}-{str(current_year + 1)[-2:]}"
     for grade in range(1, 13):
-        db.add(Class(school_id=school.id, grade=grade, section="A", academic_year=academic_year))
+        if grade in (11, 12):
+            db.add(Class(school_id=school.id, grade=grade, section="Science", academic_year=academic_year))
+            db.add(Class(school_id=school.id, grade=grade, section="Commerce", academic_year=academic_year))
+        else:
+            db.add(Class(school_id=school.id, grade=grade, section=None, academic_year=academic_year))
     await db.commit()
 
     return school

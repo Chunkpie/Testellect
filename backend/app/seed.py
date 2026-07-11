@@ -65,14 +65,14 @@ async def seed_demo_data():
 
         class_ids_school1 = []
         for grade_num in range(6, 8):
-            cls1 = Class(school_id=school_id, grade=grade_num, section="A", academic_year="2026-27")
+            cls1 = Class(school_id=school_id, grade=grade_num, section=None, academic_year="2026-27")
             db.add(cls1)
             await db.flush()
             class_ids_school1.append(cls1.id)
             
         class_ids_school2 = []
         for grade_num in range(6, 8):
-            cls2 = Class(school_id=school2_id, grade=grade_num, section="A", academic_year="2026-27")
+            cls2 = Class(school_id=school2_id, grade=grade_num, section=None, academic_year="2026-27")
             db.add(cls2)
             await db.flush()
             class_ids_school2.append(cls2.id)
@@ -244,7 +244,7 @@ async def seed_demo_data():
                 db.add(pq)
         await db.flush()
 
-        class_obj = Class(school_id=school_id, grade=10, section="A", academic_year="2026-27")
+        class_obj = Class(school_id=school_id, grade=10, section=None, academic_year="2026-27")
         db.add(class_obj)
         await db.flush()
 

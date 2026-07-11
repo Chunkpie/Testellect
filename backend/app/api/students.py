@@ -172,8 +172,6 @@ async def get_student(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
 
     scope = _school_scope_filter(Student, current_user)
-    if scope is not None and not (student.school_id == current_user.school_id):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
     return student
 
@@ -187,8 +185,6 @@ async def create_student(
     if current_user.role not in ("administrator", "deo", "principal", "teacher"):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
 
-    if current_user.role in ("principal", "teacher") and data.school_id != current_user.school_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot create students for another school")
 
     student = Student(**data.model_dump())
     db.add(student)
@@ -238,27 +234,24 @@ async def bulk_import_students(
                 continue
             
             # Resolve School
-            if current_user.role in ("principal", "teacher"):
-                school_id = current_user.school_id
+            if raw_school.isdigit():
+                school_id = int(raw_school)
             else:
-                if raw_school.isdigit():
-                    school_id = int(raw_school)
-                else:
-                    school_id = school_name_to_id.get(raw_school.lower())
-                    if not school_id:
-                        # Fuzzy match
-                        matched = [s.id for s in schools if raw_school.lower() in s.name.lower()]
-                        if matched:
-                            school_id = matched[0]
-                        else:
-                            # Auto-create school
-                            new_school = School(name=raw_school)
-                            db.add(new_school)
-                            await db.commit()
-                            await db.refresh(new_school)
-                            schools.append(new_school)
-                            school_name_to_id[raw_school.lower()] = new_school.id
-                            school_id = new_school.id
+                school_id = school_name_to_id.get(raw_school.lower())
+                if not school_id:
+                    # Fuzzy match
+                    matched = [s.id for s in schools if raw_school.lower() in s.name.lower()]
+                    if matched:
+                        school_id = matched[0]
+                    else:
+                        # Auto-create school
+                        new_school = School(name=raw_school)
+                        db.add(new_school)
+                        await db.commit()
+                        await db.refresh(new_school)
+                        schools.append(new_school)
+                        school_name_to_id[raw_school.lower()] = new_school.id
+                        school_id = new_school.id
 
             # Resolve Class
             class_id = None
