@@ -6,7 +6,7 @@ from typing import List, Dict, Any
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image as RLImage, ListFlowable, ListItem
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image as RLImage, ListFlowable, ListItem, Table, TableStyle
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
@@ -49,11 +49,13 @@ class PDFPaperService:
         language: str = "english"
     ) -> io.BytesIO:
         buffer = io.BytesIO()
+        
+        # Margins set to 40pt for a cleaner look
         doc = SimpleDocTemplate(
             buffer, 
             pagesize=A4,
-            rightMargin=36, leftMargin=36,
-            topMargin=36, bottomMargin=36
+            rightMargin=40, leftMargin=40,
+            topMargin=45, bottomMargin=50
         )
         
         Story = []
@@ -68,62 +70,97 @@ class PDFPaperService:
         if font_name not in pdfmetrics.getRegisteredFontNames():
             font_name = 'Helvetica'
 
+        # Modern color palette
+        primary_color = colors.HexColor('#0f172a') # Charcoal Slate
+        text_color = colors.HexColor('#334155') # Dark Grey
+        accent_color = colors.HexColor('#2563eb') # Classic Royal Blue
+        border_color = colors.HexColor('#cbd5e1') # Light slate border
+
+        # Styles definition
         title_style = ParagraphStyle(
-            'TitleStyle',
-            parent=styles['Heading1'],
+            'HeaderTitle',
             fontName=font_name,
-            alignment=1, # Center
-            spaceAfter=16,
-            textColor=colors.HexColor('#1e3a8a') # Dark blue
+            fontSize=16,
+            leading=20,
+            textColor=primary_color,
+            fontStyle='bold',
+            spaceAfter=4
         )
         
-        info_style = ParagraphStyle(
-            'InfoStyle',
-            parent=styles['Normal'],
+        meta_label_style = ParagraphStyle(
+            'MetaLabel',
             fontName=font_name,
-            alignment=1,
-            spaceAfter=8,
-            fontSize=11,
-            textColor=colors.HexColor('#4b5563') # Gray
+            fontSize=10,
+            leading=14,
+            textColor=text_color,
+            alignment=0 # Left
+        )
+
+        meta_right_style = ParagraphStyle(
+            'MetaRight',
+            fontName=font_name,
+            fontSize=10,
+            leading=14,
+            textColor=text_color,
+            alignment=2 # Right
         )
         
         question_style = ParagraphStyle(
             'QuestionStyle',
             parent=styles['Normal'],
             fontName=font_name,
-            spaceAfter=12,
-            fontSize=11,
-            leading=16
+            spaceBefore=14,
+            spaceAfter=8,
+            fontSize=10.5,
+            leading=15,
+            textColor=primary_color
         )
         
         option_style = ParagraphStyle(
             'OptionStyle',
             parent=styles['Normal'],
             fontName=font_name,
-            leftIndent=20,
-            spaceAfter=6,
-            fontSize=11
+            leftIndent=15,
+            spaceAfter=5,
+            fontSize=10,
+            leading=14,
+            textColor=text_color
         )
 
-        # Header
+        # Header structured block
         current_date = datetime.now().strftime("%d %B %Y")
-        Story.append(Paragraph("<b>GSEB-NAS Model Test Paper</b>", title_style))
-        Story.append(Paragraph(f"Paper Variant: {paper_info.get('name', 'N/A')} | Date: {current_date} | Language: {language.title()}", info_style))
-        
-        # We try to show the actual subject name if available instead of just subject ID
         sub_name = paper_info.get('subject_name', f"ID {paper_info.get('subject_id', 'N/A')}")
-        duration = paper_info.get('duration_minutes')
-        if not duration:
-            duration = 60
-        info_text = f"Grade: {paper_info.get('grade', 'N/A')} | Subject: {sub_name} | Total Marks: {paper_info.get('total_marks', 'N/A')} | Duration: {duration} min"
-        Story.append(Paragraph(info_text, info_style))
-        Story.append(Spacer(1, 24))
+        duration = paper_info.get('duration_minutes') or 60
+
+        # Constructing header layout as a clean table
+        header_data = [
+            [
+                Paragraph(f"<b>TESTELLECT EVALUATION PLATFORM</b>", title_style),
+                Paragraph(f"<b>Grade:</b> {paper_info.get('grade', 'N/A')}<br/><b>Subject:</b> {sub_name}", meta_right_style)
+            ],
+            [
+                Paragraph(f"<b>Paper Set:</b> {paper_info.get('name', 'N/A')} | <b>Date:</b> {current_date}", meta_label_style),
+                Paragraph(f"<b>Total Marks:</b> {paper_info.get('total_marks', 'N/A')} M | <b>Duration:</b> {duration} Min", meta_right_style)
+            ]
+        ]
+        
+        header_table = Table(header_data, colWidths=[315, 200])
+        header_table.setStyle(TableStyle([
+            ('VALIGN', (0,0), (-1,-1), 'BOTTOM'),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+            ('TOPPADDING', (0,0), (-1,-1), 0),
+            ('LEFTPADDING', (0,0), (-1,-1), 0),
+            ('RIGHTPADDING', (0,0), (-1,-1), 0),
+            ('LINEBELOW', (0,1), (-1,1), 1.5, primary_color), # Bold horizontal rule beneath header
+        ]))
+        
+        Story.append(header_table)
+        Story.append(Spacer(1, 15))
 
         # Questions
         for q in questions:
             # Question Text
             q_num = q['sequence']
-            # Based on language, extract the correct text field from the question dict
             q_text = q.get('question_text_en', '')
             if language.lower() == 'hindi':
                 q_text = q.get('question_text_hi', q_text)
@@ -137,11 +174,13 @@ class PDFPaperService:
             if image_path:
                 full_path = os.path.join(settings.FILE_STORAGE_PATH, image_path.replace('/storage/', ''))
                 if os.path.exists(full_path):
-                    Story.append(RLImage(full_path, width=200, height=150, kind='proportional'))
-                    Story.append(Spacer(1, 12))
+                    Story.append(RLImage(full_path, width=220, height=140, kind='proportional'))
+                    Story.append(Spacer(1, 8))
 
-            # Options
+            # Options formatting (uses 2x2 grid if options are short)
             options = q.get('options', [])
+            opt_paragraphs = []
+            max_len = 0
             for opt in options:
                 opt_text = opt.get('option_text_en', '')
                 if language.lower() == 'hindi':
@@ -149,10 +188,51 @@ class PDFPaperService:
                 elif language.lower() == 'gujarati':
                     opt_text = opt.get('option_text_gu', opt_text)
                     
-                Story.append(Paragraph(f"{opt.get('prefix', '•')} {opt_text}", option_style))
+                prefix = opt.get('prefix', '•')
+                if not prefix.endswith('.'):
+                    prefix = f"{prefix}."
+                
+                full_opt_text = f"<b>{prefix}</b> {opt_text}"
+                max_len = max(max_len, len(opt_text))
+                opt_paragraphs.append(Paragraph(full_opt_text, option_style))
             
-            Story.append(Spacer(1, 12))
+            if max_len < 35 and len(opt_paragraphs) == 4:
+                # 2x2 Grid alignment
+                data = [
+                    [opt_paragraphs[0], opt_paragraphs[1]],
+                    [opt_paragraphs[2], opt_paragraphs[3]]
+                ]
+                opt_table = Table(data, colWidths=[250, 250])
+                opt_table.setStyle(TableStyle([
+                    ('VALIGN', (0,0), (-1,-1), 'TOP'),
+                    ('LEFTPADDING', (0,0), (-1,-1), 5),
+                    ('RIGHTPADDING', (0,0), (-1,-1), 5),
+                    ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+                    ('TOPPADDING', (0,0), (-1,-1), 0),
+                ]))
+                Story.append(opt_table)
+            else:
+                for opt_p in opt_paragraphs:
+                    Story.append(opt_p)
+            
+            Story.append(Spacer(1, 6))
 
-        doc.build(Story)
+        # Canvas decoration callback for running footer
+        def draw_decorations(canvas, doc):
+            canvas.saveState()
+            canvas.setStrokeColor(border_color)
+            canvas.setLineWidth(0.5)
+            # Bottom divider line
+            canvas.line(40, 45, 555, 45)
+            
+            # Footer text and page number
+            canvas.setFont('Helvetica', 8.5)
+            canvas.setFillColor(text_color)
+            canvas.drawString(40, 30, "Testellect Platform — Confidential Assessment Tool")
+            canvas.drawRightString(555, 30, f"Page {doc.page}")
+            canvas.restoreState()
+
+        # Build document with decoration callback
+        doc.build(Story, onFirstPage=draw_decorations, onLaterPages=draw_decorations)
         buffer.seek(0)
         return buffer
