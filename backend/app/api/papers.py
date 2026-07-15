@@ -206,7 +206,7 @@ async def export_paper_pdf(
     
     return Response(
         content=pdf_buffer.getvalue(),
-        media_type="application/x-custom-pdf"
+        media_type="application/pdf"
     )
 
 from pydantic import BaseModel

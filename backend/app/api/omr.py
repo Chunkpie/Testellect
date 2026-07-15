@@ -256,7 +256,7 @@ async def download_omr_pdf(
     paper = await db.get(Paper, sheet.paper_id)
     filename = f"omr_{paper.variant_label.replace(' ', '_') if paper else batch_id}.pdf"
 
-    return FileResponse(filepath, media_type="application/x-custom-pdf", filename=filename)
+    return FileResponse(filepath, media_type="application/pdf", filename=filename)
 
 
 @router.post("/{batch_id}/results")
@@ -571,10 +571,9 @@ async def scan_omr_upload(
             
         evaluations = []
         if scan_results:
-            # Get all available un-evaluated sheets for this batch
+            # Get all available sheets for this batch (including evaluated to allow re-scans)
             available_stmt = select(OMRSheet).where(
-                OMRSheet.batch_id == batch_id,
-                OMRSheet.status != "evaluated"
+                OMRSheet.batch_id == batch_id
             ).order_by(OMRSheet.id)
             if student_id:
                 available_stmt = available_stmt.where(OMRSheet.student_id == student_id)
@@ -585,17 +584,17 @@ async def scan_omr_upload(
                 answers = scan_res.get("answers", [])
                 metadata = scan_res.get("metadata", {})
                 
-                # Check if QR code contains a specific student_id
-                qr_student_id = metadata.get("student_id")
+                # Check if QR code contains a specific student_id, or if manual student_id is provided
+                resolved_student_id = qr_student_id or student_id
                 target_sheet = None
                 
-                if qr_student_id:
+                if resolved_student_id:
                     # Find the specific sheet for this student
-                    target_sheet = next((s for s in available_sheets if s.student_id == qr_student_id), None)
+                    target_sheet = next((s for s in available_sheets if s.student_id == resolved_student_id), None)
                 
-                # Fallbacks if QR doesn't have student_id or sheet wasn't found
+                # Fallbacks if no student_id could be resolved or sheet wasn't found
                 if not target_sheet:
-                    # Filter out sheets that have already been assigned in this loop
+                    # Filter out sheets that have already been evaluated
                     unassigned_sheets = [s for s in available_sheets if s.status != "evaluated"]
                     if unassigned_sheets:
                         target_sheet = unassigned_sheets[0]
@@ -604,14 +603,14 @@ async def scan_omr_upload(
                             batch_id=batch_id,
                             paper_id=sheet.paper_id,
                             assessment_id=sheet.assessment_id,
-                            student_id=qr_student_id or student_id or None,
+                            student_id=resolved_student_id,
                             status="generated",
                         )
                         db.add(target_sheet)
                         await db.flush()
                 
-                if (qr_student_id or student_id) and not target_sheet.student_id:
-                    target_sheet.student_id = qr_student_id or student_id
+                if resolved_student_id and not target_sheet.student_id:
+                    target_sheet.student_id = resolved_student_id
                 
                 # Mark as evaluated so it won't be picked up by the next iteration in fallback mode
                 target_sheet.status = "evaluated"
@@ -652,7 +651,7 @@ async def download_student_reports(
     # Generate insights
     analytics_svc = LearningAnalyticsService()
     try:
-        insights = await analytics_svc.generate_student_insights(db, student_id)
+        insights = await analytics_svc.generate_student_insights(db, student_id, assessment_id=sheet.assessment_id)
     except Exception as e:
         insights = {
             "strengths": [],
@@ -661,9 +660,24 @@ async def download_student_reports(
             "narrative": f"Error generating insights: {str(e)}"
         }
 
-    # Fetch OMR Result for the raw results report
-    omr_res = await db.execute(select(OMRResult).where(OMRResult.omr_sheet_id == sheet.id))
-    omr_result = omr_res.scalar_one_or_none()
+    # Prefer the OMR Result linked to the StudentResult if it exists, to ensure sync
+    sr_stmt = select(StudentResult).where(
+        StudentResult.student_id == student_id
+    )
+    if sheet.assessment_id:
+        sr_stmt = sr_stmt.where(StudentResult.assessment_id == sheet.assessment_id)
+    sr_res = await db.execute(sr_stmt)
+    student_result = sr_res.scalar_one_or_none()
+
+    omr_result = None
+    if student_result and student_result.omr_result_id:
+        omr_res = await db.execute(select(OMRResult).where(OMRResult.id == student_result.omr_result_id))
+        omr_result = omr_res.scalar_one_or_none()
+    
+    # Fallback to just grabbing the OMRResult for this specific sheet
+    if not omr_result:
+        omr_res = await db.execute(select(OMRResult).where(OMRResult.omr_sheet_id == sheet.id))
+        omr_result = omr_res.scalar_one_or_none()
     evaluated_answers = []
     score = 0
     max_score = 0
@@ -678,7 +692,7 @@ async def download_student_reports(
             db, student_id, batch_id, evaluated_answers, score, max_score
         )
         analytics_pdf_path = await PDFReportService.generate_student_report(
-            db, student_id, report_id=1, insights=insights
+            db, student_id, report_id=1, insights=insights, assessment_id=sheet.assessment_id
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate PDFs: {str(e)}")

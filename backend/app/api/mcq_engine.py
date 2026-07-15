@@ -133,7 +133,7 @@ async def download_marked_sheet(student_result_id: int, db: AsyncSession = Depen
         pdf_bytes = await generate_marked_answer_sheet(db, student_result_id)
         return Response(
             content=pdf_bytes,
-            media_type="application/x-custom-pdf"
+            media_type="application/pdf"
         )
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -146,7 +146,7 @@ async def download_concept_analysis(student_result_id: int, db: AsyncSession = D
         pdf_bytes = await generate_concept_analysis_report(db, student_result_id)
         return Response(
             content=pdf_bytes,
-            media_type="application/x-custom-pdf"
+            media_type="application/pdf"
         )
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

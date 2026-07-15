@@ -282,7 +282,7 @@ async def download_report(
         
     return FileResponse(
         filepath,
-        media_type="application/x-custom-pdf",
+        media_type="application/pdf",
         filename=f"report_{report.id}.pdf",
     )
 

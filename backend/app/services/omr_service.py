@@ -33,24 +33,24 @@ def _draw_qr(c: canvas.Canvas, x: float, y: float, data: str, tmp_dir: str) -> N
         pass
 
 
-def _draw_bubbles(c: canvas.Canvas, x: float, y: float, qnum: int) -> None:
+def _draw_bubbles(c: canvas.Canvas, x: float, y: float, qnum: int, bubble_r: float, label_w: float) -> None:
     c.saveState()
     # Question Number
-    c.setFont("Helvetica-Bold", 10)
+    c.setFont("Helvetica-Bold", 9 if bubble_r < 3.5 * mm else 10)
     # Right align the question number slightly
     q_str = f"{qnum:02d}."
     c.drawString(x, y - 3, q_str)
     
-    bx = x + LABEL_W
+    bx = x + label_w
     for opt in OPTIONS:
         # Draw bubble
-        c.setLineWidth(1)
+        c.setLineWidth(0.8 if bubble_r < 3.5 * mm else 1)
         c.setStrokeColor(black)
-        c.circle(bx, y, BUBBLE_R, fill=0)
+        c.circle(bx, y, bubble_r, fill=0)
         # Center the text inside the bubble
-        c.setFont("Helvetica", 7)
-        c.drawCentredString(bx, y - 2.5, opt)
-        bx += 2.5 * BUBBLE_R
+        c.setFont("Helvetica", 5.5 if bubble_r < 3.5 * mm else 7)
+        c.drawCentredString(bx, y - (2.0 if bubble_r < 3.5 * mm else 2.5), opt)
+        bx += 2.5 * bubble_r
     c.restoreState()
 
 
@@ -83,6 +83,23 @@ def generate_omr_pdf(
         total_questions = 30
     if batch_id is None:
         batch_id = f"BATCH_{paper_id}_{int(time.time())}"
+
+    # Determine layout parameters dynamically to fit everything on a single page
+    if total_questions <= 30:
+        num_cols = 2
+        bubble_r = 4.2 * mm
+        row_h = 8.5 * mm
+        label_w = 10 * mm
+    elif total_questions <= 60:
+        num_cols = 3
+        bubble_r = 3.5 * mm
+        row_h = 7.5 * mm
+        label_w = 9 * mm
+    else:
+        num_cols = 4
+        bubble_r = 2.8 * mm
+        row_h = 6.2 * mm
+        label_w = 8 * mm
 
     os.makedirs(settings.REPORTS_DIR, exist_ok=True)
     ts = int(time.time())
@@ -126,7 +143,6 @@ def generate_omr_pdf(
         c.drawRightString(W - MARGIN - 5*mm, header_y - 10*mm, f"Sheet {sheet_num} of {student_count}")
 
         # --- QR Code ---
-        # Placed below the header, right aligned
         qr_y = header_y - 25*mm - 5*mm - QR_SIZE
         qr_x = W - MARGIN - 5*mm - QR_SIZE
         qr_payload = json.dumps({
@@ -163,42 +179,31 @@ def generate_omr_pdf(
         c.drawString(MARGIN + 5*mm, inst_y, "Instructions: Darken the circles completely using a dark pen/pencil. Do not fold or scratch the sheet.")
 
         # --- Questions Section ---
-        # Draw a line above questions
         c.setLineWidth(1)
         c.line(MARGIN, inst_y - 5*mm, W - MARGIN, inst_y - 5*mm)
 
-        q_per_col = (total_questions + 1) // 2
-        col_w = (W - 2 * MARGIN) / 2
+        content_w = W - 2 * MARGIN
+        section_w = content_w / num_cols
+        col_w_content = label_w + 8.5 * bubble_r
         
-        # Draw a vertical divider between columns
+        # Draw vertical dividers
         c.setLineWidth(0.5)
         c.setStrokeColor(lightgrey)
-        c.line(MARGIN + col_w, inst_y - 5*mm, MARGIN + col_w, MARGIN)
+        for col in range(1, num_cols):
+            div_x = MARGIN + col * section_w
+            c.line(div_x, inst_y - 5*mm, div_x, MARGIN)
 
-        for col in range(2):
-            # Center the column content within its half
-            col_x = MARGIN + col * col_w + (col_w - (LABEL_W + 4 * 2.5 * BUBBLE_R)) / 2
+        q_per_col = (total_questions + num_cols - 1) // num_cols
+
+        for col in range(num_cols):
+            col_x = MARGIN + col * section_w + (section_w - col_w_content) / 2
             start_q = col * q_per_col + 1
             end_q = min(start_q + q_per_col - 1, total_questions)
-            q_y = inst_y - 15 * mm
+            q_y = inst_y - 10 * mm
 
             for qnum in range(start_q, end_q + 1):
-                if q_y < MARGIN + 15 * mm:
-                    c.showPage()
-                    _draw_fiducials(c, W, H)
-                    c.setLineWidth(2)
-                    c.rect(MARGIN, MARGIN, W - 2 * MARGIN, H - 2 * MARGIN)
-                    
-                    if sheet_num > 1:
-                        c.setFont("Helvetica", 8)
-                        c.drawString(MARGIN + 5*mm, H - MARGIN - 10*mm, f"Sheet {sheet_num} (cont.) - {student.full_name}")
-                    
-                    # Restart column positions for new page
-                    q_y = H - MARGIN - 25 * mm
-                    c.line(MARGIN + col_w, H - MARGIN, MARGIN + col_w, MARGIN) # Redraw center line
-
-                _draw_bubbles(c, col_x, q_y, qnum)
-                q_y -= ROW_H
+                _draw_bubbles(c, col_x, q_y, qnum, bubble_r, label_w)
+                q_y -= row_h
 
         c.showPage()
 

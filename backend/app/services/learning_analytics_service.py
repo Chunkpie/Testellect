@@ -1,3 +1,4 @@
+import json
 import logging
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -5,27 +6,30 @@ from typing import Dict, Any, List
 
 from app.db.models.assessments import StudentResult, CompetencyResult, Assessment, Student
 from app.db.models.curriculum import Competency
-from app.services.ai_pipeline.gemini_client import GeminiClient as OllamaClient
+from app.db.models.omr import OMRResult
+from app.services.ai_pipeline.ollama_client import OllamaClient
 from app.services.ai_pipeline.prompt_builder import build_prompt
 
 logger = logging.getLogger(__name__)
 
 LEARNING_ANALYTICS_SYSTEM = """You are an expert educator providing actionable feedback for a student based on their assessment performance.
-Analyze the provided competency performance data.
+Analyze the provided competency and question-by-question performance data.
 
 REQUIREMENTS:
-- Provide a summary of strengths (competencies where mastery is high).
-- Provide a summary of areas for improvement (competencies where mastery is low or questions missed).
+- Provide a summary of strengths (competencies where mastery is high, or specific questions they did well on).
+- Provide a summary of areas for improvement (competencies where mastery is low, or specific concepts they missed).
 - Provide 2-3 specific, actionable recommendations for the student to improve.
 - Keep the tone encouraging and constructive.
 
-CRITICAL: Respond ONLY with a valid JSON object. No markdown, no code fences, no extra text.
+CRITICAL INSTRUCTION: Respond ONLY with a valid JSON object. No markdown, no extra text.
+DO NOT COPY THE EXAMPLE TEXT EXACTLY. Use the actual concepts and topics from the provided COMPETENCY SCORES and QUESTION RESULTS.
+
 VALID JSON EXAMPLE:
 {
-  "strengths": ["Excellent understanding of basic addition", "Good reading comprehension"],
-  "areas_for_improvement": ["Struggling with multi-digit multiplication", "Needs work on vocabulary"],
-  "recommendations": ["Practice 10 multiplication problems daily", "Read a new book each week and note down new words"],
-  "narrative": "You're doing a great job with your basic math and reading! To get even better, let's focus on practicing those larger multiplication problems..."
+  "strengths": ["Strong grasp of [Concept A]", "Correctly answered most questions on [Topic B]"],
+  "areas_for_improvement": ["Needs review on [Concept C]", "Missed several questions related to [Topic D]"],
+  "recommendations": ["Review chapter X focusing on [Concept C]", "Practice more questions on [Topic D]"],
+  "narrative": "You showed great understanding of [Concept A], but let's work more on [Concept C]..."
 }
 """
 
@@ -62,8 +66,10 @@ class LearningAnalyticsService:
                 "narrative": "Not enough data to generate insights yet."
             }
 
-        # Aggregate competency data
+        # Aggregate competency data and question-by-question data
         competency_data = {}
+        question_summary = []
+        
         for sr in student_results:
             comp_stmt = select(CompetencyResult).where(CompetencyResult.student_result_id == sr.id)
             comp_res = await db.execute(comp_stmt)
@@ -79,13 +85,35 @@ class LearningAnalyticsService:
                 competency_data[cr.competency_id]["attempted"] += cr.questions_attempted or 0
                 competency_data[cr.competency_id]["correct"] += cr.questions_correct or 0
 
+            # If OMR result is linked, get question-by-question data
+            if sr.omr_result_id:
+                omr_stmt = select(OMRResult).where(OMRResult.id == sr.omr_result_id)
+                omr_res = await db.execute(omr_stmt)
+                omr_result = omr_res.scalar_one_or_none()
+                if omr_result and omr_result.detected_answers:
+                    try:
+                        answers = json.loads(omr_result.detected_answers)
+                        for ans in answers:
+                            q_num = ans.get("sequence", ans.get("question_id", ""))
+                            status = "Correct" if ans.get("is_correct") else "Incorrect"
+                            question_summary.append(f"Question {q_num}: {status}")
+                    except Exception as e:
+                        logger.error(f"Error parsing detected_answers: {e}")
+
         # Calculate percentages
         performance_summary = []
         for cid, data in competency_data.items():
             perc = (data["correct"] / data["attempted"] * 100) if data["attempted"] > 0 else 0
             performance_summary.append(f"Competency: {data['name']}, Score: {data['correct']}/{data['attempted']} ({perc:.1f}%)")
 
-        context = "\n".join(performance_summary)
+        context_parts = ["COMPETENCY SCORES:"]
+        context_parts.extend(performance_summary)
+        
+        if question_summary:
+            context_parts.append("\nQUESTION RESULTS:")
+            context_parts.extend(question_summary)
+            
+        context = "\n".join(context_parts)
         
         system, prompt = build_prompt(
             LEARNING_ANALYTICS_SYSTEM, 

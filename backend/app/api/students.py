@@ -229,21 +229,25 @@ async def bulk_import_students(
             raw_school = str(row.get("school_id") or row.get("school") or "").strip()
             raw_class = str(row.get("class_id") or row.get("class") or "").strip()
 
-            if not row.get("name") or not raw_school:
+            is_school_scoped = current_user.role in ("teacher", "principal")
+            if not row.get("name") or (not is_school_scoped and not raw_school):
                 errors.append(f"Row missing required fields (name, school/school_id): {row}")
                 continue
             
             # Resolve School
-            if raw_school.isdigit():
-                school_id = int(raw_school)
+            if is_school_scoped:
+                school_id = current_user.school_id
+                if raw_school and not raw_school.isdigit():
+                    user_school = await db.get(School, school_id)
+                    if user_school and user_school.name in ("Model High School", "Adarsh Vidyalaya", "Unity") and user_school.name.lower() != raw_school.lower():
+                        user_school.name = raw_school
+                        await db.commit()
             else:
-                school_id = school_name_to_id.get(raw_school.lower())
-                if not school_id:
-                    # Fuzzy match
-                    matched = [s.id for s in schools if raw_school.lower() in s.name.lower()]
-                    if matched:
-                        school_id = matched[0]
-                    else:
+                if raw_school.isdigit():
+                    school_id = int(raw_school)
+                else:
+                    school_id = school_name_to_id.get(raw_school.lower())
+                    if not school_id:
                         # Auto-create school
                         new_school = School(name=raw_school)
                         db.add(new_school)
