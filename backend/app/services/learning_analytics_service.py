@@ -13,23 +13,33 @@ from app.services.ai_pipeline.prompt_builder import build_prompt
 logger = logging.getLogger(__name__)
 
 LEARNING_ANALYTICS_SYSTEM = """You are an expert educator providing actionable feedback for a student based on their assessment performance.
-Analyze the provided competency and question-by-question performance data.
+Analyze the provided competency and question-by-question performance data. The question data includes the actual text and the concept tested.
 
 REQUIREMENTS:
-- Provide a summary of strengths (competencies where mastery is high, or specific questions they did well on).
-- Provide a summary of areas for improvement (competencies where mastery is low, or specific concepts they missed).
-- Provide 2-3 specific, actionable recommendations for the student to improve.
-- Keep the tone encouraging and constructive.
+1. Provide a list of specific strengths, mentioning the exact concepts or topics they mastered.
+2. Provide a list of specific areas for improvement, explicitly naming the concepts they struggled with.
+3. Provide 2-3 specific, actionable recommendations for the student to improve.
+4. For the `narrative` field, you MUST write a HIGHLY DETAILED, IN-DEPTH, MULTI-PARAGRAPH analysis.
+   - You MUST discuss the specific questions they missed.
+   - You MUST explain what underlying concept each missed question was testing.
+   - You MUST write at least 3 to 4 paragraphs.
+   - DO NOT be brief. Write a very long, comprehensive report.
 
-CRITICAL INSTRUCTION: Respond ONLY with a valid JSON object. No markdown, no extra text.
-DO NOT COPY THE EXAMPLE TEXT EXACTLY. Use the actual concepts and topics from the provided COMPETENCY SCORES and QUESTION RESULTS.
+TONE AND STYLE CRITICAL INSTRUCTIONS:
+- Write like a strict, professional human teacher.
+- DO NOT use generic AI phrases like "In conclusion," "Overall," "In summary," or "This assessment provides valuable insights."
+- End the narrative abruptly after your final specific point or recommendation. DO NOT add a concluding paragraph wrapping up the text.
+- Do not sound like ChatGPT. Be direct, analytical, and professional.
+
+CRITICAL INSTRUCTION: Respond ONLY with a valid JSON object. No markdown outside the JSON structure. Use line breaks (\\n) in the narrative string for paragraphs.
+WARNING: DO NOT COPY THE VALUES FROM THE EXAMPLE BELOW. YOU MUST EXTRACT THE REAL CONCEPTS FROM THE PROVIDED DATA.
 
 VALID JSON EXAMPLE:
 {
-  "strengths": ["Strong grasp of [Concept A]", "Correctly answered most questions on [Topic B]"],
-  "areas_for_improvement": ["Needs review on [Concept C]", "Missed several questions related to [Topic D]"],
-  "recommendations": ["Review chapter X focusing on [Concept C]", "Practice more questions on [Topic D]"],
-  "narrative": "You showed great understanding of [Concept A], but let's work more on [Concept C]..."
+  "strengths": ["Excellent understanding of [Insert Actual Concept Here]", "Answered all questions on [Insert Actual Topic Here] correctly"],
+  "areas_for_improvement": ["Needs review on [Insert Actual Concept Here]", "Struggled with questions regarding [Insert Actual Topic Here]"],
+  "recommendations": ["Review chapter focusing on [Insert Actual Concept Here]", "Practice more questions for [Insert Actual Topic Here]"],
+  "narrative": "Paragraph 1 detailing overall performance and specific strengths based on the real data provided...\\n\\nParagraph 2 detailing the specific questions missed, what real concepts they tested, and why the student might have been confused...\\n\\nParagraph 3 elaborating on further weaknesses and patterns in the missed questions..."
 }
 """
 
@@ -85,7 +95,7 @@ class LearningAnalyticsService:
                 competency_data[cr.competency_id]["attempted"] += cr.questions_attempted or 0
                 competency_data[cr.competency_id]["correct"] += cr.questions_correct or 0
 
-            # If OMR result is linked, get question-by-question data
+            # If OMR result is linked, get question-by-question data with actual text
             if sr.omr_result_id:
                 omr_stmt = select(OMRResult).where(OMRResult.id == sr.omr_result_id)
                 omr_res = await db.execute(omr_stmt)
@@ -93,10 +103,33 @@ class LearningAnalyticsService:
                 if omr_result and omr_result.detected_answers:
                     try:
                         answers = json.loads(omr_result.detected_answers)
+                        
+                        # Fetch the actual question text and concepts from the database
+                        from app.db.models.questions import QuestionBank
+                        from sqlalchemy.orm import selectinload
+                        
+                        q_ids = [ans.get("question_id") for ans in answers if ans.get("question_id")]
+                        questions_dict = {}
+                        if q_ids:
+                            q_stmt = select(QuestionBank).options(selectinload(QuestionBank.concept)).where(QuestionBank.id.in_(q_ids))
+                            q_res = await db.execute(q_stmt)
+                            questions_dict = {q.id: q for q in q_res.scalars().all()}
+
                         for ans in answers:
                             q_num = ans.get("sequence", ans.get("question_id", ""))
                             status = "Correct" if ans.get("is_correct") else "Incorrect"
-                            question_summary.append(f"Question {q_num}: {status}")
+                            
+                            q_id = ans.get("question_id")
+                            q_obj = questions_dict.get(q_id)
+                            
+                            if q_obj:
+                                concept_name = q_obj.concept.name_en if q_obj.concept else "General"
+                                question_text = q_obj.question_text_en or ""
+                                # Clean up formatting for the LLM
+                                question_text = question_text.replace("\n", " ")
+                                question_summary.append(f"Question {q_num} [{concept_name}]: {status} - Text: {question_text}")
+                            else:
+                                question_summary.append(f"Question {q_num}: {status}")
                     except Exception as e:
                         logger.error(f"Error parsing detected_answers: {e}")
 
@@ -115,10 +148,19 @@ class LearningAnalyticsService:
             
         context = "\n".join(context_parts)
         
+        task_instruction = (
+            "You MUST generate a HIGHLY DETAILED, IN-DEPTH, MULTI-PARAGRAPH narrative analysis. "
+            "Go through the specific questions they got incorrect. Explain exactly what concept "
+            "each incorrect question tests and why they might have missed it based on the question text. "
+            "Write a very long and detailed evaluation (at least 3-4 paragraphs) in the 'narrative' field. "
+            "Also, be extremely specific in the 'strengths' and 'areas_for_improvement' arrays, "
+            "referencing the exact concepts from the Question Results. "
+            "CRITICAL: Do NOT write a concluding paragraph. Stop your analysis immediately after your last analytical point."
+        )
         system, prompt = build_prompt(
             LEARNING_ANALYTICS_SYSTEM, 
             [{"text": context, "chapter_title": "", "topic_title": ""}], 
-            "Generate actionable insights based on this student's performance."
+            task_instruction
         )
 
         try:

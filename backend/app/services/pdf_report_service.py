@@ -353,9 +353,22 @@ class PDFReportService:
 
         # --- Narrative Callout Box ---
         narrative_text = insights.get("narrative", "No narrative evaluation available.")
-        narrative_para = Paragraph(narrative_text, body_style)
         
-        narrative_table = Table([[narrative_para]], colWidths=[515])
+        # Support multi-paragraph narratives by splitting on newlines
+        narrative_paras = []
+        for p_text in narrative_text.split('\n'):
+            p_text = p_text.strip()
+            if p_text:
+                narrative_paras.append(Paragraph(p_text, body_style))
+                narrative_paras.append(Spacer(1, 6)) # add small space between paragraphs
+                
+        if not narrative_paras:
+            narrative_paras = [Paragraph("No narrative evaluation available.", body_style)]
+        else:
+            # remove the last spacer
+            narrative_paras.pop()
+        
+        narrative_table = Table([[narrative_paras]], colWidths=[515])
         narrative_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#f0fdfa")),
             ('LINELEFT', (0, 0), (0, -1), 4, c_secondary),
