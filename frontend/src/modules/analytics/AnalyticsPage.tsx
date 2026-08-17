@@ -31,7 +31,7 @@ export default function AnalyticsPage() {
   const { data: studentData, isLoading: studentLoading } = useQuery({
     queryKey: ['analytics', 'student', activeView],
     queryFn: () => analyticsApi.getStudentAnalytics(user?.id?.toString() || '1'),
-    enabled: activeView === 'teacher',
+    enabled: activeView === 'student',
   })
 
   const { data: schoolData, isLoading: schoolLoading } = useQuery({
@@ -68,7 +68,7 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div>
-        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60 capitalize">{activeView} Analytics</h1>
+        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">{activeView ? activeView.charAt(0).toUpperCase() + activeView.slice(1) : ''} Analytics</h1>
         <p className="text-muted-foreground text-sm mt-1">Detailed performance insights and analytics</p>
       </div>
 

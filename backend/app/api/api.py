@@ -39,10 +39,17 @@ router.include_router(blueprints_router, prefix="/blueprints", tags=["Blueprints
 router.include_router(assessments_router, prefix="/assessments", tags=["Assessments"])
 router.include_router(backup_router, prefix="/backup", tags=["Backup"])
 router.include_router(audit_router, prefix="/audit-logs", tags=["Audit"])
-router.include_router(knowledge_base_router, prefix="/knowledge-base", tags=["Knowledge Base"])
+router.include_router(
+    knowledge_base_router, prefix="/knowledge-base", tags=["Knowledge Base"]
+)
 router.include_router(ai_router, prefix="/ai", tags=["AI"])
 router.include_router(export_router, prefix="/export", tags=["Export"])
 router.include_router(image_bank_router, prefix="/image-bank", tags=["Image Bank"])
 
 from app.api.mcq_engine import router as mcq_engine_router
-router.include_router(mcq_engine_router, prefix="/mcq-engine", tags=["MCQ Engine & OMR"])
+from app.api.whatsapp_routes import router as whatsapp_router
+
+router.include_router(
+    mcq_engine_router, prefix="/mcq-engine", tags=["MCQ Engine & OMR"]
+)
+router.include_router(whatsapp_router)

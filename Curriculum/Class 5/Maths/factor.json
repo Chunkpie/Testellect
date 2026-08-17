@@ -1,0 +1,96 @@
+{
+  "sequence": 6,
+  "title": "Be My Multiple, I'll Be Your Factor",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Understanding Factors and Multiples",
+      "concepts": [
+        {
+          "name": "Factors",
+          "description": "Factors are numbers that divide another number exactly without leaving a remainder. Students explore factors using arrays, multiplication tables, and division.",
+          "learning_outcome": "Students will be able to identify all the factors of a given whole number."
+        },
+        {
+          "name": "Multiples",
+          "description": "Multiples are obtained by multiplying a number by whole numbers. Students observe that every number has infinitely many multiples.",
+          "learning_outcome": "Students will be able to generate multiples of a given number."
+        },
+        {
+          "name": "Relationship Between Factors and Multiples",
+          "description": "Factors and multiples are closely related through multiplication and division. Understanding this relationship helps solve number problems efficiently.",
+          "learning_outcome": "Students will be able to explain the relationship between factors and multiples using examples."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Divisibility Rules",
+      "concepts": [
+        {
+          "name": "Rules of Divisibility",
+          "description": "Divisibility rules provide quick methods to determine whether a number is divisible by another without performing long division.",
+          "learning_outcome": "Students will be able to apply divisibility rules for 2, 3, 5, 9, and 10."
+        },
+        {
+          "name": "Testing Divisibility",
+          "description": "Students use divisibility rules to identify factors and simplify calculations involving large numbers.",
+          "learning_outcome": "Students will be able to determine whether a given number is divisible by another using appropriate divisibility rules."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Prime and Composite Numbers",
+      "concepts": [
+        {
+          "name": "Prime Numbers",
+          "description": "Prime numbers have exactly two distinct factors: 1 and the number itself. They serve as the building blocks of whole numbers.",
+          "learning_outcome": "Students will be able to identify prime numbers within a given range."
+        },
+        {
+          "name": "Composite Numbers",
+          "description": "Composite numbers have more than two factors and can be expressed as the product of smaller whole numbers.",
+          "learning_outcome": "Students will be able to distinguish composite numbers from prime numbers."
+        },
+        {
+          "name": "Special Numbers",
+          "description": "The number 1 is neither prime nor composite because it has only one factor. Students learn to classify numbers correctly.",
+          "learning_outcome": "Students will be able to classify numbers as prime, composite, or neither."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Common Factors and Common Multiples",
+      "concepts": [
+        {
+          "name": "Common Factors",
+          "description": "Common factors are numbers that divide two or more numbers exactly. Identifying common factors helps compare and simplify numerical relationships.",
+          "learning_outcome": "Students will be able to determine the common factors of two or more numbers."
+        },
+        {
+          "name": "Common Multiples",
+          "description": "Common multiples are numbers that appear in the multiplication tables of two or more numbers. They are useful in solving problems involving repeated events.",
+          "learning_outcome": "Students will be able to identify common multiples of two or more numbers."
+        },
+        {
+          "name": "Applications of Factors and Multiples",
+          "description": "Factors and multiples are applied in grouping objects, arranging items equally, scheduling repeated events, and solving everyday mathematical problems.",
+          "learning_outcome": "Students will be able to solve real-life problems involving factors and multiples."
+        }
+      ]
+    },
+    {
+      "sequence": 5,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Understanding Factors and Multiples",
+          "description": "This chapter develops number sense by exploring factors, multiples, divisibility rules, prime and composite numbers, and common factors and multiples through practical activities.",
+          "learning_outcome": "Students will be able to identify, compare, and apply factors and multiples to solve mathematical and real-life problems."
+        }
+      ]
+    }
+  ]
+}

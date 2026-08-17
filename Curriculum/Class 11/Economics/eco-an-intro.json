@@ -1,0 +1,96 @@
+{
+  "sequence": 1,
+  "title": "Economics: An Introduction",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Meaning and Nature of Economics",
+      "concepts": [
+        {
+          "name": "Economics as a Social Science",
+          "description": "Economics is a social science that studies how individuals and societies utilize limited resources to satisfy unlimited wants. It examines production, consumption, exchange, and distribution of goods and services.",
+          "learning_outcome": "Students will be able to define economics and explain why it is considered a social science."
+        },
+        {
+          "name": "Scarcity and Choice",
+          "description": "Resources are limited while human wants are unlimited, making scarcity a fundamental economic problem. Individuals and societies must make choices about resource allocation.",
+          "learning_outcome": "Students will be able to explain the relationship between scarcity and economic choice."
+        },
+        {
+          "name": "Scope of Economics",
+          "description": "Economics studies the behavior of consumers, producers, governments, and markets at both individual and national levels.",
+          "learning_outcome": "Students will be able to describe the scope of economics using practical examples."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Basic Economic Problems",
+      "concepts": [
+        {
+          "name": "Problem of Resource Allocation",
+          "description": "Every economy faces the challenge of allocating scarce resources efficiently to maximize satisfaction and economic welfare.",
+          "learning_outcome": "Students will be able to explain why efficient allocation of resources is necessary."
+        },
+        {
+          "name": "Central Economic Problems",
+          "description": "Every economy must answer three fundamental questions: what to produce, how to produce, and for whom to produce.",
+          "learning_outcome": "Students will be able to identify and explain the three central economic problems."
+        },
+        {
+          "name": "Opportunity Cost",
+          "description": "Opportunity cost is the value of the next best alternative that is sacrificed when making an economic choice.",
+          "learning_outcome": "Students will be able to calculate and interpret opportunity cost in simple economic situations."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Branches of Economics",
+      "concepts": [
+        {
+          "name": "Microeconomics",
+          "description": "Microeconomics studies the economic behavior of individual consumers, firms, and specific markets.",
+          "learning_outcome": "Students will be able to distinguish microeconomic issues from macroeconomic issues."
+        },
+        {
+          "name": "Macroeconomics",
+          "description": "Macroeconomics focuses on the economy as a whole, including national income, inflation, unemployment, and economic growth.",
+          "learning_outcome": "Students will be able to explain the scope of macroeconomics."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Importance of Economics",
+      "concepts": [
+        {
+          "name": "Economics in Daily Life",
+          "description": "Economic principles influence personal decisions regarding income, spending, saving, investment, and consumption.",
+          "learning_outcome": "Students will be able to relate economic concepts to everyday decision-making."
+        },
+        {
+          "name": "Role in National Development",
+          "description": "Economics helps governments formulate policies for employment, growth, poverty reduction, and efficient resource utilization.",
+          "learning_outcome": "Students will be able to explain the importance of economics in national development."
+        },
+        {
+          "name": "Decision Making",
+          "description": "Economic reasoning enables individuals, businesses, and governments to make informed choices by evaluating costs and benefits.",
+          "learning_outcome": "Students will be able to apply economic reasoning to simple decision-making situations."
+        }
+      ]
+    },
+    {
+      "sequence": 5,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Introduction to Economics",
+          "description": "This chapter introduces the meaning, nature, scope, branches, and importance of economics while emphasizing scarcity, choice, and efficient resource allocation.",
+          "learning_outcome": "Students will be able to explain the fundamental concepts of economics and apply them to basic real-world situations."
+        }
+      ]
+    }
+  ]
+}

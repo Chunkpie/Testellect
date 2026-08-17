@@ -1,0 +1,122 @@
+{
+  "sequence": 4,
+  "title": "Supply",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Meaning and Determinants of Supply",
+      "concepts": [
+        {
+          "name": "Meaning of Supply",
+          "description": "Supply refers to the quantity of a commodity that producers are willing and able to offer for sale at different prices during a given period. Supply depends on both willingness and the ability to produce and sell.",
+          "learning_outcome": "Students will be able to define supply and distinguish it from stock and production."
+        },
+        {
+          "name": "Determinants of Supply",
+          "description": "Supply is influenced by factors such as the price of the commodity, production costs, technology, prices of related goods, government policies, and producers' expectations.",
+          "learning_outcome": "Students will be able to identify and explain the major determinants of supply."
+        },
+        {
+          "name": "Individual and Market Supply",
+          "description": "Individual supply refers to the quantity supplied by a single producer, while market supply represents the total quantity supplied by all producers in the market.",
+          "learning_outcome": "Students will be able to differentiate between individual supply and market supply."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Law of Supply",
+      "concepts": [
+        {
+          "name": "Law of Supply",
+          "description": "The law of supply states that, other things remaining constant, the quantity supplied of a commodity increases when its price increases and decreases when its price decreases.",
+          "learning_outcome": "Students will be able to explain the law of supply with suitable examples."
+        },
+        {
+          "name": "Supply Schedule and Supply Curve",
+          "description": "A supply schedule presents the relationship between price and quantity supplied in tabular form, while a supply curve illustrates the same relationship graphically.",
+          "learning_outcome": "Students will be able to prepare and interpret a supply schedule and supply curve."
+        },
+        {
+          "name": "Assumptions of the Law of Supply",
+          "description": "The law of supply assumes that production technology, input prices, government policies, producer expectations, and other influencing factors remain unchanged.",
+          "learning_outcome": "Students will be able to state the assumptions underlying the law of supply."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Changes in Supply",
+      "concepts": [
+        {
+          "name": "Extension and Contraction of Supply",
+          "description": "Changes in quantity supplied due solely to changes in the commodity's own price result in movement along the supply curve.",
+          "learning_outcome": "Students will be able to distinguish between extension and contraction of supply."
+        },
+        {
+          "name": "Increase and Decrease in Supply",
+          "description": "Changes in supply caused by non-price factors lead to a shift of the entire supply curve either to the right or to the left.",
+          "learning_outcome": "Students will be able to explain increases and decreases in supply using supply curve shifts."
+        },
+        {
+          "name": "Supply Curve Movements",
+          "description": "Students learn the difference between movements along the supply curve and shifts of the supply curve resulting from changes in production conditions.",
+          "learning_outcome": "Students will be able to interpret movements and shifts in a supply curve."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Elasticity of Supply",
+      "concepts": [
+        {
+          "name": "Price Elasticity of Supply",
+          "description": "Price elasticity of supply measures the responsiveness of quantity supplied to changes in the price of a commodity.",
+          "learning_outcome": "Students will be able to explain the concept of price elasticity of supply."
+        },
+        {
+          "name": "Degrees of Elasticity",
+          "description": "Supply may be perfectly elastic, perfectly inelastic, relatively elastic, relatively inelastic, or unitary elastic depending on producers' responsiveness to price changes.",
+          "learning_outcome": "Students will be able to classify different degrees of elasticity of supply."
+        },
+        {
+          "name": "Factors Affecting Elasticity of Supply",
+          "description": "Elasticity of supply depends on production time, availability of resources, storage facilities, production flexibility, and technological conditions.",
+          "learning_outcome": "Students will be able to explain the factors affecting elasticity of supply."
+        }
+      ]
+    },
+    {
+      "sequence": 5,
+      "title": "Applications of Supply Analysis",
+      "concepts": [
+        {
+          "name": "Business Production Decisions",
+          "description": "Producers use supply analysis to determine production levels, allocate resources, and respond to market price changes.",
+          "learning_outcome": "Students will be able to explain how supply analysis supports production planning."
+        },
+        {
+          "name": "Market Equilibrium",
+          "description": "The interaction of supply and demand determines the equilibrium price and quantity in a competitive market.",
+          "learning_outcome": "Students will be able to explain the role of supply in determining market equilibrium."
+        },
+        {
+          "name": "Government Policies and Supply",
+          "description": "Taxes, subsidies, regulations, and technological support influence producers' willingness and ability to supply goods and services.",
+          "learning_outcome": "Students will be able to analyze the impact of government policies on supply."
+        }
+      ]
+    },
+    {
+      "sequence": 6,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Understanding Supply",
+          "description": "This chapter introduces the meaning of supply, determinants, the law of supply, supply schedules and curves, changes in supply, elasticity of supply, and their practical applications in markets.",
+          "learning_outcome": "Students will be able to analyze supply behavior, interpret supply curves, explain elasticity, and apply supply concepts to real-world economic situations."
+        }
+      ]
+    }
+  ]
+}

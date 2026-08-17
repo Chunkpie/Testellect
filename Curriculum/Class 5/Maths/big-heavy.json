@@ -1,0 +1,101 @@
+{
+  "sequence": 14,
+  "title": "How Big? How Heavy?",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Measuring Length, Weight and Capacity",
+      "concepts": [
+        {
+          "name": "Standard Units of Measurement",
+          "description": "Standard units such as metre, centimetre, kilogram, gram, litre, and millilitre are used to measure length, weight, and capacity accurately. Students relate these units to everyday objects and situations.",
+          "learning_outcome": "Students will be able to identify and use appropriate standard units to measure length, weight, and capacity."
+        },
+        {
+          "name": "Choosing Appropriate Units",
+          "description": "Different objects require different units of measurement depending on their size and quantity. Students learn to select suitable units for practical situations.",
+          "learning_outcome": "Students will be able to choose appropriate units for measuring various objects and quantities."
+        },
+        {
+          "name": "Estimating Measurements",
+          "description": "Estimation helps students predict measurements before actual measurement, improving number sense and practical reasoning.",
+          "learning_outcome": "Students will be able to estimate the length, weight, and capacity of everyday objects."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Comparing Measurements",
+      "concepts": [
+        {
+          "name": "Comparing Lengths",
+          "description": "Students compare the lengths of different objects using direct observation and standard measuring tools.",
+          "learning_outcome": "Students will be able to compare and order objects based on their lengths."
+        },
+        {
+          "name": "Comparing Weights",
+          "description": "Objects can be compared by weight using balance scales and standard units such as grams and kilograms.",
+          "learning_outcome": "Students will be able to compare the weights of objects using standard units."
+        },
+        {
+          "name": "Comparing Capacities",
+          "description": "Capacity refers to the amount a container can hold. Students compare capacities using litres and millilitres.",
+          "learning_outcome": "Students will be able to compare the capacities of different containers."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Measurement in Everyday Life",
+      "concepts": [
+        {
+          "name": "Using Measuring Instruments",
+          "description": "Students use rulers, measuring tapes, weighing scales, and measuring containers to obtain accurate measurements.",
+          "learning_outcome": "Students will be able to measure objects accurately using appropriate measuring instruments."
+        },
+        {
+          "name": "Practical Applications",
+          "description": "Measurement is used in shopping, cooking, construction, transportation, sports, and scientific activities. Students solve problems based on real-life measurement situations.",
+          "learning_outcome": "Students will be able to solve practical problems involving measurement."
+        },
+        {
+          "name": "Unit Conversions",
+          "description": "Simple conversions between centimetres and metres, grams and kilograms, and millilitres and litres help students work with different measurement units.",
+          "learning_outcome": "Students will be able to perform basic conversions between commonly used metric units."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Reasoning with Measurements",
+      "concepts": [
+        {
+          "name": "Interpreting Measurement Data",
+          "description": "Students analyze measured values, compare quantities, and determine reasonable answers using mathematical reasoning.",
+          "learning_outcome": "Students will be able to interpret and compare measurement data accurately."
+        },
+        {
+          "name": "Accuracy and Estimation",
+          "description": "Comparing estimated and actual measurements helps students understand the importance of accuracy in everyday life.",
+          "learning_outcome": "Students will be able to evaluate the accuracy of measurements by comparing estimated and measured values."
+        },
+        {
+          "name": "Problem Solving with Measurements",
+          "description": "Students apply measurement concepts to solve multi-step problems involving length, weight, and capacity.",
+          "learning_outcome": "Students will be able to solve real-life mathematical problems involving measurement."
+        }
+      ]
+    },
+    {
+      "sequence": 5,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Understanding Measurement",
+          "description": "This chapter consolidates students' understanding of standard units, measuring instruments, estimation, comparison, conversions, and practical applications of measurement.",
+          "learning_outcome": "Students will be able to measure, compare, estimate, convert, and apply measurement concepts to solve everyday mathematical problems."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "sequence": 14,
+  "title": "Probability",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Introduction",
+      "concepts": [
+        {
+          "name": "Chance and Probability",
+          "description": "Probability is a mathematical measure of the likelihood of an event occurring. It provides a numerical value between 0 and 1, where 0 represents an impossible event and 1 represents a certain event.",
+          "learning_outcome": "Students will be able to explain the concept of probability and distinguish between impossible, possible, and certain events."
+        },
+        {
+          "name": "Random Experiments",
+          "description": "A random experiment is an activity whose outcome cannot be predicted with certainty in advance, even though all possible outcomes are known.",
+          "learning_outcome": "Students will be able to identify random experiments and list their possible outcomes."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Experimental Probability",
+      "concepts": [
+        {
+          "name": "Experimental Probability",
+          "description": "Experimental probability is determined by conducting an experiment and calculating the ratio of the number of times an event occurs to the total number of trials performed.",
+          "learning_outcome": "Students will be able to calculate the experimental probability of an event using observed data."
+        },
+        {
+          "name": "Frequency and Relative Frequency",
+          "description": "The frequency of an event is the number of times it occurs during an experiment, while relative frequency is the ratio of that frequency to the total number of trials.",
+          "learning_outcome": "Students will be able to determine the frequency and relative frequency of events from experimental data."
+        },
+        {
+          "name": "Large Number of Trials",
+          "description": "As the number of trials increases, the experimental probability generally approaches the theoretical probability, illustrating the long-term stability of probability.",
+          "learning_outcome": "Students will be able to explain how increasing the number of trials affects the accuracy of experimental probability."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Theoretical Probability",
+      "concepts": [
+        {
+          "name": "Equally Likely Outcomes",
+          "description": "Theoretical probability is based on the assumption that all possible outcomes of an experiment are equally likely to occur.",
+          "learning_outcome": "Students will be able to identify equally likely outcomes in simple probability experiments."
+        },
+        {
+          "name": "Probability Formula",
+          "description": "The probability of an event is calculated using the formula: Probability = (Number of favourable outcomes) / (Total number of possible outcomes).",
+          "learning_outcome": "Students will be able to compute the theoretical probability of simple events using the standard formula."
+        },
+        {
+          "name": "Applications of Probability",
+          "description": "Probability is applied in fields such as science, weather forecasting, insurance, finance, medicine, and decision-making to estimate uncertainty and risk.",
+          "learning_outcome": "Students will be able to solve real-life problems involving theoretical probability."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Key Concepts of Probability",
+          "description": "This chapter summarizes the concepts of random experiments, experimental probability, theoretical probability, and the relationship between observed and expected outcomes.",
+          "learning_outcome": "Students will be able to calculate and interpret probabilities of simple events and apply probability concepts to real-world situations."
+        }
+      ]
+    }
+  ]
+}

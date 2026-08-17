@@ -7,8 +7,10 @@ from app.core.deps import get_db, get_current_user
 from app.core.audit import log_audit_entry
 from app.models.models import User, Assessment, StudentResult, Student, Blueprint
 from app.schemas.assessments import (
-    AssessmentCreate, AssessmentResponse,
-    StudentResultCreate, StudentResultResponse,
+    AssessmentCreate,
+    AssessmentResponse,
+    StudentResultCreate,
+    StudentResultResponse,
 )
 
 router = APIRouter()
@@ -35,7 +37,9 @@ async def list_assessments(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role not in ("teacher", "principal", "administrator"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
+        )
 
     stmt = select(Assessment)
     scope = _school_scope_filter(Assessment, current_user)
@@ -60,11 +64,18 @@ async def create_assessment(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role != "teacher":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only teachers can create assessments")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only teachers can create assessments",
+        )
 
-    bp_result = await db.execute(select(Blueprint).where(Blueprint.id == data.blueprint_id))
+    bp_result = await db.execute(
+        select(Blueprint).where(Blueprint.id == data.blueprint_id)
+    )
     if not bp_result.scalar_one_or_none():
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Blueprint not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Blueprint not found"
+        )
 
     assessment = Assessment(**data.model_dump())
     db.add(assessment)
@@ -72,8 +83,12 @@ async def create_assessment(
     await db.refresh(assessment)
 
     await log_audit_entry(
-        db=db, user_id=current_user.id, school_id=assessment.school_id,
-        action="create", resource_type="assessment", resource_id=assessment.id,
+        db=db,
+        user_id=current_user.id,
+        school_id=assessment.school_id,
+        action="create",
+        resource_type="assessment",
+        resource_id=assessment.id,
     )
 
     return assessment
@@ -87,12 +102,17 @@ async def update_assessment_status(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role != "teacher":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only teachers can update assessments")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only teachers can update assessments",
+        )
 
     result = await db.execute(select(Assessment).where(Assessment.id == assessment_id))
     assessment = result.scalar_one_or_none()
     if not assessment:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found"
+        )
 
     new_status = data.status
     allowed = VALID_STATUS_TRANSITIONS.get(assessment.status, [])
@@ -103,15 +123,28 @@ async def update_assessment_status(
         )
 
     assessment.status = new_status
-    for key, val in data.model_dump(exclude={"status", "school_id", "blueprint_id", "class_id", "name", "scheduled_date"}, exclude_unset=True).items():
+    for key, val in data.model_dump(
+        exclude={
+            "status",
+            "school_id",
+            "blueprint_id",
+            "class_id",
+            "name",
+            "scheduled_date",
+        },
+        exclude_unset=True,
+    ).items():
         setattr(assessment, key, val)
 
     await db.commit()
     await db.refresh(assessment)
 
     await log_audit_entry(
-        db=db, user_id=current_user.id, school_id=assessment.school_id,
-        action="update_status", resource_type="assessment",
+        db=db,
+        user_id=current_user.id,
+        school_id=assessment.school_id,
+        action="update_status",
+        resource_type="assessment",
         resource_id=assessment.id,
         extra_data={"new_status": new_status},
     )
@@ -126,12 +159,16 @@ async def get_assessment_results(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role not in ("teacher", "principal"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
+        )
 
     result = await db.execute(select(Assessment).where(Assessment.id == assessment_id))
     assessment = result.scalar_one_or_none()
     if not assessment:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found"
+        )
 
     stmt = select(StudentResult).where(StudentResult.assessment_id == assessment_id)
     stmt = stmt.order_by(StudentResult.id)
@@ -153,12 +190,17 @@ async def enter_manual_marks(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role != "teacher":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only teachers can enter manual marks")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only teachers can enter manual marks",
+        )
 
     result = await db.execute(select(Assessment).where(Assessment.id == assessment_id))
     assessment = result.scalar_one_or_none()
     if not assessment:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found"
+        )
 
     created = []
     for item in data.student_marks:
@@ -177,8 +219,11 @@ async def enter_manual_marks(
         await db.refresh(sr)
 
     await log_audit_entry(
-        db=db, user_id=current_user.id, school_id=assessment.school_id,
-        action="manual_marks_entry", resource_type="assessment",
+        db=db,
+        user_id=current_user.id,
+        school_id=assessment.school_id,
+        action="manual_marks_entry",
+        resource_type="assessment",
         resource_id=assessment_id,
         extra_data={"count": len(created)},
     )

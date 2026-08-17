@@ -24,7 +24,9 @@ async def get_job_status(job_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("")
-async def list_jobs(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def list_jobs(
+    user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+):
     result = await db.execute(select(Job).order_by(Job.created_at.desc()).limit(20))
     jobs = result.scalars().all()
     return jobs

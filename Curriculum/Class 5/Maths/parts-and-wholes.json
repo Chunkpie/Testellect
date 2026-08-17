@@ -1,0 +1,91 @@
+{
+  "sequence": 4,
+  "title": "Parts and Wholes",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Understanding Fractions",
+      "concepts": [
+        {
+          "name": "Parts of a Whole",
+          "description": "A fraction represents one or more equal parts of a whole object or collection. Students learn to identify fractions using familiar objects such as fruits, chocolates, and shapes.",
+          "learning_outcome": "Students will be able to represent fractions as equal parts of a whole or a collection."
+        },
+        {
+          "name": "Numerator and Denominator",
+          "description": "Every fraction consists of a numerator, which indicates the selected parts, and a denominator, which shows the total equal parts.",
+          "learning_outcome": "Students will be able to identify and explain the numerator and denominator of a fraction."
+        },
+        {
+          "name": "Representing Fractions",
+          "description": "Fractions can be represented using diagrams, shaded regions, number lines, and everyday situations.",
+          "learning_outcome": "Students will be able to represent fractions using visual models and number lines."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Equivalent Fractions",
+      "concepts": [
+        {
+          "name": "Equivalent Fractions",
+          "description": "Equivalent fractions represent the same quantity even though they have different numerators and denominators. They are obtained by multiplying or dividing both numerator and denominator by the same non-zero number.",
+          "learning_outcome": "Students will be able to identify and generate equivalent fractions."
+        },
+        {
+          "name": "Visual Comparison of Fractions",
+          "description": "Students compare fractions using diagrams to understand that differently written fractions can represent equal portions.",
+          "learning_outcome": "Students will be able to verify equivalent fractions using visual representations."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Comparing and Ordering Fractions",
+      "concepts": [
+        {
+          "name": "Comparing Like Fractions",
+          "description": "Fractions with the same denominator can be compared by examining their numerators. Larger numerators represent larger fractions.",
+          "learning_outcome": "Students will be able to compare fractions having the same denominator."
+        },
+        {
+          "name": "Comparing Unlike Fractions",
+          "description": "Unlike fractions can be compared by converting them into equivalent fractions with a common denominator or by using visual models.",
+          "learning_outcome": "Students will be able to compare simple unlike fractions using appropriate strategies."
+        },
+        {
+          "name": "Ordering Fractions",
+          "description": "Fractions can be arranged in ascending or descending order after comparing their values.",
+          "learning_outcome": "Students will be able to arrange fractions in ascending and descending order."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Fractions in Everyday Life",
+      "concepts": [
+        {
+          "name": "Fractions in Measurement",
+          "description": "Fractions are commonly used in measuring lengths, weights, capacities, cooking, and sharing objects equally.",
+          "learning_outcome": "Students will be able to identify and use fractions in practical measurement situations."
+        },
+        {
+          "name": "Problem Solving with Fractions",
+          "description": "Students apply fraction concepts to solve simple real-life problems involving sharing, grouping, and measurement.",
+          "learning_outcome": "Students will be able to solve word problems involving fractions in everyday contexts."
+        }
+      ]
+    },
+    {
+      "sequence": 5,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Understanding Parts and Wholes",
+          "description": "This chapter develops the concept of fractions as parts of wholes, equivalent fractions, comparison of fractions, and their practical applications.",
+          "learning_outcome": "Students will be able to represent, compare, order, and apply fractions to solve real-life mathematical problems."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "sequence": 9,
+  "title": "National Income",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Meaning and Concepts of National Income",
+      "concepts": [
+        {
+          "name": "National Income",
+          "description": "National income is the total monetary value of all final goods and services produced by the normal residents of a country during an accounting year. It serves as an important indicator of a nation's economic performance.",
+          "learning_outcome": "Students will be able to define national income and explain its significance in measuring economic performance."
+        },
+        {
+          "name": "Final Goods and Services",
+          "description": "Final goods and services are those purchased for final consumption or investment and are not used for further production. Considering only final goods prevents double counting in national income estimation.",
+          "learning_outcome": "Students will be able to distinguish between final goods and intermediate goods."
+        },
+        {
+          "name": "Circular Flow of Income",
+          "description": "The circular flow of income illustrates the continuous movement of goods, services, and money between households and firms within an economy.",
+          "learning_outcome": "Students will be able to explain the basic circular flow of income in an economy."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Measures of National Income",
+      "concepts": [
+        {
+          "name": "Gross Domestic Product (GDP)",
+          "description": "GDP is the total market value of all final goods and services produced within a country's domestic territory during a given year.",
+          "learning_outcome": "Students will be able to define GDP and explain its role in measuring economic activity."
+        },
+        {
+          "name": "Gross National Product (GNP) and Net National Product (NNP)",
+          "description": "GNP measures the total output produced by a country's residents, while NNP is obtained by deducting depreciation from GNP, reflecting the net value of production.",
+          "learning_outcome": "Students will be able to differentiate between GNP and NNP."
+        },
+        {
+          "name": "Personal Income and Disposable Income",
+          "description": "Personal income refers to the income received by individuals, while disposable income is the income remaining after payment of personal taxes and is available for spending or saving.",
+          "learning_outcome": "Students will be able to explain the concepts of personal income and disposable income."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Methods of Measuring National Income",
+      "concepts": [
+        {
+          "name": "Production Method",
+          "description": "The production or value-added method measures national income by calculating the value added at each stage of production across all sectors of the economy.",
+          "learning_outcome": "Students will be able to describe the production method of measuring national income."
+        },
+        {
+          "name": "Income Method",
+          "description": "The income method estimates national income by summing all factor incomes earned by land, labour, capital, and entrepreneurs during production.",
+          "learning_outcome": "Students will be able to explain the income method of national income estimation."
+        },
+        {
+          "name": "Expenditure Method",
+          "description": "The expenditure method measures national income by adding total expenditure on consumption, investment, government spending, and net exports.",
+          "learning_outcome": "Students will be able to explain the expenditure method of measuring national income."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Importance and Limitations of National Income",
+      "concepts": [
+        {
+          "name": "Importance of National Income",
+          "description": "National income statistics help governments formulate economic policies, evaluate growth, compare living standards, and plan future development strategies.",
+          "learning_outcome": "Students will be able to explain the importance of national income in economic planning."
+        },
+        {
+          "name": "Limitations of National Income",
+          "description": "National income estimates do not account for unpaid household work, informal economic activities, environmental degradation, or income inequality.",
+          "learning_outcome": "Students will be able to identify the major limitations of national income as an economic indicator."
+        },
+        {
+          "name": "Per Capita Income",
+          "description": "Per capita income is calculated by dividing national income by the total population. It provides an average measure of income and is commonly used to compare living standards.",
+          "learning_outcome": "Students will be able to calculate and interpret per capita income."
+        }
+      ]
+    },
+    {
+      "sequence": 5,
+      "title": "Applications of National Income",
+      "concepts": [
+        {
+          "name": "Economic Planning",
+          "description": "Governments use national income data to prepare budgets, formulate development policies, and allocate public resources efficiently.",
+          "learning_outcome": "Students will be able to explain how national income statistics support economic planning."
+        },
+        {
+          "name": "International Comparisons",
+          "description": "National income indicators enable comparisons of economic performance and living standards among different countries.",
+          "learning_outcome": "Students will be able to compare economies using national income indicators."
+        },
+        {
+          "name": "Monitoring Economic Growth",
+          "description": "Changes in national income over time help assess economic growth, productivity, and overall development of a country.",
+          "learning_outcome": "Students will be able to interpret national income data to evaluate economic growth."
+        }
+      ]
+    },
+    {
+      "sequence": 6,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Understanding National Income",
+          "description": "This chapter introduces the concepts, measures, methods of estimation, importance, and limitations of national income, highlighting its role in economic analysis and policy formulation.",
+          "learning_outcome": "Students will be able to explain national income concepts, apply different methods of estimation, and evaluate its usefulness in measuring economic performance."
+        }
+      ]
+    }
+  ]
+}

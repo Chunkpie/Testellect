@@ -27,7 +27,10 @@ async def trigger_backup(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role != "administrator":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only administrators can trigger backups")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can trigger backups",
+        )
 
     from app.core.config import settings
     import os
@@ -51,8 +54,11 @@ async def trigger_backup(
     await db.refresh(backup)
 
     await log_audit_entry(
-        db=db, user_id=current_user.id, school_id=current_user.school_id,
-        action="trigger", resource_type="backup",
+        db=db,
+        user_id=current_user.id,
+        school_id=current_user.school_id,
+        action="trigger",
+        resource_type="backup",
         resource_id=backup.id,
         extra_data={"backup_type": data.backup_type, "file_path": filepath},
     )
@@ -68,7 +74,10 @@ async def list_backups(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role != "administrator":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only administrators can list backups")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can list backups",
+        )
 
     stmt = select(Backup)
     if current_user.school_id:
@@ -92,18 +101,28 @@ async def download_backup(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role != "administrator":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only administrators can download backups")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can download backups",
+        )
 
     result = await db.execute(select(Backup).where(Backup.id == backup_id))
     backup = result.scalar_one_or_none()
     if not backup:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Backup not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Backup not found"
+        )
 
     import os
+
     if not backup.file_path or not os.path.exists(backup.file_path):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Backup file not found on disk")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Backup file not found on disk",
+        )
 
     from fastapi.responses import FileResponse
+
     return FileResponse(
         path=backup.file_path,
         filename=os.path.basename(backup.file_path),
@@ -119,7 +138,10 @@ async def restore_backup(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role != "administrator":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only administrators can restore backups")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can restore backups",
+        )
 
     if not data.confirm:
         raise HTTPException(
@@ -130,13 +152,21 @@ async def restore_backup(
     result = await db.execute(select(Backup).where(Backup.id == backup_id))
     backup = result.scalar_one_or_none()
     if not backup:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Backup not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Backup not found"
+        )
 
     await log_audit_entry(
-        db=db, user_id=current_user.id, school_id=current_user.school_id,
-        action="restore", resource_type="backup",
+        db=db,
+        user_id=current_user.id,
+        school_id=current_user.school_id,
+        action="restore",
+        resource_type="backup",
         resource_id=backup_id,
         extra_data={"file_path": backup.file_path, "backup_type": backup.backup_type},
     )
 
-    return {"message": f"Restore from backup {backup_id} initiated", "backup_id": backup_id}
+    return {
+        "message": f"Restore from backup {backup_id} initiated",
+        "backup_id": backup_id,
+    }

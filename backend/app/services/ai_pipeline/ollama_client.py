@@ -23,14 +23,17 @@ class OllamaClient:
         self.timeout = httpx.Timeout(self.timeout_seconds)
         self.num_thread = settings.OLLAMA_NUM_THREAD
         self.temperature = settings.OLLAMA_TEMPERATURE
+        self.semaphore = asyncio.Semaphore(1)
 
-    def _build_options(self, temperature: float | None = None) -> dict[str, Any]:
-        return {
+    def _build_options(self, temperature: float | None = None, num_ctx: int | None = None) -> dict[str, Any]:
+        opts = {
             "temperature": temperature if temperature is not None else self.temperature,
             "num_thread": self.num_thread,
-            "num_ctx": 4096,
             "num_predict": 4096,
         }
+        if num_ctx:
+            opts["num_ctx"] = num_ctx
+        return opts
 
     async def generate(
         self,
@@ -39,6 +42,7 @@ class OllamaClient:
         json_mode: bool = False,
         temperature: float | None = None,
         model: str | None = None,
+        num_ctx: int | None = None,
     ) -> str:
         url = f"{self.base_url}/api/generate"
         payload: dict[str, Any] = {
@@ -46,15 +50,16 @@ class OllamaClient:
             "prompt": prompt,
             "system": system,
             "stream": False,
-            "options": self._build_options(temperature),
+            "options": self._build_options(temperature, num_ctx),
         }
         if json_mode:
             payload["format"] = "json"
 
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            response = await client.post(url, json=payload)
-            response.raise_for_status()
-            return response.json()["response"]
+        async with self.semaphore:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.post(url, json=payload)
+                response.raise_for_status()
+                return response.json()["response"]
 
     def _extract_json(self, text: str) -> str | None:
         text = text.strip()
@@ -74,6 +79,7 @@ class OllamaClient:
 
     def _fix_json(self, text: str) -> str:
         import re
+
         text = re.sub(r"\{\{", "{", text)
         text = re.sub(r"\}\}", "}", text)
         text = re.sub(r"(\s)(\w+)(\s*:)", r'\1"\2"\3', text)
@@ -98,6 +104,7 @@ class OllamaClient:
         temperature: float | None = None,
         max_retries: int = 2,
         model: str | None = None,
+        num_ctx: int | None = None,
     ) -> dict[str, Any]:
         last_error: str | None = None
         raw = ""
@@ -109,6 +116,7 @@ class OllamaClient:
                     json_mode=True,
                     temperature=temperature,
                     model=model,
+                    num_ctx=num_ctx,
                 )
                 parsed = self._parse_json_lenient(raw)
                 if isinstance(parsed, dict):
@@ -116,25 +124,37 @@ class OllamaClient:
                 if isinstance(parsed, list):
                     if all(isinstance(i, dict) for i in parsed):
                         return {"items": parsed}
-                raise json.JSONDecodeError(f"Could not extract valid JSON object from response", raw, 0)
+                raise json.JSONDecodeError(
+                    f"Could not extract valid JSON object from response", raw, 0
+                )
             except (json.JSONDecodeError, httpx.HTTPStatusError) as e:
                 last_error = f"{type(e).__name__}: {e}"
                 logger.warning(
                     "Ollama parse failed (attempt %d/%d, last_error=%s): %s...",
-                    attempt + 1, max_retries + 1, last_error, raw[:200] if raw else "empty",
+                    attempt + 1,
+                    max_retries + 1,
+                    last_error,
+                    raw[:200] if raw else "empty",
                 )
                 if attempt < max_retries:
                     await asyncio.sleep(1 * (attempt + 1))
             except httpx.TimeoutException as e:
                 last_error = f"Timeout: {e}"
-                logger.warning("Ollama timeout (attempt %d/%d): %s", attempt + 1, max_retries + 1, last_error)
+                logger.warning(
+                    "Ollama timeout (attempt %d/%d): %s",
+                    attempt + 1,
+                    max_retries + 1,
+                    last_error,
+                )
                 if attempt < max_retries:
                     await asyncio.sleep(1 * (attempt + 1))
             except Exception as e:
                 last_error = f"Unhandled: {type(e).__name__}: {e}"
                 logger.error("_gen_struct unhandled exception: %s", last_error)
                 raise
-        raise RuntimeError(f"Ollama generation failed after {max_retries + 1} retries: {last_error}")
+        raise RuntimeError(
+            f"Ollama generation failed after {max_retries + 1} retries: {last_error}"
+        )
 
     async def generate_structured_array(
         self,
@@ -143,6 +163,7 @@ class OllamaClient:
         temperature: float | None = None,
         max_retries: int = 2,
         model: str | None = None,
+        num_ctx: int | None = None,
     ) -> list[dict[str, Any]]:
         last_error: str | None = None
         raw = ""
@@ -154,44 +175,71 @@ class OllamaClient:
                     json_mode=False,
                     temperature=temperature,
                     model=model,
+                    num_ctx=num_ctx,
                 )
                 parsed = self._parse_json_lenient(raw)
                 if isinstance(parsed, list):
                     return parsed
                 if isinstance(parsed, dict):
-                    for key in ("questions", "mcqs", "items", "results", "question", "mcq"):
+                    for key in (
+                        "questions",
+                        "mcqs",
+                        "items",
+                        "results",
+                        "question",
+                        "mcq",
+                    ):
                         if key in parsed and isinstance(parsed[key], list):
                             return parsed[key]
                     return [parsed]
                 return []
             except httpx.TimeoutException as e:
                 last_error = f"Timeout: {e}"
-                logger.warning("Ollama timeout (attempt %d/%d): %s", attempt + 1, max_retries + 1, last_error)
+                logger.warning(
+                    "Ollama timeout (attempt %d/%d): %s",
+                    attempt + 1,
+                    max_retries + 1,
+                    last_error,
+                )
                 if attempt < max_retries:
                     await asyncio.sleep(1 * (attempt + 1))
             except httpx.HTTPStatusError as e:
                 last_error = f"HTTP {e.response.status_code}: {e}"
-                logger.warning("Ollama HTTP error (attempt %d/%d): %s", attempt + 1, max_retries + 1, last_error)
+                logger.warning(
+                    "Ollama HTTP error (attempt %d/%d): %s",
+                    attempt + 1,
+                    max_retries + 1,
+                    last_error,
+                )
                 if attempt < max_retries:
                     await asyncio.sleep(1 * (attempt + 1))
             except (json.JSONDecodeError, ValueError) as e:
                 last_error = str(e)
                 logger.warning(
                     "Ollama array JSON parse failed (attempt %d/%d): %s...",
-                    attempt + 1, max_retries + 1, raw[:300],
+                    attempt + 1,
+                    max_retries + 1,
+                    raw[:300],
                 )
                 if attempt < max_retries:
                     continue
-        logger.error("Ollama array generation failed after %d retries: %s", max_retries + 1, last_error)
+        logger.error(
+            "Ollama array generation failed after %d retries: %s",
+            max_retries + 1,
+            last_error,
+        )
         return []
 
-    async def generate_embedding(self, text: str, model: str = "nomic-embed-text") -> list[float]:
+    async def generate_embedding(
+        self, text: str, model: str = "nomic-embed-text"
+    ) -> list[float]:
         url = f"{self.base_url}/api/embeddings"
         payload = {"model": model, "prompt": text}
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            response = await client.post(url, json=payload)
-            response.raise_for_status()
-            return response.json()["embedding"]
+        async with self.semaphore:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.post(url, json=payload)
+                response.raise_for_status()
+                return response.json()["embedding"]
 
     async def is_available(self) -> bool:
         try:
@@ -200,4 +248,19 @@ class OllamaClient:
                 response = await client.get(url)
                 return response.status_code == 200
         except Exception:
+            return False
+
+    async def pull_model(self, model: str | None = None) -> bool:
+        url = f"{self.base_url}/api/pull"
+        payload = {"name": model or self.model, "stream": False}
+        logger.info(f"Pulling model {payload['name']} (this may take a while)...")
+        try:
+            # massive timeout for model pull
+            async with httpx.AsyncClient(timeout=httpx.Timeout(1800.0)) as client:
+                response = await client.post(url, json=payload)
+                response.raise_for_status()
+                logger.info(f"Successfully pulled {payload['name']}")
+                return True
+        except Exception as e:
+            logger.error(f"Failed to pull model: {e}")
             return False

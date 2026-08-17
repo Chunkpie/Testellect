@@ -1,0 +1,101 @@
+{
+  "sequence": 10,
+  "title": "Tenths and Hundredths",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Introduction to Decimal Numbers",
+      "concepts": [
+        {
+          "name": "Decimal Numbers",
+          "description": "Decimal numbers represent parts of a whole using a decimal point. They provide an easy way to express quantities smaller than one in everyday situations.",
+          "learning_outcome": "Students will be able to identify and read decimal numbers up to two decimal places."
+        },
+        {
+          "name": "Decimal Point",
+          "description": "The decimal point separates the whole number part from the fractional part of a decimal number.",
+          "learning_outcome": "Students will be able to correctly identify the whole and decimal parts of a number."
+        },
+        {
+          "name": "Decimals in Daily Life",
+          "description": "Students encounter decimal numbers while using money, measuring length, weight, and capacity.",
+          "learning_outcome": "Students will be able to recognize decimal numbers used in real-life situations."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Place Value in Decimals",
+      "concepts": [
+        {
+          "name": "Tenths Place",
+          "description": "The first digit to the right of the decimal point represents tenths, where each part is one-tenth of a whole.",
+          "learning_outcome": "Students will be able to identify the tenths place in decimal numbers."
+        },
+        {
+          "name": "Hundredths Place",
+          "description": "The second digit to the right of the decimal point represents hundredths, where each part is one-hundredth of a whole.",
+          "learning_outcome": "Students will be able to identify the hundredths place in decimal numbers."
+        },
+        {
+          "name": "Place Value of Decimal Digits",
+          "description": "The value of each decimal digit depends on its position relative to the decimal point, similar to whole numbers.",
+          "learning_outcome": "Students will be able to determine the place value of digits in decimal numbers."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Comparing and Ordering Decimals",
+      "concepts": [
+        {
+          "name": "Comparing Decimal Numbers",
+          "description": "Decimals are compared by examining the whole number part first, followed by the tenths and hundredths places.",
+          "learning_outcome": "Students will be able to compare two decimal numbers using comparison symbols."
+        },
+        {
+          "name": "Ordering Decimals",
+          "description": "Decimal numbers can be arranged in ascending or descending order by comparing their place values.",
+          "learning_outcome": "Students will be able to arrange decimal numbers in ascending and descending order."
+        },
+        {
+          "name": "Equivalent Decimal Representations",
+          "description": "Some decimal numbers represent the same value even when additional zeros appear after the decimal point, such as 2.5 and 2.50.",
+          "learning_outcome": "Students will be able to identify equivalent decimal representations."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Applications of Decimals",
+      "concepts": [
+        {
+          "name": "Money Calculations",
+          "description": "Decimal notation is commonly used to represent rupees and paise. Students solve practical problems involving purchases, bills, and change.",
+          "learning_outcome": "Students will be able to solve money-related problems using decimal numbers."
+        },
+        {
+          "name": "Measurement Using Decimals",
+          "description": "Measurements of length, weight, and capacity are often expressed using decimal numbers for greater accuracy.",
+          "learning_outcome": "Students will be able to interpret and use decimal numbers in measurement problems."
+        },
+        {
+          "name": "Real-Life Problem Solving",
+          "description": "Students apply decimal concepts to solve everyday problems involving shopping, measurement, and data interpretation.",
+          "learning_outcome": "Students will be able to solve real-life mathematical problems involving decimal numbers."
+        }
+      ]
+    },
+    {
+      "sequence": 5,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Understanding Tenths and Hundredths",
+          "description": "This chapter develops an understanding of decimal notation, place value, comparison of decimals, and their applications in money and measurement.",
+          "learning_outcome": "Students will be able to read, compare, interpret, and apply decimal numbers in practical situations."
+        }
+      ]
+    }
+  ]
+}

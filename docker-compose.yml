@@ -1,58 +1,61 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: parakh-postgres
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=parakh_db
-    ports:
-      - "5434:5432"
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  chromadb:
-    image: chromadb/chroma:latest
-    container_name: parakh-chromadb
-    volumes:
-      - chroma_data:/chroma/chroma
-    ports:
-      - "8001:8000"
-    restart: unless-stopped
+  # -------------------------------------------------------------
+  # OPTIONAL: PostgreSQL / ChromaDB Server (For Multi-User Setup)
+  # Uncomment these to use PostgreSQL instead of SQLite, and
+  # standalone ChromaDB instead of embedded ChromaDB.
+  # -------------------------------------------------------------
+  # postgres:
+  #   image: postgres:16-alpine
+  #   container_name: parakh-postgres
+  #   volumes:
+  #     - pgdata:/var/lib/postgresql/data
+  #     - ./db_init:/docker-entrypoint-initdb.d
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  #     - POSTGRES_DB=parakh_db
+  #   ports:
+  #     - "5434:5432"
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U postgres"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #
+  # chromadb:
+  #   image: chromadb/chroma:latest
+  #   container_name: parakh-chromadb
+  #   volumes:
+  #     - chroma_data:/chroma/chroma
+  #   ports:
+  #     - "8001:8000"
+  #   restart: unless-stopped
 
   ollama:
     image: ollama/ollama:latest
     container_name: parakh-ollama
+    # Task 2 memory constraints:
+    environment:
+      - OLLAMA_NUM_PARALLEL=1
+      - OLLAMA_MAX_LOADED_MODELS=1
+      - OLLAMA_KEEP_ALIVE=5m
     ports:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
     restart: unless-stopped
-    # If the user has a GPU, they should uncomment this for hardware acceleration
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
 
   backend:
     build:
       context: .
       dockerfile: docker/Dockerfile.backend
     container_name: parakh-backend
-    depends_on:
-      postgres:
-        condition: service_healthy
-      chromadb:
-        condition: service_started
+    # depends_on:
+    #   postgres:
+    #     condition: service_healthy
+    #   chromadb:
+    #     condition: service_started
     volumes:
       - ./backend:/app
       - ./uploads:/app/uploads
@@ -61,19 +64,12 @@ services:
       - ./Curriculum:/app/Curriculum
     env_file:
       - .env
+    environment:
+      # Use SQLite Lite Mode natively
+      - DB_MODE=sqlite
+      - AI_PROVIDER_MODE=local
     ports:
       - "8000:8000"
-    restart: unless-stopped
-
-  frontend:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.frontend
-    container_name: parakh-frontend
-    depends_on:
-      - backend
-    ports:
-      - "80:80"
     restart: unless-stopped
 
 volumes:

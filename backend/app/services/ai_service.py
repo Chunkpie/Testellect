@@ -10,7 +10,16 @@ from sqlalchemy import select, Boolean
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.db.models.curriculum import Book, Chapter, Competency, Concept, KnowledgeChunk, LearningOutcome, LearningOutcomeCompetency, Topic
+from app.db.models.curriculum import (
+    Book,
+    Chapter,
+    Competency,
+    Concept,
+    KnowledgeChunk,
+    LearningOutcome,
+    LearningOutcomeCompetency,
+    Topic,
+)
 from app.db.models.questions import QuestionBank, QuestionOption
 from app.services.ai_pipeline.ollama_client import OllamaClient
 from app.services.ai_pipeline.prompt_builder import build_prompt
@@ -107,10 +116,12 @@ def _extract_options(options_raw: Any) -> list[dict]:
         return result
     for opt in options_raw:
         if isinstance(opt, dict):
-            result.append({
-                "text": str(opt.get("text", "")),
-                "is_correct": bool(opt.get("is_correct", False)),
-            })
+            result.append(
+                {
+                    "text": str(opt.get("text", "")),
+                    "is_correct": bool(opt.get("is_correct", False)),
+                }
+            )
         else:
             result.append({"text": str(opt), "is_correct": False})
     return result
@@ -148,13 +159,19 @@ class AiService:
         book = None
         grade = 0
         if concept.topic_id:
-            t_result = await db.execute(select(Topic).where(Topic.id == concept.topic_id))
+            t_result = await db.execute(
+                select(Topic).where(Topic.id == concept.topic_id)
+            )
             topic = t_result.scalar_one_or_none()
             if topic and topic.chapter_id:
-                ch_result = await db.execute(select(Chapter).where(Chapter.id == topic.chapter_id))
+                ch_result = await db.execute(
+                    select(Chapter).where(Chapter.id == topic.chapter_id)
+                )
                 chapter = ch_result.scalar_one_or_none()
                 if chapter and chapter.book_id:
-                    b_result = await db.execute(select(Book).where(Book.id == chapter.book_id))
+                    b_result = await db.execute(
+                        select(Book).where(Book.id == chapter.book_id)
+                    )
                     book = b_result.scalar_one_or_none()
                     if book:
                         grade = book.grade
@@ -169,7 +186,10 @@ class AiService:
             comp_result = await db.execute(
                 select(Competency)
                 .join(LearningOutcomeCompetency)
-                .where(LearningOutcomeCompetency.c.learning_outcome_id == learning_outcome.id)
+                .where(
+                    LearningOutcomeCompetency.c.learning_outcome_id
+                    == learning_outcome.id
+                )
             )
             competency = comp_result.scalars().first()
             if competency:
@@ -177,9 +197,9 @@ class AiService:
 
         context_list = [
             {
-                "text": f"Concept: {concept.name_en}", 
-                "chapter_title": chapter.title_en if chapter else "", 
-                "topic_title": topic.title_en if topic else ""
+                "text": f"Concept: {concept.name_en}",
+                "chapter_title": chapter.title_en if chapter else "",
+                "topic_title": topic.title_en if topic else "",
             }
         ]
 
@@ -200,19 +220,29 @@ class AiService:
             if attempt == 1:
                 task_variant += " IMPORTANT: Return ONLY valid JSON. No markdown."
             elif attempt == 2:
-                task_variant = "Generate ONE MCQ. Respond with raw JSON only: {\"question_text\": \"...\", \"options\": [{\"text\": \"...\", \"is_correct\": false}], \"explanation\": \"...\"}"
+                task_variant = 'Generate ONE MCQ. Respond with raw JSON only: {"question_text": "...", "options": [{"text": "...", "is_correct": false}], "explanation": "..."}'
             try:
                 sp, prompt = build_prompt(system_prompt, context_list, task_variant)
                 result = await self.ollama.generate_structured(
-                    prompt=prompt, system=sp, temperature=temperature, max_retries=15,
+                    prompt=prompt,
+                    system=sp,
+                    temperature=temperature,
+                    max_retries=15,
                 )
                 error = _validate_question(result)
                 if error:
-                    logger.warning("Validation failed (attempt %d): %s — raw keys=%s", attempt + 1, error, list(result.keys()))
+                    logger.warning(
+                        "Validation failed (attempt %d): %s — raw keys=%s",
+                        attempt + 1,
+                        error,
+                        list(result.keys()),
+                    )
                     continue
                 return result
             except Exception as e:
-                logger.warning("Generation failed (attempt %d): %s", attempt + 1, str(e)[:120])
+                logger.warning(
+                    "Generation failed (attempt %d): %s", attempt + 1, str(e)[:120]
+                )
                 continue
         return None
 
@@ -229,8 +259,16 @@ class AiService:
         school_id: int | None = None,
         on_progress: Callable | None = None,
     ) -> list[dict[str, Any]]:
+        ai_mode = getattr(settings, "AI_MODE", "local_llm").lower()
+        if ai_mode == "edge_retrieval":
+            logger.info("AI_MODE=edge_retrieval. Bypassing batched LLM generation.")
+            # We already have questions in the DB, just return them.
+            return await self._retrieve_pre_generated_questions(db, concept_id, total_count, bloom_level, difficulty)
+
         batch_size = batch_size or settings.OLLAMA_BATCH_SIZE
-        grade, concept_name, competency_name, context_list = await self._resolve_concept_context(db, concept_id)
+        grade, concept_name, competency_name, context_list = (
+            await self._resolve_concept_context(db, concept_id)
+        )
 
         all_questions: list[dict[str, Any]] = []
 
@@ -257,10 +295,14 @@ class AiService:
 
             task_batch = task.format(current_batch=current_batch)
             if all_questions:
-                existing_texts = [q.get("question_text", "") for q in all_questions if q.get("question_text")]
+                existing_texts = [
+                    q.get("question_text", "")
+                    for q in all_questions
+                    if q.get("question_text")
+                ]
                 if existing_texts:
                     task_batch += "\n\nCRITICAL: DO NOT repeat any of the following questions or concepts:\n"
-                    for ext in existing_texts[-10:]: # Limit to last 10 to save tokens
+                    for ext in existing_texts[-10:]:  # Limit to last 10 to save tokens
                         task_batch += f"- {ext[:100]}...\n"
 
             coros = [
@@ -277,36 +319,49 @@ class AiService:
                     logger.warning("Batch failed after all retries")
                     continue
 
-                items = result.get("items", [result]) if isinstance(result, dict) else result
+                items = (
+                    result.get("items", [result])
+                    if isinstance(result, dict)
+                    else result
+                )
                 if not isinstance(items, list):
                     items = [items]
 
                 for item in items:
                     if len(all_questions) >= total_count:
                         break
-                    
+
                     q_idx += 1
                     q_text = (item.get("question_text") or "").strip()
                     if not q_text:
                         logger.warning("Question %d: empty question_text", q_idx)
                         continue
 
-                    option_objects = _normalise_one_correct(_extract_options(item.get("options", [])))
+                    option_objects = _normalise_one_correct(
+                        _extract_options(item.get("options", []))
+                    )
                     if len(option_objects) < 2:
-                        logger.warning("Question %d: insufficient valid options (%d)", q_idx, len(option_objects))
+                        logger.warning(
+                            "Question %d: insufficient valid options (%d)",
+                            q_idx,
+                            len(option_objects),
+                        )
                         continue
 
                     lang_lower = language.lower()
-                    
+
                     image_asset_id = None
                     image_tag = item.get("image_tag")
                     if image_tag and school_id:
                         from app.db.models.image_bank import ImageAsset
+
                         img_result = await db.execute(
-                            select(ImageAsset).where(
+                            select(ImageAsset)
+                            .where(
                                 ImageAsset.school_id == school_id,
-                                ImageAsset.tags.ilike(f"%{image_tag}%")
-                            ).limit(1)
+                                ImageAsset.tags.ilike(f"%{image_tag}%"),
+                            )
+                            .limit(1)
                         )
                         img = img_result.scalar_one_or_none()
                         if img:
@@ -323,9 +378,19 @@ class AiService:
                         difficulty=difficulty,
                         marks=1.0,
                         estimated_time_seconds=item.get("estimated_time_seconds", 60),
-                        explanation_en=item.get("explanation", "") if lang_lower == "english" else "",
-                        explanation_hi=item.get("explanation", "") if lang_lower == "hindi" else "",
-                        explanation_gu=item.get("explanation", "") if lang_lower == "gujarati" else "",
+                        explanation_en=(
+                            item.get("explanation", "")
+                            if lang_lower == "english"
+                            else ""
+                        ),
+                        explanation_hi=(
+                            item.get("explanation", "") if lang_lower == "hindi" else ""
+                        ),
+                        explanation_gu=(
+                            item.get("explanation", "")
+                            if lang_lower == "gujarati"
+                            else ""
+                        ),
                         image_asset_id=image_asset_id,
                         generated_by="ai",
                         approval_status="APPROVED",
@@ -334,38 +399,125 @@ class AiService:
                     await db.flush()
 
                     for seq, opt in enumerate(option_objects):
-                        db.add(QuestionOption(
-                            question_id=question.id,
-                            option_text_en=opt["text"] if lang_lower == "english" else "",
-                            option_text_hi=opt["text"] if lang_lower == "hindi" else "",
-                            option_text_gu=opt["text"] if lang_lower == "gujarati" else "",
-                            is_correct=opt["is_correct"],
-                            sequence=seq,
-                        ))
+                        db.add(
+                            QuestionOption(
+                                question_id=question.id,
+                                option_text_en=(
+                                    opt["text"] if lang_lower == "english" else ""
+                                ),
+                                option_text_hi=(
+                                    opt["text"] if lang_lower == "hindi" else ""
+                                ),
+                                option_text_gu=(
+                                    opt["text"] if lang_lower == "gujarati" else ""
+                                ),
+                                is_correct=opt["is_correct"],
+                                sequence=seq,
+                            )
+                        )
 
-                    all_questions.append({
-                        "id": question.id,
-                        "question_text": q_text,
-                        "options": option_objects,
-                        "explanation": item.get("explanation", ""),
-                        "bloom_level": bloom_level,
-                        "difficulty": difficulty,
-                    })
+                    all_questions.append(
+                        {
+                            "id": question.id,
+                            "question_text": q_text,
+                            "options": option_objects,
+                            "explanation": item.get("explanation", ""),
+                            "bloom_level": bloom_level,
+                            "difficulty": difficulty,
+                        }
+                    )
 
             # Commit batch
             try:
                 await db.commit()
             except Exception:
                 await db.rollback()
-                logger.error("Batch commit failed, rolling back %d questions", len(all_questions) - len([r for r in results if r is not None and not isinstance(r, Exception)]))
+                logger.error(
+                    "Batch commit failed, rolling back %d questions",
+                    len(all_questions)
+                    - len(
+                        [
+                            r
+                            for r in results
+                            if r is not None and not isinstance(r, Exception)
+                        ]
+                    ),
+                )
                 continue
 
             progress = len(all_questions)
-            logger.info("Batch complete: %d/%d questions saved (batch=%d)", progress, total_count, current_batch)
+            logger.info(
+                "Batch complete: %d/%d questions saved (batch=%d)",
+                progress,
+                total_count,
+                current_batch,
+            )
             if on_progress:
-                await on_progress(progress, total_count, (progress // batch_size) + 1, -1)
+                await on_progress(
+                    progress, total_count, (progress // batch_size) + 1, -1
+                )
 
         return all_questions
+
+    async def _retrieve_pre_generated_questions(
+        self,
+        db: AsyncSession,
+        concept_id: int,
+        count: int,
+        bloom_level: str,
+        difficulty: str,
+    ) -> list[dict[str, Any]]:
+        from app.db.models.questions import QuestionBank
+        from sqlalchemy.orm import selectinload
+        import random
+        
+        stmt = (
+            select(QuestionBank)
+            .options(selectinload(QuestionBank.options))
+            .where(QuestionBank.concept_id == concept_id)
+            .where(QuestionBank.bloom_level == bloom_level)
+            .where(QuestionBank.difficulty == difficulty)
+            .limit(count * 5)
+        )
+        res = await db.execute(stmt)
+        questions = res.scalars().unique().all()
+        
+        if not questions:
+            stmt_fallback = (
+                select(QuestionBank)
+                .options(selectinload(QuestionBank.options))
+                .where(QuestionBank.concept_id == concept_id)
+                .limit(count * 5)
+            )
+            res_fb = await db.execute(stmt_fallback)
+            questions = res_fb.scalars().unique().all()
+
+        selected = list(questions)
+        random.shuffle(selected)
+        selected = selected[:count]
+
+        results = []
+        for q in selected:
+            options_list = []
+            for opt in q.options:
+                options_list.append({
+                    "text": opt.option_text_en or opt.option_text_hi or opt.option_text_gu,
+                    "is_correct": opt.is_correct
+                })
+            
+            results.append({
+                "id": q.id,
+                "question_text": q.question_text_en or q.question_text_hi or q.question_text_gu,
+                "options": options_list,
+                "explanation": q.explanation_en,
+                "estimated_time_seconds": q.estimated_time_seconds,
+                "marks_suggestion": q.marks,
+                "concept_id": q.concept_id,
+                "bloom_level": q.bloom_level,
+                "difficulty": q.difficulty,
+                "question_type": q.question_type,
+            })
+        return results
 
     async def generate_questions(
         self,
@@ -377,7 +529,15 @@ class AiService:
         question_type: str = "mcq",
         school_id: int | None = None,
     ) -> list[dict[str, Any]]:
-        grade, concept_name, competency_name, context_list = await self._resolve_concept_context(db, concept_id)
+        
+        ai_mode = getattr(settings, "AI_MODE", "local_llm").lower()
+        if ai_mode == "edge_retrieval":
+            logger.info("AI_MODE=edge_retrieval. Bypassing LLM and retrieving pre-generated questions.")
+            return await self._retrieve_pre_generated_questions(db, concept_id, count, bloom_level, difficulty)
+
+        grade, concept_name, competency_name, context_list = (
+            await self._resolve_concept_context(db, concept_id)
+        )
 
         image_requirement = ""
         image_tag_example = ""
@@ -407,22 +567,31 @@ class AiService:
                     prompt=prompt,
                     system=system,
                 )
-                questions.append({
-                    "question_text": result_data.get("question_text", ""),
-                    "options": result_data.get("options", []),
-                    "explanation": result_data.get("explanation", ""),
-                    "estimated_time_seconds": result_data.get("estimated_time_seconds", 60),
-                    "marks_suggestion": result_data.get("marks_suggestion", 1),
-                    "concept_id": concept_id,
-                    "bloom_level": bloom_level,
-                    "difficulty": difficulty,
-                    "question_type": question_type,
-                })
+                questions.append(
+                    {
+                        "question_text": result_data.get("question_text", ""),
+                        "options": result_data.get("options", []),
+                        "explanation": result_data.get("explanation", ""),
+                        "estimated_time_seconds": result_data.get(
+                            "estimated_time_seconds", 60
+                        ),
+                        "marks_suggestion": result_data.get("marks_suggestion", 1),
+                        "concept_id": concept_id,
+                        "bloom_level": bloom_level,
+                        "difficulty": difficulty,
+                        "question_type": question_type,
+                    }
+                )
             except RuntimeError as e:
-                logger.warning("Question generation failed: %s", e)
+                logger.warning(f"Question generation failed: {e}. Falling back to edge retrieval.")
+                if ai_mode == "local_llm":
+                    fallback_q = await self._retrieve_pre_generated_questions(db, concept_id, 1, bloom_level, difficulty)
+                    if fallback_q:
+                        questions.extend(fallback_q)
                 continue
 
         return questions
+
 
     async def analyze_book(
         self,
@@ -438,6 +607,7 @@ class AiService:
         book_id: int,
     ) -> dict[str, Any]:
         from app.services.ai_pipeline.document_agent import DocumentAgent
+
         agent = DocumentAgent()
         result = await agent.run(db, book_id)
         return {
@@ -453,6 +623,14 @@ class AiService:
         school_id: int | None = None,
         conversation_id: str | None = None,
     ) -> dict[str, Any]:
+        ai_mode = getattr(settings, "AI_MODE", "local_llm").lower()
+        if ai_mode == "edge_retrieval":
+            return {
+                "reply": "I am currently running in Edge Retrieval mode to save resources on this PC. Interactive chat is disabled, but I can still instantly generate exams from the local Question Bank!",
+                "intent": "general_question",
+                "conversation_id": conversation_id,
+            }
+
         try:
             routing_result = await self.ollama.generate_structured(
                 prompt=f'Route this teacher message: "{message}"',
@@ -472,10 +650,23 @@ class AiService:
                     query=concept_name,
                     top_k=3,
                 )
-                context_list = [{"text": c["text"], "chapter_title": c["metadata"].get("chapter_title", ""), "topic_title": ""} for c in chunks]
-                system, prompt = build_prompt(EXPLAIN_CONCEPT_SYSTEM, context_list, f'Explain the concept "{concept_name}" for a teacher\'s reference.')
+                context_list = [
+                    {
+                        "text": c["text"],
+                        "chapter_title": c["metadata"].get("chapter_title", ""),
+                        "topic_title": "",
+                    }
+                    for c in chunks
+                ]
+                system, prompt = build_prompt(
+                    EXPLAIN_CONCEPT_SYSTEM,
+                    context_list,
+                    f'Explain the concept "{concept_name}" for a teacher\'s reference.',
+                )
                 try:
-                    result_data = await self.ollama.generate_structured(prompt=prompt, system=system)
+                    result_data = await self.ollama.generate_structured(
+                        prompt=prompt, system=system
+                    )
                     return {
                         "reply": result_data.get("explanation", ""),
                         "misconceptions": result_data.get("common_misconceptions", []),
@@ -483,7 +674,11 @@ class AiService:
                         "conversation_id": conversation_id,
                     }
                 except RuntimeError as e:
-                    return {"reply": f"Could not explain concept: {e}", "intent": intent, "conversation_id": conversation_id}
+                    return {
+                        "reply": f"Could not explain concept: {e}",
+                        "intent": intent,
+                        "conversation_id": conversation_id,
+                    }
 
         if intent == "summarize_chapter":
             chapter_name = params.get("chapter_name", "")
@@ -493,10 +688,19 @@ class AiService:
                     query=chapter_name,
                     top_k=10,
                 )
-                context_list = [{"text": c["text"], "chapter_title": "", "topic_title": ""} for c in chunks]
-                system, prompt = build_prompt(SUMMARIZE_CHAPTER_SYSTEM, context_list, "Summarize this chapter for a teacher.")
+                context_list = [
+                    {"text": c["text"], "chapter_title": "", "topic_title": ""}
+                    for c in chunks
+                ]
+                system, prompt = build_prompt(
+                    SUMMARIZE_CHAPTER_SYSTEM,
+                    context_list,
+                    "Summarize this chapter for a teacher.",
+                )
                 try:
-                    result_data = await self.ollama.generate_structured(prompt=prompt, system=system)
+                    result_data = await self.ollama.generate_structured(
+                        prompt=prompt, system=system
+                    )
                     return {
                         "reply": result_data.get("overview", ""),
                         "key_concepts": result_data.get("key_concepts", []),
@@ -504,7 +708,11 @@ class AiService:
                         "conversation_id": conversation_id,
                     }
                 except RuntimeError as e:
-                    return {"reply": f"Could not summarize chapter: {e}", "intent": intent, "conversation_id": conversation_id}
+                    return {
+                        "reply": f"Could not summarize chapter: {e}",
+                        "intent": intent,
+                        "conversation_id": conversation_id,
+                    }
 
         return {
             "reply": f"I can help you with generating questions, explaining concepts, summarizing chapters, and more. You said: {message}",
@@ -523,7 +731,7 @@ class AiService:
         questions_per_paper: int = 40,
     ) -> None:
         from app.services.paper_generator import create_blueprint_and_papers
-        
+
         # 1. Fetch all concepts for this book
         concepts_result = await db.execute(
             select(Concept)
@@ -535,16 +743,19 @@ class AiService:
         if not concepts:
             logger.error(f"No concepts found for book {book_id}")
             return
-            
+
         import random
+
         random.shuffle(concepts)
-        
+
         # 2. Loop and generate questions
         generated_questions = []
         for i in range(total_questions):
             c = concepts[i % len(concepts)]
-            logger.info(f"Generating question {i+1}/{total_questions} from concept: {c.name_en}")
-            
+            logger.info(
+                f"Generating question {i+1}/{total_questions} from concept: {c.name_en}"
+            )
+
             # Use generate_questions_batched to automatically save to DB
             try:
                 # We fetch the exact DB object since generate_questions_batched returns dicts
@@ -554,12 +765,14 @@ class AiService:
                     concept_id=c.id,
                     total_count=1,
                     batch_size=1,
-                    school_id=school_id
+                    school_id=school_id,
                 )
             except Exception as e:
                 logger.error(f"Error generating question for concept {c.id}: {e}")
 
-        logger.info("Questions generated. Fetching all questions for this book to create papers...")
+        logger.info(
+            "Questions generated. Fetching all questions for this book to create papers..."
+        )
         # Fetch the newly generated questions for this book
         q_res = await db.execute(
             select(QuestionBank)
@@ -568,10 +781,10 @@ class AiService:
             .join(Topic.chapter)
             .where(Chapter.book_id == book_id)
             .order_by(QuestionBank.created_at.desc())
-            .limit(total_questions * 2) # Get recent
+            .limit(total_questions * 2)  # Get recent
         )
         all_book_qs = q_res.scalars().all()
-        
+
         if len(all_book_qs) >= questions_per_paper:
             await create_blueprint_and_papers(
                 db=db,
@@ -580,7 +793,7 @@ class AiService:
                 school_id=school_id or 0,
                 questions=all_book_qs,
                 num_papers=num_papers,
-                questions_per_paper=questions_per_paper
+                questions_per_paper=questions_per_paper,
             )
         else:
             logger.error("Not enough questions generated to create papers")

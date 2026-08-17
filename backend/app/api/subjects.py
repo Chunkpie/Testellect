@@ -40,7 +40,10 @@ async def create_subject(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role != "administrator":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only administrators can create subjects")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can create subjects",
+        )
 
     subject = Subject(**data.model_dump())
     db.add(subject)
@@ -48,8 +51,12 @@ async def create_subject(
     await db.refresh(subject)
 
     await log_audit_entry(
-        db=db, user_id=current_user.id, school_id=current_user.school_id,
-        action="create", resource_type="subject", resource_id=subject.id,
+        db=db,
+        user_id=current_user.id,
+        school_id=current_user.school_id,
+        action="create",
+        resource_type="subject",
+        resource_id=subject.id,
     )
 
     return subject

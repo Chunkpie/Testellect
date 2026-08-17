@@ -1,0 +1,75 @@
+{
+  "sequence": 7,
+  "title": "Coordinate Geometry",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Introduction",
+      "concepts": [
+        {
+          "name": "Cartesian Coordinate System",
+          "description": "The Cartesian coordinate system uses two perpendicular number lines, called the x-axis and y-axis, to locate points on a plane. Every point is represented by an ordered pair of coordinates.",
+          "learning_outcome": "Students will be able to identify and plot points on the Cartesian plane using ordered pairs."
+        },
+        {
+          "name": "Coordinates and Quadrants",
+          "description": "The coordinate plane is divided into four quadrants based on the signs of the x- and y-coordinates. Understanding quadrants helps determine the position of points accurately.",
+          "learning_outcome": "Students will be able to identify the quadrant in which a given point lies."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Distance Formula",
+      "concepts": [
+        {
+          "name": "Distance Between Two Points",
+          "description": "The distance formula calculates the length of the line segment joining two points in the coordinate plane using the Pythagorean Theorem.",
+          "learning_outcome": "Students will be able to calculate the distance between two points using the distance formula."
+        },
+        {
+          "name": "Derivation of the Distance Formula",
+          "description": "The distance formula is derived by constructing a right triangle between two points and applying the Pythagorean Theorem.",
+          "learning_outcome": "Students will be able to explain the derivation of the distance formula."
+        },
+        {
+          "name": "Applications of the Distance Formula",
+          "description": "The distance formula is used to determine lengths, verify geometric properties, and solve practical coordinate geometry problems.",
+          "learning_outcome": "Students will be able to apply the distance formula to solve geometric and real-life problems."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Section Formula",
+      "concepts": [
+        {
+          "name": "Internal Division of a Line Segment",
+          "description": "The section formula determines the coordinates of a point that divides a line segment internally in a given ratio.",
+          "learning_outcome": "Students will be able to find the coordinates of a point dividing a line segment internally in a specified ratio."
+        },
+        {
+          "name": "Midpoint Formula",
+          "description": "The midpoint formula is a special case of the section formula where the ratio is 1:1. It gives the coordinates of the midpoint of a line segment.",
+          "learning_outcome": "Students will be able to calculate the midpoint of a line segment using the midpoint formula."
+        },
+        {
+          "name": "Applications of the Section Formula",
+          "description": "The section formula is useful in geometry, construction, navigation, and graphical representation of proportional divisions.",
+          "learning_outcome": "Students will be able to solve coordinate geometry problems involving proportional division of line segments."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Key Concepts of Coordinate Geometry",
+          "description": "This chapter summarizes the Cartesian coordinate system, distance formula, section formula, and midpoint formula, which are fundamental tools for solving geometric problems analytically.",
+          "learning_outcome": "Students will be able to apply coordinate geometry formulas to determine distances, midpoints, and points of division in the Cartesian plane."
+        }
+      ]
+    }
+  ]
+}

@@ -26,7 +26,9 @@ async def list_papers(
 ):
     stmt = select(Paper).order_by(Paper.created_at.desc())
     if user.role not in ("administrator", "deo") and user.school_id:
-        school_bp_ids = select(Blueprint.id).where(Blueprint.school_id == user.school_id)
+        school_bp_ids = select(Blueprint.id).where(
+            Blueprint.school_id == user.school_id
+        )
         stmt = stmt.where(Paper.blueprint_id.in_(school_bp_ids))
     result = await db.execute(stmt)
     papers = result.scalars().all()
@@ -34,18 +36,21 @@ async def list_papers(
     items = []
     for p in papers:
         bp = await db.get(Blueprint, p.blueprint_id)
-        items.append({
-            "id": p.id,
-            "name": p.variant_label,
-            "grade": bp.grade if bp else 0,
-            "subject_id": bp.subject_id if bp else 0,
-            "total_marks": float(bp.total_marks) if bp else 0,
-            "total_questions": bp.total_questions if bp else 0,
-            "duration_minutes": bp.duration_minutes or 0,
-            "school_id": bp.school_id if bp else 0,
-            "created_by": p.generated_by,
-            "created_at": p.created_at.isoformat() if p.created_at else None,
-        })
+        items.append(
+            {
+                "id": p.id,
+                "name": p.variant_label,
+                "blueprint_id": p.blueprint_id,
+                "grade": bp.grade if bp else 0,
+                "subject_id": bp.subject_id if bp else 0,
+                "total_marks": float(bp.total_marks) if bp else 0,
+                "total_questions": bp.total_questions if bp else 0,
+                "duration_minutes": bp.duration_minutes or 0,
+                "school_id": bp.school_id if bp else 0,
+                "created_by": p.generated_by,
+                "created_at": p.created_at.isoformat() if p.created_at else None,
+            }
+        )
     return {"items": items, "total": len(items)}
 
 
@@ -58,34 +63,46 @@ async def get_paper_detail(
     result = await db.execute(select(Paper).where(Paper.id == paper_id))
     paper = result.scalar_one_or_none()
     if not paper:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Paper not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Paper not found"
+        )
 
-    bp_result = await db.execute(select(Blueprint).where(Blueprint.id == paper.blueprint_id))
+    bp_result = await db.execute(
+        select(Blueprint).where(Blueprint.id == paper.blueprint_id)
+    )
     blueprint = bp_result.scalar_one_or_none()
 
     scope = _school_scope_filter(Blueprint, user)
     if scope is not None and blueprint and blueprint.school_id != user.school_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Access denied"
+        )
 
     pqs_result = await db.execute(
-        select(PaperQuestion).where(PaperQuestion.paper_id == paper_id).order_by(PaperQuestion.sequence)
+        select(PaperQuestion)
+        .where(PaperQuestion.paper_id == paper_id)
+        .order_by(PaperQuestion.sequence)
     )
     paper_questions = pqs_result.scalars().all()
 
     questions = []
     for pq in paper_questions:
-        q_result = await db.execute(select(QuestionBank).where(QuestionBank.id == pq.question_id))
+        q_result = await db.execute(
+            select(QuestionBank).where(QuestionBank.id == pq.question_id)
+        )
         q = q_result.scalar_one_or_none()
         if q:
-            questions.append({
-                "id": pq.id,
-                "question_id": q.id,
-                "sequence": pq.sequence,
-                "question_text": q.question_text_en,
-                "bloom_level": q.bloom_level,
-                "difficulty": q.difficulty,
-                "marks": float(q.marks) if q.marks else 1.0,
-            })
+            questions.append(
+                {
+                    "id": pq.id,
+                    "question_id": q.id,
+                    "sequence": pq.sequence,
+                    "question_text": q.question_text_en,
+                    "bloom_level": q.bloom_level,
+                    "difficulty": q.difficulty,
+                    "marks": float(q.marks) if q.marks else 1.0,
+                }
+            )
 
     return {
         "id": paper.id,
@@ -121,7 +138,9 @@ async def export_paper_pdf(
     if not paper:
         raise HTTPException(status_code=404, detail="Paper not found")
 
-    bp_result = await db.execute(select(Blueprint).where(Blueprint.id == paper.blueprint_id))
+    bp_result = await db.execute(
+        select(Blueprint).where(Blueprint.id == paper.blueprint_id)
+    )
     blueprint = bp_result.scalar_one_or_none()
 
     scope = _school_scope_filter(Blueprint, user)
@@ -129,67 +148,82 @@ async def export_paper_pdf(
         raise HTTPException(status_code=403, detail="Access denied")
 
     from app.services.translation_service import translate_paper_questions
+
     await translate_paper_questions(db, paper_id, lang)
 
     pqs_result = await db.execute(
-        select(PaperQuestion).where(PaperQuestion.paper_id == paper_id).order_by(PaperQuestion.sequence)
+        select(PaperQuestion)
+        .where(PaperQuestion.paper_id == paper_id)
+        .order_by(PaperQuestion.sequence)
     )
     paper_questions = pqs_result.scalars().all()
 
     questions = []
     for pq in paper_questions:
-        q_result = await db.execute(select(QuestionBank).where(QuestionBank.id == pq.question_id))
+        q_result = await db.execute(
+            select(QuestionBank).where(QuestionBank.id == pq.question_id)
+        )
         q = q_result.scalar_one_or_none()
         if q:
             # Get Image
             image_path = None
             if q.image_asset_id:
-                img_res = await db.execute(select(ImageAsset).where(ImageAsset.id == q.image_asset_id))
+                img_res = await db.execute(
+                    select(ImageAsset).where(ImageAsset.id == q.image_asset_id)
+                )
                 img = img_res.scalar_one_or_none()
                 if img:
                     image_path = img.file_path
-                    
+
             # Get Options
             opts_res = await db.execute(
-                select(QuestionOption).where(QuestionOption.question_id == q.id).order_by(QuestionOption.sequence)
+                select(QuestionOption)
+                .where(QuestionOption.question_id == q.id)
+                .order_by(QuestionOption.sequence)
             )
             opts = opts_res.scalars().all()
-            
+
             # Map option order
             order = []
             if pq.option_order:
                 import json
+
                 try:
                     order = json.loads(pq.option_order)
                 except:
                     pass
-                    
+
             ordered_opts = opts
             if order and len(order) == len(opts):
                 ordered_opts = [opts[int(i)] for i in order]
 
             options_list = []
-            prefixes = ['A)', 'B)', 'C)', 'D)']
+            prefixes = ["A)", "B)", "C)", "D)"]
             for i, opt in enumerate(ordered_opts):
-                options_list.append({
-                    "option_text_en": opt.option_text_en,
-                    "option_text_hi": opt.option_text_hi,
-                    "option_text_gu": opt.option_text_gu,
-                    "prefix": prefixes[i] if i < len(prefixes) else "•"
-                })
+                options_list.append(
+                    {
+                        "option_text_en": opt.option_text_en,
+                        "option_text_hi": opt.option_text_hi,
+                        "option_text_gu": opt.option_text_gu,
+                        "prefix": prefixes[i] if i < len(prefixes) else "•",
+                    }
+                )
 
-            questions.append({
-                "sequence": pq.sequence,
-                "question_text_en": q.question_text_en,
-                "question_text_hi": q.question_text_hi,
-                "question_text_gu": q.question_text_gu,
-                "image_path": image_path,
-                "options": options_list
-            })
+            questions.append(
+                {
+                    "sequence": pq.sequence,
+                    "question_text_en": q.question_text_en,
+                    "question_text_hi": q.question_text_hi,
+                    "question_text_gu": q.question_text_gu,
+                    "image_path": image_path,
+                    "options": options_list,
+                }
+            )
 
     from app.db.models.curriculum import Subject
+
     subject = await db.get(Subject, blueprint.subject_id) if blueprint else None
-    
+
     paper_info = {
         "name": paper.variant_label,
         "grade": blueprint.grade if blueprint else 0,
@@ -201,13 +235,11 @@ async def export_paper_pdf(
 
     pdf_service = PDFPaperService()
     pdf_buffer = pdf_service.generate_paper_pdf(paper_info, questions, language=lang)
-    
+
     filename = f"Paper_{paper_id}_{lang}.pdf"
-    
-    return Response(
-        content=pdf_buffer.getvalue(),
-        media_type="application/pdf"
-    )
+
+    return Response(content=pdf_buffer.getvalue(), media_type="application/pdf")
+
 
 from pydantic import BaseModel
 from typing import List
@@ -215,33 +247,44 @@ import random
 from app.db.models.curriculum import Topic, Concept
 from app.core.constants import ApprovalStatus
 
+
 class CustomPaperRequest(BaseModel):
     grade: int
     subject_id: int
     chapter_ids: List[int]
     total_questions: int
     difficulty: str = "medium"
+    bloom_level: str = "understand"
     num_sets: int = 1
+
 
 @router.post("/custom-generate")
 async def generate_custom_paper(
     req: CustomPaperRequest,
     background_tasks: BackgroundTasks,
     user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     if user.role not in ("teacher", "administrator"):
         raise HTTPException(status_code=403, detail="Not allowed")
 
-    topic_res = await db.execute(select(Topic.id).where(Topic.chapter_id.in_(req.chapter_ids)))
+    topic_res = await db.execute(
+        select(Topic.id).where(Topic.chapter_id.in_(req.chapter_ids))
+    )
     topic_ids = topic_res.scalars().all()
     if not topic_ids:
-        raise HTTPException(status_code=400, detail="No topics found for these chapters")
+        raise HTTPException(
+            status_code=400, detail="No topics found for these chapters"
+        )
 
-    concept_res = await db.execute(select(Concept.id).where(Concept.topic_id.in_(topic_ids)))
+    concept_res = await db.execute(
+        select(Concept.id).where(Concept.topic_id.in_(topic_ids))
+    )
     concept_ids = concept_res.scalars().all()
     if not concept_ids:
-        raise HTTPException(status_code=400, detail="No concepts found for these chapters")
+        raise HTTPException(
+            status_code=400, detail="No concepts found for these chapters"
+        )
 
     from app.db.models.admin import Job
     import uuid
@@ -252,7 +295,7 @@ async def generate_custom_paper(
         type="paper_generation",
         status="pending",
         progress=0,
-        created_by=str(user.id)
+        created_by=str(user.id),
     )
     db.add(job)
     await db.commit()
@@ -263,18 +306,14 @@ async def generate_custom_paper(
         req.dict(),
         user.id,
         user.school_id,
-        concept_ids
+        concept_ids,
     )
 
     return {"message": "Generation started", "job_id": job_id}
 
 
 async def _bg_generate_custom_paper(
-    job_id: str,
-    req_dict: dict,
-    user_id: int,
-    school_id: int,
-    concept_ids: list[int]
+    job_id: str, req_dict: dict, user_id: int, school_id: int, concept_ids: list[int]
 ):
     import asyncio
     import random
@@ -290,14 +329,15 @@ async def _bg_generate_custom_paper(
     req_grade = req_dict["grade"]
     req_subject_id = req_dict["subject_id"]
     req_chapter_ids = req_dict["chapter_ids"]
+    req_bloom_level = req_dict.get("bloom_level", "understand")
 
     num_concepts_to_use = min(len(concept_ids), req_total_questions * req_num_sets)
     chosen_concepts = random.sample(concept_ids, num_concepts_to_use)
-    
+
     total_questions_to_generate = req_total_questions * req_num_sets
     base_count = total_questions_to_generate // num_concepts_to_use
     remainder = total_questions_to_generate % num_concepts_to_use
-    
+
     ai_service = AiService()
     sem = asyncio.Semaphore(5)
 
@@ -309,7 +349,8 @@ async def _bg_generate_custom_paper(
                     concept_id=cid,
                     total_count=count,
                     difficulty=req_difficulty,
-                    school_id=school_id
+                    bloom_level=req_bloom_level,
+                    school_id=school_id,
                 )
 
     try:
@@ -334,7 +375,7 @@ async def _bg_generate_custom_paper(
                 for nq in res:
                     if "id" in nq:
                         generated_question_ids.append(nq["id"])
-                        
+
             if not generated_question_ids:
                 raise Exception("AI failed to generate questions.")
 
@@ -353,7 +394,7 @@ async def _bg_generate_custom_paper(
                 duration_minutes=req_total_questions * 2,
                 bloom_distribution="{}",
                 difficulty_distribution="{}",
-                chapter_ids=json.dumps(req_chapter_ids)
+                chapter_ids=json.dumps(req_chapter_ids),
             )
             db.add(bp)
             await db.flush()
@@ -364,21 +405,19 @@ async def _bg_generate_custom_paper(
                 paper = Paper(
                     blueprint_id=bp.id,
                     variant_label=f"Set {variant_char} - Grade {req_grade}",
-                    generated_by=user_id
+                    generated_by=user_id,
                 )
                 db.add(paper)
                 await db.flush()
                 papers_created.append(paper.id)
-                
+
                 start_idx = set_idx * req_total_questions
                 end_idx = start_idx + req_total_questions
                 set_questions = generated_question_ids[start_idx:end_idx]
-                
+
                 for i, q_id in enumerate(set_questions):
                     pq = PaperQuestion(
-                        paper_id=paper.id,
-                        question_id=q_id,
-                        sequence=i+1
+                        paper_id=paper.id, question_id=q_id, sequence=i + 1
                     )
                     db.add(pq)
 
@@ -394,67 +433,212 @@ async def _bg_generate_custom_paper(
                 job.error = str(e)
                 await db.commit()
 
+
 @router.get("/custom-generate/jobs/{job_id}")
 async def get_generation_job_status(
     job_id: str,
     user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     from app.db.models.admin import Job
+
     job = await db.get(Job, job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
-        
+
     return {
         "id": job.id,
         "status": job.status,
         "progress": job.progress,
         "error": job.error,
-        "paper_ids": json.loads(job.params).get("paper_ids", []) if job.params else []
+        "paper_ids": json.loads(job.params).get("paper_ids", []) if job.params else [],
     }
+
 
 class RenamePaperRequest(BaseModel):
     name: str
+
 
 @router.put("/{paper_id}")
 async def rename_paper(
     paper_id: int,
     req: RenamePaperRequest,
     user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(select(Paper).where(Paper.id == paper_id))
     paper = result.scalar_one_or_none()
     if not paper:
         raise HTTPException(status_code=404, detail="Paper not found")
-        
-    bp_result = await db.execute(select(Blueprint).where(Blueprint.id == paper.blueprint_id))
+
+    bp_result = await db.execute(
+        select(Blueprint).where(Blueprint.id == paper.blueprint_id)
+    )
     blueprint = bp_result.scalar_one_or_none()
     scope = _school_scope_filter(Blueprint, user)
     if scope is not None and blueprint and blueprint.school_id != user.school_id:
         raise HTTPException(status_code=403, detail="Access denied")
-        
+
     paper.variant_label = req.name
     await db.commit()
     return {"message": "Paper renamed successfully"}
+
 
 @router.delete("/{paper_id}")
 async def delete_paper(
     paper_id: int,
     user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(select(Paper).where(Paper.id == paper_id))
     paper = result.scalar_one_or_none()
     if not paper:
         raise HTTPException(status_code=404, detail="Paper not found")
-        
-    bp_result = await db.execute(select(Blueprint).where(Blueprint.id == paper.blueprint_id))
+
+    bp_result = await db.execute(
+        select(Blueprint).where(Blueprint.id == paper.blueprint_id)
+    )
     blueprint = bp_result.scalar_one_or_none()
     scope = _school_scope_filter(Blueprint, user)
     if scope is not None and blueprint and blueprint.school_id != user.school_id:
         raise HTTPException(status_code=403, detail="Access denied")
-        
+
     await db.delete(paper)
     await db.commit()
     return {"message": "Paper deleted successfully"}
+
+
+@router.get("/blueprint/{blueprint_id}/download-all-sets")
+async def export_all_paper_sets_pdf(
+    blueprint_id: int,
+    lang: str = "english",
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    from fastapi.responses import Response
+    from app.services.pdf_paper_service import PDFPaperService
+    from app.db.models.image_bank import ImageAsset
+    from app.db.models.questions import QuestionOption
+    from app.services.translation_service import translate_paper_questions
+    import fitz
+    import io
+
+    # Check blueprint
+    bp_result = await db.execute(
+        select(Blueprint).where(Blueprint.id == blueprint_id)
+    )
+    blueprint = bp_result.scalar_one_or_none()
+    if not blueprint:
+        raise HTTPException(status_code=404, detail="Blueprint not found")
+
+    scope = _school_scope_filter(Blueprint, user)
+    if scope is not None and blueprint.school_id != user.school_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    from app.db.models.curriculum import Subject
+    subject = await db.get(Subject, blueprint.subject_id) if blueprint else None
+
+    # Get all papers (sets) for this blueprint
+    papers_res = await db.execute(
+        select(Paper).where(Paper.blueprint_id == blueprint_id)
+    )
+    papers = papers_res.scalars().all()
+
+    if not papers:
+        raise HTTPException(status_code=404, detail="No papers found for this blueprint")
+
+    pdf_service = PDFPaperService()
+    merged_pdf = fitz.open()
+
+    for paper in papers:
+        await translate_paper_questions(db, paper.id, lang)
+
+        pqs_result = await db.execute(
+            select(PaperQuestion)
+            .where(PaperQuestion.paper_id == paper.id)
+            .order_by(PaperQuestion.sequence)
+        )
+        paper_questions = pqs_result.scalars().all()
+
+        questions = []
+        for pq in paper_questions:
+            q_result = await db.execute(
+                select(QuestionBank).where(QuestionBank.id == pq.question_id)
+            )
+            q = q_result.scalar_one_or_none()
+            if q:
+                # Get Image
+                image_path = None
+                if q.image_asset_id:
+                    img_res = await db.execute(
+                        select(ImageAsset).where(ImageAsset.id == q.image_asset_id)
+                    )
+                    img = img_res.scalar_one_or_none()
+                    if img:
+                        image_path = img.file_path
+
+                # Get Options
+                opts_res = await db.execute(
+                    select(QuestionOption)
+                    .where(QuestionOption.question_id == q.id)
+                    .order_by(QuestionOption.sequence)
+                )
+                opts = opts_res.scalars().all()
+
+                # Map option order
+                order = []
+                if pq.option_order:
+                    import json
+                    try:
+                        order = json.loads(pq.option_order)
+                    except:
+                        pass
+
+                ordered_opts = opts
+                if order and len(order) == len(opts):
+                    ordered_opts = [opts[int(i)] for i in order]
+
+                options_list = []
+                prefixes = ["A)", "B)", "C)", "D)"]
+                for i, opt in enumerate(ordered_opts):
+                    options_list.append(
+                        {
+                            "option_text_en": opt.option_text_en,
+                            "option_text_hi": opt.option_text_hi,
+                            "option_text_gu": opt.option_text_gu,
+                            "prefix": prefixes[i] if i < len(prefixes) else "•",
+                        }
+                    )
+
+                questions.append(
+                    {
+                        "sequence": pq.sequence,
+                        "question_text_en": q.question_text_en,
+                        "question_text_hi": q.question_text_hi,
+                        "question_text_gu": q.question_text_gu,
+                        "image_path": image_path,
+                        "options": options_list,
+                    }
+                )
+
+        paper_info = {
+            "name": paper.variant_label,
+            "grade": blueprint.grade if blueprint else 0,
+            "subject_id": blueprint.subject_id if blueprint else 0,
+            "subject_name": subject.name_en if subject else "General",
+            "total_marks": float(blueprint.total_marks) if blueprint else 0,
+            "duration_minutes": blueprint.duration_minutes or 0,
+        }
+
+        # Generate single paper PDF
+        pdf_buffer = pdf_service.generate_paper_pdf(paper_info, questions, language=lang)
+        
+        # Append to merged PDF
+        doc = fitz.open(stream=pdf_buffer, filetype="pdf")
+        merged_pdf.insert_pdf(doc)
+
+    out_buffer = io.BytesIO()
+    merged_pdf.save(out_buffer)
+    merged_pdf.close()
+
+    return Response(content=out_buffer.getvalue(), media_type="application/pdf")

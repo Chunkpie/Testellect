@@ -47,6 +47,8 @@ class QuestionResponse(BaseModel):
     explanation_en: Optional[str] = None
     explanation_hi: Optional[str] = None
     explanation_gu: Optional[str] = None
+    image_asset_id: Optional[int] = None
+    image_url: Optional[str] = None
     confidence_score: Optional[float] = None
     duplicate_score: Optional[float] = None
     generated_by: str

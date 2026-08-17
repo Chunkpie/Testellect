@@ -3,7 +3,16 @@ import os
 import time
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status, UploadFile, File, Form
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Query,
+    status,
+    UploadFile,
+    File,
+    Form,
+)
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy import func, select, delete as sa_delete
@@ -11,7 +20,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit import log_audit_entry
 from app.core.deps import get_current_user, get_db
-from app.db.models.assessments import Assessment, StudentResult, CompetencyResult, Student
+from app.db.models.assessments import (
+    Assessment,
+    StudentResult,
+    CompetencyResult,
+    Student,
+)
 from app.db.models.auth import User
 from app.db.models.omr import OMRResult, OMRSheet
 from app.db.models.papers import Paper, PaperQuestion, Blueprint
@@ -36,7 +50,12 @@ async def list_omr_sessions(
     db: AsyncSession = Depends(get_db),
 ):
     stmt = (
-        select(OMRSheet.batch_id, OMRSheet.paper_id, func.min(OMRSheet.created_at).label("created_at"), func.count(OMRSheet.id).label("sheet_count"))
+        select(
+            OMRSheet.batch_id,
+            OMRSheet.paper_id,
+            func.min(OMRSheet.created_at).label("created_at"),
+            func.count(OMRSheet.id).label("sheet_count"),
+        )
         .where(OMRSheet.batch_id.is_not(None))
         .group_by(OMRSheet.batch_id, OMRSheet.paper_id)
         .order_by(func.min(OMRSheet.created_at).desc())
@@ -52,19 +71,23 @@ async def list_omr_sessions(
         # Count results
         sheets_sub = select(OMRSheet.id).where(OMRSheet.batch_id == batch_id).subquery()
         res_count = await db.scalar(
-            select(func.count(OMRResult.id)).where(OMRResult.omr_sheet_id.in_(select(sheets_sub.c.id)))
+            select(func.count(OMRResult.id)).where(
+                OMRResult.omr_sheet_id.in_(select(sheets_sub.c.id))
+            )
         )
 
-        items.append({
-            "batch_id": batch_id,
-            "paper_id": paper_id,
-            "paper_name": paper.variant_label if paper else "Unknown",
-            "grade": bp.grade if bp else 0,
-            "subject_id": bp.subject_id if bp else 0,
-            "student_count": sheet_count,
-            "created_at": created_at.isoformat() if created_at else None,
-            "has_results": (res_count or 0) > 0,
-        })
+        items.append(
+            {
+                "batch_id": batch_id,
+                "paper_id": paper_id,
+                "paper_name": paper.variant_label if paper else "Unknown",
+                "grade": bp.grade if bp else 0,
+                "subject_id": bp.subject_id if bp else 0,
+                "student_count": sheet_count,
+                "created_at": created_at.isoformat() if created_at else None,
+                "has_results": (res_count or 0) > 0,
+            }
+        )
 
     return {"items": items, "total": len(items)}
 
@@ -91,31 +114,42 @@ async def generate_omr(
 
     paper = await db.get(Paper, paper_id)
     if not paper:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Paper not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Paper not found"
+        )
 
     blueprint = await db.get(Blueprint, paper.blueprint_id)
     if not blueprint:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Blueprint not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Blueprint not found"
+        )
 
     # Fetch students in the selected class
     students_stmt = select(Student).where(
-        Student.class_id == class_id, 
-        Student.is_active == True, 
-        Student.is_deleted == False
+        Student.class_id == class_id,
+        Student.is_active == True,
+        Student.is_deleted == False,
     )
     students = (await db.execute(students_stmt)).scalars().all()
 
     if not students:
-        raise HTTPException(status_code=400, detail="No active students found in this class.")
+        raise HTTPException(
+            status_code=400, detail="No active students found in this class."
+        )
 
     batch_id = _compute_session_id()
 
     # Find or create an assessment for this blueprint and class
-    stmt = select(Assessment).where(
-        Assessment.blueprint_id == paper.blueprint_id,
-        Assessment.class_id == class_id,
-        Assessment.school_id == user.school_id,
-    ).order_by(Assessment.created_at.desc()).limit(1)
+    stmt = (
+        select(Assessment)
+        .where(
+            Assessment.blueprint_id == paper.blueprint_id,
+            Assessment.class_id == class_id,
+            Assessment.school_id == user.school_id,
+        )
+        .order_by(Assessment.created_at.desc())
+        .limit(1)
+    )
     result = await db.execute(stmt)
     assessment = result.scalar_one_or_none()
 
@@ -142,27 +176,44 @@ async def generate_omr(
                 paper_id=variant.id,
                 assessment_id=assessment.id,
                 student_id=student.id,
-                qr_payload=batch_id, # Replaced later in PDF gen if needed, but DB stores batch_id for legacy
+                qr_payload=batch_id,  # Replaced later in PDF gen if needed, but DB stores batch_id for legacy
                 sheet_pdf_path=None,
                 status="generated",
                 batch_id=batch_id,
             )
             db.add(sheet)
             await db.flush()
-            sheets_created.append({"id": sheet.id, "paper_name": variant.variant_label, "student_name": student.full_name})
+            sheets_created.append(
+                {
+                    "id": sheet.id,
+                    "paper_name": variant.variant_label,
+                    "student_name": student.full_name,
+                }
+            )
 
     await db.commit()
 
     await log_audit_entry(
-        db, user_id=user.id,
+        db,
+        user_id=user.id,
         action="CREATE_OMR_SESSION",
         resource_type="omr",
-        extra_data={"batch_id": batch_id, "paper_id": paper_id, "class_id": class_id, "student_count": len(students)}
+        extra_data={
+            "batch_id": batch_id,
+            "paper_id": paper_id,
+            "class_id": class_id,
+            "student_count": len(students),
+        },
     )
 
-    total_q = total_questions if total_questions and total_questions > 0 else blueprint.total_questions
+    total_q = (
+        total_questions
+        if total_questions and total_questions > 0
+        else blueprint.total_questions
+    )
 
     from app.services.omr_service import generate_omr_pdf
+
     pdf_path = generate_omr_pdf(
         paper_id=paper_id,
         students=students,
@@ -173,8 +224,11 @@ async def generate_omr(
     )
 
     from sqlalchemy import update
+
     await db.execute(
-        update(OMRSheet).where(OMRSheet.batch_id == batch_id).values(sheet_pdf_path=pdf_path)
+        update(OMRSheet)
+        .where(OMRSheet.batch_id == batch_id)
+        .values(sheet_pdf_path=pdf_path)
     )
     await db.commit()
 
@@ -199,13 +253,16 @@ async def get_omr_session(
     sheets = result.scalars().all()
 
     if not sheets:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Session not found"
+        )
 
     first = sheets[0]
     paper = await db.get(Paper, first.paper_id)
     bp = await db.get(Blueprint, paper.blueprint_id) if paper else None
 
     from app.db.models.assessments import Student
+
     sheet_list = []
     for s in sheets:
         student_name = "Unknown"
@@ -214,13 +271,15 @@ async def get_omr_session(
             if st:
                 student_name = st.full_name
 
-        sheet_list.append({
-            "id": s.id,
-            "student_id": s.student_id,
-            "student_name": student_name,
-            "status": s.status,
-            "created_at": s.created_at.isoformat() if s.created_at else None,
-        })
+        sheet_list.append(
+            {
+                "id": s.id,
+                "student_id": s.student_id,
+                "student_name": student_name,
+                "status": s.status,
+                "created_at": s.created_at.isoformat() if s.created_at else None,
+            }
+        )
 
     return {
         "batch_id": batch_id,
@@ -247,11 +306,15 @@ async def download_omr_pdf(
     sheet = result.scalar_one_or_none()
 
     if not sheet or not sheet.sheet_pdf_path:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="PDF not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="PDF not found"
+        )
 
     filepath = sheet.sheet_pdf_path
     if not os.path.isfile(filepath):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found on disk")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="File not found on disk"
+        )
 
     paper = await db.get(Paper, sheet.paper_id)
     filename = f"omr_{paper.variant_label.replace(' ', '_') if paper else batch_id}.pdf"
@@ -267,27 +330,36 @@ async def submit_omr_results(
     db: AsyncSession = Depends(get_db),
 ):
     if not isinstance(answers, list):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Expected a JSON array of answers")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Expected a JSON array of answers",
+        )
 
     stmt = select(OMRSheet).where(OMRSheet.batch_id == batch_id)
     result = await db.execute(stmt)
     sheets = result.scalars().all()
 
     if not sheets:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Session not found"
+        )
 
     first = sheets[0]
     paper = await db.get(Paper, first.paper_id)
     if not paper:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Paper not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Paper not found"
+        )
 
     bp = await db.get(Blueprint, paper.blueprint_id)
     max_score = float(bp.total_questions) if bp else float(len(answers))
-    
+
     # Delegate to helper
     eval_result = None
     for sheet in sheets:
-        eval_result = await _evaluate_and_save_result(db, sheet, answers, user.id, max_score)
+        eval_result = await _evaluate_and_save_result(
+            db, sheet, answers, user.id, max_score
+        )
 
     await db.commit()
 
@@ -297,15 +369,26 @@ async def submit_omr_results(
         school_id=user.school_id,
         action="submit_omr_results",
         resource_type="omr_result",
-        extra_data={"batch_id": batch_id, "score": eval_result["summary"]["correct"] if eval_result else 0, "max_score": max_score},
+        extra_data={
+            "batch_id": batch_id,
+            "score": eval_result["summary"]["correct"] if eval_result else 0,
+            "max_score": max_score,
+        },
     )
 
     return eval_result or {
         "evaluated": [],
-        "summary": {"correct": 0, "total": max_score, "percentage": 0}
+        "summary": {"correct": 0, "total": max_score, "percentage": 0},
     }
 
-async def _evaluate_and_save_result(db: AsyncSession, sheet: OMRSheet, answers: list[dict], user_id: int, max_score: float) -> dict:
+
+async def _evaluate_and_save_result(
+    db: AsyncSession,
+    sheet: OMRSheet,
+    answers: list[dict],
+    user_id: int,
+    max_score: float,
+) -> dict:
     correct_count = 0
 
     # Resolve correct answers from the question bank
@@ -351,35 +434,45 @@ async def _evaluate_and_save_result(db: AsyncSession, sheet: OMRSheet, answers: 
             "competency_id": competency_id,
             "sequence": pq.sequence,
             "correct_answer": correct_letter or "",
-            "options": [{"text": o.option_text_en, "letter": order[i] if i < len(order) else chr(65 + i)}
-                        for i, o in enumerate(options)],
+            "options": [
+                {
+                    "text": o.option_text_en,
+                    "letter": order[i] if i < len(order) else chr(65 + i),
+                }
+                for i, o in enumerate(options)
+            ],
         }
         answer_key[question_key] = correct_letter or ""
 
     # Evaluate answers
     evaluated_answers = []
-    
+
     # Pre-populate all questions as unanswered
     for k, v in correct_answers.items():
-        evaluated_answers.append({
-            "question_id": v["question_id"],
-            "sequence": v["sequence"],
-            "student_answer": "",
-            "correct_answer": v["correct_answer"],
-            "is_correct": False,
-            "competency_id": v.get("competency_id"),
-        })
+        evaluated_answers.append(
+            {
+                "question_id": v["question_id"],
+                "sequence": v["sequence"],
+                "student_answer": "",
+                "correct_answer": v["correct_answer"],
+                "is_correct": False,
+                "competency_id": v.get("competency_id"),
+            }
+        )
 
     import logging
+
     logging.info(f"RECEIVED ANSWERS: {answers}")
     for ans in answers:
         qid = ans.get("question_id")
         student_ans = ans.get("answer", "").strip().upper()
-        
+
         for ea in evaluated_answers:
             # The 'question_id' from the frontend/CV service is actually the sequence number (1, 2, 3)
             # So we match against ea["sequence"] or ea["question_id"]
-            if str(ea.get("sequence", "")) == str(qid) or str(ea.get("question_id", "")) == str(qid):
+            if str(ea.get("sequence", "")) == str(qid) or str(
+                ea.get("question_id", "")
+            ) == str(qid):
                 ea["student_answer"] = student_ans
                 ea["is_correct"] = student_ans == ea["correct_answer"]
                 if ea["is_correct"]:
@@ -417,7 +510,7 @@ async def _evaluate_and_save_result(db: AsyncSession, sheet: OMRSheet, answers: 
     if sheet.student_id is not None:
         sr_stmt = select(StudentResult).where(
             StudentResult.assessment_id == sheet.assessment_id,
-            StudentResult.student_id == sheet.student_id
+            StudentResult.student_id == sheet.student_id,
         )
         sr_res = await db.execute(sr_stmt)
         student_result = sr_res.scalar_one_or_none()
@@ -429,7 +522,7 @@ async def _evaluate_and_save_result(db: AsyncSession, sheet: OMRSheet, answers: 
                 omr_result_id=omr_result.id,
                 total_score=float(score),
                 max_score=float(max_score),
-                percentage=percentage
+                percentage=percentage,
             )
             db.add(student_result)
         else:
@@ -453,19 +546,23 @@ async def _evaluate_and_save_result(db: AsyncSession, sheet: OMRSheet, answers: 
                     competency_stats[cid]["correct"] += 1
 
         # Clear existing competency results
-        await db.execute(sa_delete(CompetencyResult).where(CompetencyResult.student_result_id == student_result.id))
+        await db.execute(
+            sa_delete(CompetencyResult).where(
+                CompetencyResult.student_result_id == student_result.id
+            )
+        )
 
         for cid, stats in competency_stats.items():
             cr = CompetencyResult(
                 student_result_id=student_result.id,
                 competency_id=cid,
                 questions_attempted=stats["attempted"],
-                questions_correct=stats["correct"]
+                questions_correct=stats["correct"],
             )
             db.add(cr)
 
     sheet.status = "evaluated"
-        
+
     return {
         "batch_id": sheet.batch_id,
         "evaluated": evaluated_answers,
@@ -473,7 +570,7 @@ async def _evaluate_and_save_result(db: AsyncSession, sheet: OMRSheet, answers: 
             "correct": correct_count,
             "total": max_score,
             "percentage": percentage,
-        }
+        },
     }
 
 
@@ -488,7 +585,9 @@ async def get_omr_results(
     sheets = result.scalars().all()
 
     if not sheets:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Session not found"
+        )
 
     first = sheets[0]
     paper = await db.get(Paper, first.paper_id)
@@ -506,7 +605,9 @@ async def get_omr_results(
         omr_res = result.scalar_one_or_none()
 
         if omr_res:
-            detected = json.loads(omr_res.detected_answers) if omr_res.detected_answers else []
+            detected = (
+                json.loads(omr_res.detected_answers) if omr_res.detected_answers else []
+            )
             all_results.extend(detected)
             total_correct += omr_res.raw_score or 0
             total_max += omr_res.max_score or 0
@@ -535,6 +636,7 @@ async def get_omr_results(
         },
     }
 
+
 @router.post("/{batch_id}/scan-upload")
 async def scan_omr_upload(
     batch_id: str,
@@ -546,56 +648,74 @@ async def scan_omr_upload(
     stmt = select(OMRSheet).where(OMRSheet.batch_id == batch_id).limit(1)
     result = await db.execute(stmt)
     sheet = result.scalar_one_or_none()
-    
+
     if not sheet:
         raise HTTPException(status_code=404, detail="Batch not found")
-        
+
     paper = await db.get(Paper, sheet.paper_id)
     bp = await db.get(Blueprint, paper.blueprint_id) if paper else None
     total_q = bp.total_questions if bp else 30
 
-    ext = file.filename.split('.')[-1].lower() if file.filename else ''
-    
+    ext = file.filename.split(".")[-1].lower() if file.filename else ""
+
     with tempfile.NamedTemporaryFile(delete=False, suffix=f".{ext}") as tmp:
         shutil.copyfileobj(file.file, tmp)
         tmp_path = tmp.name
 
+    skip_qr = bool(student_id)
+
     try:
-        if ext == 'zip':
-            scan_results = await OMRCVService.process_zip(tmp_path, total_q)
-        elif ext == 'pdf':
-            scan_results = await OMRCVService.process_pdf(tmp_path, total_q)
+        if ext == "zip":
+            scan_results = await OMRCVService.process_zip(
+                tmp_path, total_q, skip_qr=skip_qr
+            )
+        elif ext == "pdf":
+            scan_results = await OMRCVService.process_pdf(
+                tmp_path, total_q, skip_qr=skip_qr
+            )
         else:
-            res = await OMRCVService.process_image(tmp_path, total_q)
+            res = await OMRCVService.process_image(tmp_path, total_q, skip_qr=skip_qr)
             scan_results = [res]
-            
+
         evaluations = []
         if scan_results:
             # Get all available sheets for this batch (including evaluated to allow re-scans)
-            available_stmt = select(OMRSheet).where(
-                OMRSheet.batch_id == batch_id
-            ).order_by(OMRSheet.id)
+            available_stmt = (
+                select(OMRSheet)
+                .where(OMRSheet.batch_id == batch_id)
+                .order_by(OMRSheet.id)
+            )
             if student_id:
                 available_stmt = available_stmt.where(OMRSheet.student_id == student_id)
             available_res = await db.execute(available_stmt)
             available_sheets = available_res.scalars().all()
-            
+
             for idx, scan_res in enumerate(scan_results):
                 answers = scan_res.get("answers", [])
                 metadata = scan_res.get("metadata", {})
-                
+
                 # Check if QR code contains a specific student_id, or if manual student_id is provided
+                qr_student_id = metadata.get("student_id")
                 resolved_student_id = qr_student_id or student_id
                 target_sheet = None
-                
+
                 if resolved_student_id:
                     # Find the specific sheet for this student
-                    target_sheet = next((s for s in available_sheets if s.student_id == resolved_student_id), None)
-                
+                    target_sheet = next(
+                        (
+                            s
+                            for s in available_sheets
+                            if s.student_id == resolved_student_id
+                        ),
+                        None,
+                    )
+
                 # Fallbacks if no student_id could be resolved or sheet wasn't found
                 if not target_sheet:
                     # Filter out sheets that have already been evaluated
-                    unassigned_sheets = [s for s in available_sheets if s.status != "evaluated"]
+                    unassigned_sheets = [
+                        s for s in available_sheets if s.status != "evaluated"
+                    ]
                     if unassigned_sheets:
                         target_sheet = unassigned_sheets[0]
                     else:
@@ -608,62 +728,75 @@ async def scan_omr_upload(
                         )
                         db.add(target_sheet)
                         await db.flush()
-                
+
                 if resolved_student_id and not target_sheet.student_id:
                     target_sheet.student_id = resolved_student_id
-                
+
                 # Mark as evaluated so it won't be picked up by the next iteration in fallback mode
                 target_sheet.status = "evaluated"
-                
-                evaluation = await _evaluate_and_save_result(db, target_sheet, answers, user.id, float(total_q))
+
+                evaluation = await _evaluate_and_save_result(
+                    db, target_sheet, answers, user.id, float(total_q)
+                )
                 evaluations.append(evaluation)
-                
+
             await db.commit()
-                
+
     except Exception as e:
         import traceback
+
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
-            
+
     return {
         "batch_id": batch_id,
         "scanned_sheets": scan_results,
-        "evaluation": evaluation
+        "evaluation": evaluation,
     }
+
 
 @router.get("/{batch_id}/student/{student_id}/download-reports")
 async def download_student_reports(
     batch_id: str,
     student_id: int,
+    lang: str = "english",
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    stmt = select(OMRSheet).where(OMRSheet.batch_id == batch_id, OMRSheet.student_id == student_id).limit(1)
+    stmt = (
+        select(OMRSheet)
+        .where(OMRSheet.batch_id == batch_id, OMRSheet.student_id == student_id)
+        .limit(1)
+    )
     result = await db.execute(stmt)
     sheet = result.scalar_one_or_none()
-    
+
     if not sheet:
         raise HTTPException(status_code=404, detail="Batch not found")
 
     # Generate insights
     analytics_svc = LearningAnalyticsService()
     try:
-        insights = await analytics_svc.generate_student_insights(db, student_id, assessment_id=sheet.assessment_id)
+        insights = await analytics_svc.generate_student_insights(
+            db, student_id, assessment_id=sheet.assessment_id
+        )
     except Exception as e:
         insights = {
             "strengths": [],
             "areas_for_improvement": [],
             "recommendations": [],
-            "narrative": f"Error generating insights: {str(e)}"
+            "narrative": f"Error generating insights: {str(e)}",
         }
 
     # Prefer the OMR Result linked to the StudentResult if it exists, to ensure sync
-    sr_stmt = select(StudentResult).where(
-        StudentResult.student_id == student_id
-    )
+    if lang.lower() != "english":
+        from app.services.translation_service import translate_student_insights
+        insights = await translate_student_insights(insights, lang)
+
+    sr_stmt = select(StudentResult).where(StudentResult.student_id == student_id)
     if sheet.assessment_id:
         sr_stmt = sr_stmt.where(StudentResult.assessment_id == sheet.assessment_id)
     sr_res = await db.execute(sr_stmt)
@@ -671,12 +804,16 @@ async def download_student_reports(
 
     omr_result = None
     if student_result and student_result.omr_result_id:
-        omr_res = await db.execute(select(OMRResult).where(OMRResult.id == student_result.omr_result_id))
+        omr_res = await db.execute(
+            select(OMRResult).where(OMRResult.id == student_result.omr_result_id)
+        )
         omr_result = omr_res.scalar_one_or_none()
-    
+
     # Fallback to just grabbing the OMRResult for this specific sheet
     if not omr_result:
-        omr_res = await db.execute(select(OMRResult).where(OMRResult.omr_sheet_id == sheet.id))
+        omr_res = await db.execute(
+            select(OMRResult).where(OMRResult.omr_sheet_id == sheet.id)
+        )
         omr_result = omr_res.scalar_one_or_none()
     evaluated_answers = []
     score = 0
@@ -692,23 +829,36 @@ async def download_student_reports(
             db, student_id, batch_id, evaluated_answers, score, max_score
         )
         analytics_pdf_path = await PDFReportService.generate_student_report(
-            db, student_id, report_id=1, insights=insights, assessment_id=sheet.assessment_id
+            db,
+            student_id,
+            report_id=1,
+            insights=insights,
+            assessment_id=sheet.assessment_id,
+            language=lang,
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to generate PDFs: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500, detail=f"Failed to generate PDFs: {str(e)}"
+        )
 
     from app.db.models.assessments import Student
+
     student = await db.get(Student, student_id)
     student_name = student.full_name if student else "Unknown"
     safe_name = student_name.replace(" ", "_")
     zip_filename = f"Reports_Student_{safe_name}.zip"
     zip_filepath = os.path.join(tempfile.gettempdir(), zip_filename)
-    
-    with zipfile.ZipFile(zip_filepath, 'w') as zipf:
+
+    with zipfile.ZipFile(zip_filepath, "w") as zipf:
         zipf.write(results_pdf_path, arcname=os.path.basename(results_pdf_path))
         zipf.write(analytics_pdf_path, arcname=os.path.basename(analytics_pdf_path))
 
-    return FileResponse(zip_filepath, media_type="application/zip", filename=zip_filename)
+    return FileResponse(
+        zip_filepath, media_type="application/zip", filename=zip_filename
+    )
+
 
 @router.delete("/{batch_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_omr_session(
@@ -717,41 +867,61 @@ async def delete_omr_session(
     db: AsyncSession = Depends(get_db),
 ):
     if user.role not in ("admin", "deo", "principal", "teacher"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
-        
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized"
+        )
+
     # Safely cascade deletes from the bottom up to avoid Postgres foreign key violations
     from sqlalchemy.future import select
     from app.db.models import OMRResult, StudentResult, CompetencyResult
 
     # 1. Get sheets
-    sheet_result = await db.execute(select(OMRSheet.id).where(OMRSheet.batch_id == batch_id))
+    sheet_result = await db.execute(
+        select(OMRSheet.id).where(OMRSheet.batch_id == batch_id)
+    )
     sheet_ids = [row[0] for row in sheet_result.all()]
 
     if sheet_ids:
         # 2. Get results
-        omr_res = await db.execute(select(OMRResult.id).where(OMRResult.omr_sheet_id.in_(sheet_ids)))
+        omr_res = await db.execute(
+            select(OMRResult.id).where(OMRResult.omr_sheet_id.in_(sheet_ids))
+        )
         omr_result_ids = [row[0] for row in omr_res.all()]
 
         if omr_result_ids:
             # 3. Get student results
-            sr_res = await db.execute(select(StudentResult.id).where(StudentResult.omr_result_id.in_(omr_result_ids)))
+            sr_res = await db.execute(
+                select(StudentResult.id).where(
+                    StudentResult.omr_result_id.in_(omr_result_ids)
+                )
+            )
             sr_ids = [row[0] for row in sr_res.all()]
 
             if sr_ids:
                 # 4. Delete Competency Results
-                await db.execute(sa_delete(CompetencyResult).where(CompetencyResult.student_result_id.in_(sr_ids)))
+                await db.execute(
+                    sa_delete(CompetencyResult).where(
+                        CompetencyResult.student_result_id.in_(sr_ids)
+                    )
+                )
                 # 5. Delete Student Results
-                await db.execute(sa_delete(StudentResult).where(StudentResult.id.in_(sr_ids)))
+                await db.execute(
+                    sa_delete(StudentResult).where(StudentResult.id.in_(sr_ids))
+                )
 
             # 6. Delete OMR Results
-            await db.execute(sa_delete(OMRResult).where(OMRResult.id.in_(omr_result_ids)))
+            await db.execute(
+                sa_delete(OMRResult).where(OMRResult.id.in_(omr_result_ids))
+            )
 
         # 7. Delete Sheets
         await db.execute(sa_delete(OMRSheet).where(OMRSheet.id.in_(sheet_ids)))
         await db.commit()
-    
+
     await log_audit_entry(
-        db, user_id=user.id,
-        action="delete", resource_type="omr_session",
-        extra_data={"batch_id": batch_id}
+        db,
+        user_id=user.id,
+        action="delete",
+        resource_type="omr_session",
+        extra_data={"batch_id": batch_id},
     )

@@ -1,0 +1,122 @@
+{
+  "sequence": 10,
+  "title": "Budget",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Meaning and Objectives of Budget",
+      "concepts": [
+        {
+          "name": "Meaning of Budget",
+          "description": "A budget is the annual financial statement of the government that estimates its expected receipts and expenditures for a financial year. It serves as a blueprint for managing public finances and implementing economic policies.",
+          "learning_outcome": "Students will be able to define a government budget and explain its purpose."
+        },
+        {
+          "name": "Objectives of Budget",
+          "description": "The government prepares a budget to promote economic growth, maintain price stability, reduce unemployment, ensure equitable distribution of income, and provide public welfare.",
+          "learning_outcome": "Students will be able to explain the major objectives of a government budget."
+        },
+        {
+          "name": "Importance of Budget",
+          "description": "A budget helps the government allocate resources efficiently, monitor public expenditure, and achieve developmental and social objectives.",
+          "learning_outcome": "Students will be able to describe the importance of the budget in economic planning."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Components of Government Budget",
+      "concepts": [
+        {
+          "name": "Budget Receipts",
+          "description": "Budget receipts include all sources of government income such as tax revenue, non-tax revenue, borrowings, and recoveries of loans.",
+          "learning_outcome": "Students will be able to classify government receipts into revenue and capital receipts."
+        },
+        {
+          "name": "Budget Expenditure",
+          "description": "Government expenditure includes spending on administration, defense, infrastructure, education, healthcare, welfare schemes, and development projects.",
+          "learning_outcome": "Students will be able to classify government expenditure into revenue and capital expenditure."
+        },
+        {
+          "name": "Revenue and Capital Accounts",
+          "description": "The budget separates receipts and expenditures into revenue and capital accounts to clearly present the government's financial position.",
+          "learning_outcome": "Students will be able to differentiate between revenue account and capital account."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Budget Deficit and Surplus",
+      "concepts": [
+        {
+          "name": "Balanced Budget",
+          "description": "A balanced budget occurs when the government's total receipts are equal to its total expenditures during a financial year.",
+          "learning_outcome": "Students will be able to explain the concept of a balanced budget."
+        },
+        {
+          "name": "Deficit Budget",
+          "description": "A deficit budget arises when government expenditure exceeds government receipts, requiring borrowing or other financing methods.",
+          "learning_outcome": "Students will be able to explain the causes and implications of a deficit budget."
+        },
+        {
+          "name": "Surplus Budget",
+          "description": "A surplus budget occurs when government receipts exceed expenditures, leaving excess funds after meeting all planned expenses.",
+          "learning_outcome": "Students will be able to distinguish between surplus and deficit budgets."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Fiscal Deficit and Public Finance",
+      "concepts": [
+        {
+          "name": "Fiscal Deficit",
+          "description": "Fiscal deficit is the excess of the government's total expenditure over its total receipts excluding borrowings. It indicates the amount the government needs to borrow to finance its spending.",
+          "learning_outcome": "Students will be able to define fiscal deficit and explain its significance."
+        },
+        {
+          "name": "Public Debt",
+          "description": "Public debt consists of money borrowed by the government from internal and external sources to finance budget deficits and development projects.",
+          "learning_outcome": "Students will be able to explain the relationship between fiscal deficit and public debt."
+        },
+        {
+          "name": "Fiscal Responsibility",
+          "description": "Prudent fiscal management helps maintain economic stability by controlling deficits, reducing unnecessary expenditure, and ensuring sustainable public finances.",
+          "learning_outcome": "Students will be able to explain the importance of fiscal responsibility in government finance."
+        }
+      ]
+    },
+    {
+      "sequence": 5,
+      "title": "Role of Budget in Economic Development",
+      "concepts": [
+        {
+          "name": "Resource Allocation",
+          "description": "The government budget directs financial resources toward priority sectors such as education, healthcare, agriculture, infrastructure, and social welfare.",
+          "learning_outcome": "Students will be able to explain how the budget supports efficient resource allocation."
+        },
+        {
+          "name": "Income Redistribution",
+          "description": "Through taxation and welfare expenditure, the government budget aims to reduce income inequality and promote social justice.",
+          "learning_outcome": "Students will be able to explain how the budget contributes to equitable income distribution."
+        },
+        {
+          "name": "Economic Stabilization",
+          "description": "Government budgets help control inflation, stimulate employment, promote investment, and maintain overall macroeconomic stability.",
+          "learning_outcome": "Students will be able to explain the role of the budget in maintaining economic stability."
+        }
+      ]
+    },
+    {
+      "sequence": 6,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Understanding Government Budget",
+          "description": "This chapter introduces the meaning, objectives, components, receipts, expenditures, budget balances, fiscal deficit, and the role of the budget in promoting economic development and public welfare.",
+          "learning_outcome": "Students will be able to analyze the structure of a government budget and evaluate its role in economic planning, fiscal management, and national development."
+        }
+      ]
+    }
+  ]
+}

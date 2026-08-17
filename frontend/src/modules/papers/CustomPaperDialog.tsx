@@ -33,6 +33,7 @@ export function CustomPaperDialog({
   const [selectedChapters, setSelectedChapters] = useState<number[]>([])
   const [totalQuestions, setTotalQuestions] = useState<number>(10)
   const [difficulty, setDifficulty] = useState<string>('medium')
+  const [bloomLevel, setBloomLevel] = useState<string>('understand')
   const [numSets, setNumSets] = useState<number>(1)
   const [activeJobId, setActiveJobId] = useState<string | null>(null)
 
@@ -67,6 +68,7 @@ export function CustomPaperDialog({
         chapter_ids: selectedChapters,
         total_questions: totalQuestions,
         difficulty: difficulty,
+        bloom_level: bloomLevel,
         num_sets: numSets,
       }),
     onSuccess: (data) => {
@@ -188,6 +190,21 @@ export function CustomPaperDialog({
                 ]}
                 value={difficulty}
                 onChange={(e) => setDifficulty(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Bloom's Level</label>
+              <Select
+                options={[
+                  { value: 'remember', label: 'Remember' },
+                  { value: 'understand', label: 'Understand' },
+                  { value: 'apply', label: 'Apply' },
+                  { value: 'analyze', label: 'Analyze' },
+                  { value: 'evaluate', label: 'Evaluate' },
+                  { value: 'create', label: 'Create' },
+                ]}
+                value={bloomLevel}
+                onChange={(e) => setBloomLevel(e.target.value)}
               />
             </div>
             <div className="space-y-2">

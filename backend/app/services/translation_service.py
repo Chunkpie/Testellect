@@ -6,9 +6,11 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models.questions import QuestionBank, QuestionOption
 
+from app.core.config import settings
+
 logger = logging.getLogger(__name__)
 
-GEMINI_API_KEY = "AQ.Ab8RN6IjLOZzm82IlK90EtOpIPOP4KfFAQvIpdcbkpopVlMXKg"
+GEMINI_API_KEY = settings.GEMINI_API_KEY
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
 
 TRANSLATION_PROMPT = """You are an expert translator for the Gujarat State Education Board (GSEB).

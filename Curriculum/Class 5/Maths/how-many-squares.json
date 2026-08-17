@@ -1,0 +1,91 @@
+{
+  "sequence": 3,
+  "title": "How Many Squares?",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Identifying Squares and Rectangles",
+      "concepts": [
+        {
+          "name": "Properties of Squares and Rectangles",
+          "description": "Students explore the characteristics of squares and rectangles by observing their sides, angles, and vertices. They compare these shapes to understand their similarities and differences.",
+          "learning_outcome": "Students will be able to identify squares and rectangles based on their properties."
+        },
+        {
+          "name": "Recognizing Shapes in Daily Life",
+          "description": "Everyday objects such as tiles, windows, books, and chessboards are used to recognize squares and rectangles in the surrounding environment.",
+          "learning_outcome": "Students will be able to identify square and rectangular shapes in real-life objects."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Counting Squares",
+      "concepts": [
+        {
+          "name": "Counting Unit Squares",
+          "description": "Students count equal-sized squares arranged in grids to determine the size of different figures. This develops visual reasoning and counting strategies.",
+          "learning_outcome": "Students will be able to count unit squares accurately in regular figures."
+        },
+        {
+          "name": "Hidden and Overlapping Squares",
+          "description": "Larger squares can be formed by combining smaller unit squares. Students learn systematic methods to identify all possible squares in a figure.",
+          "learning_outcome": "Students will be able to identify and count hidden or overlapping squares in a grid."
+        },
+        {
+          "name": "Logical Counting Strategies",
+          "description": "Organized counting techniques reduce errors and ensure that every square is counted exactly once.",
+          "learning_outcome": "Students will be able to apply systematic strategies to count geometric figures accurately."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Area Using Square Units",
+      "concepts": [
+        {
+          "name": "Area as Surface Coverage",
+          "description": "Area measures the amount of surface covered by a shape. Unit squares provide a simple way to understand and calculate area.",
+          "learning_outcome": "Students will be able to explain area as the number of square units covering a figure."
+        },
+        {
+          "name": "Measuring Area with Unit Squares",
+          "description": "Students estimate and determine the area of regular and irregular shapes by counting square units.",
+          "learning_outcome": "Students will be able to calculate the area of figures by counting unit squares."
+        },
+        {
+          "name": "Comparing Areas",
+          "description": "Shapes with different appearances may have equal or different areas depending on the number of square units they contain.",
+          "learning_outcome": "Students will be able to compare the areas of different shapes using square units."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Geometric Patterns",
+      "concepts": [
+        {
+          "name": "Patterns in Square Grids",
+          "description": "Square grids can be used to create repeating designs, tessellations, and mathematical patterns that strengthen spatial reasoning.",
+          "learning_outcome": "Students will be able to identify and extend geometric patterns formed using square grids."
+        },
+        {
+          "name": "Spatial Visualization",
+          "description": "Students develop the ability to mentally rotate, combine, and decompose shapes while solving grid-based puzzles.",
+          "learning_outcome": "Students will be able to visualize and manipulate shapes within square grids."
+        }
+      ]
+    },
+    {
+      "sequence": 5,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Understanding Squares and Area",
+          "description": "This chapter develops visual reasoning by exploring squares, counting techniques, area measurement using unit squares, and geometric patterns.",
+          "learning_outcome": "Students will be able to identify, count, compare, and use square units to determine the area of simple figures."
+        }
+      ]
+    }
+  ]
+}

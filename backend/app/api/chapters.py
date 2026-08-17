@@ -2,7 +2,16 @@ import os
 from datetime import timezone
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    UploadFile,
+    File,
+    Form,
+    Query,
+    status,
+)
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -111,15 +120,17 @@ async def list_books(
 
     items = []
     for b in books:
-        items.append(BookListItem(
-            id=b.id,
-            title=b.title,
-            grade=b.grade,
-            subject_id=b.subject_id,
-            processing_status=b.processing_status or "uploaded",
-            processing_error=b.processing_error,
-            created_at=_to_utc_iso(b.created_at),
-        ))
+        items.append(
+            BookListItem(
+                id=b.id,
+                title=b.title,
+                grade=b.grade,
+                subject_id=b.subject_id,
+                processing_status=b.processing_status or "uploaded",
+                processing_error=b.processing_error,
+                created_at=_to_utc_iso(b.created_at),
+            )
+        )
     return {"items": items, "total": len(items)}
 
 
@@ -132,7 +143,9 @@ async def get_book(
     result = await db.execute(select(Book).where(Book.id == book_id))
     book = result.scalar_one_or_none()
     if not book:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Book not found"
+        )
 
     chapters_result = await db.execute(
         select(Chapter).where(Chapter.book_id == book_id).order_by(Chapter.sequence)
@@ -144,13 +157,18 @@ async def get_book(
             select(Topic).where(Topic.chapter_id == ch.id).order_by(Topic.sequence)
         )
         topics = topics_result.scalars().all()
-        chapters_data.append({
-            "id": ch.id,
-            "title_en": ch.title_en,
-            "unit_name": ch.unit_name,
-            "sequence": ch.sequence,
-            "topics": [{"id": t.id, "title_en": t.title_en, "sequence": t.sequence} for t in topics],
-        })
+        chapters_data.append(
+            {
+                "id": ch.id,
+                "title_en": ch.title_en,
+                "unit_name": ch.unit_name,
+                "sequence": ch.sequence,
+                "topics": [
+                    {"id": t.id, "title_en": t.title_en, "sequence": t.sequence}
+                    for t in topics
+                ],
+            }
+        )
 
     return BookResponse(
         id=book.id,
@@ -174,7 +192,9 @@ async def get_book_status(
     result = await db.execute(select(Book).where(Book.id == book_id))
     book = result.scalar_one_or_none()
     if not book:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Book not found"
+        )
     return {
         "id": book.id,
         "processing_status": book.processing_status or "uploaded",
@@ -191,9 +211,13 @@ async def extract_book_text(
     result = await db.execute(select(Book).where(Book.id == book_id))
     book = result.scalar_one_or_none()
     if not book:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Book not found"
+        )
     if not book.file_path or not os.path.exists(book.file_path):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="File not found")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="File not found"
+        )
 
     ai = AiService()
     extract_result = await ai.extract_text_only(db, book_id)
@@ -213,6 +237,7 @@ async def extract_book_text(
 
 from fastapi import BackgroundTasks
 
+
 @router.post("/{book_id}/analyze")
 async def analyze_book(
     book_id: int,
@@ -223,18 +248,23 @@ async def analyze_book(
     result = await db.execute(select(Book).where(Book.id == book_id))
     book = result.scalar_one_or_none()
     if not book:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Book not found"
+        )
 
     book.processing_status = "processing"
     await db.commit()
 
     async def run_analysis(b_id: int, u_id: str | None):
         from app.core.database import async_session_factory
+
         async with async_session_factory() as session:
             ai = AiService()
             await ai.analyze_book(session, b_id, user_id=u_id)
 
-    background_tasks.add_task(run_analysis, book_id, str(user.id) if hasattr(user, "id") else None)
+    background_tasks.add_task(
+        run_analysis, book_id, str(user.id) if hasattr(user, "id") else None
+    )
 
     return {
         "id": book.id,
@@ -258,10 +288,13 @@ async def generate_questions_for_book(
     result = await db.execute(select(Book).where(Book.id == book_id))
     book = result.scalar_one_or_none()
     if not book:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Book not found"
+        )
 
     async def run_generation(b_id: int, u_id: int, u_school_id: int | None):
         from app.core.database import async_session_factory
+
         async with async_session_factory() as session:
             ai = AiService()
             try:
@@ -272,10 +305,11 @@ async def generate_questions_for_book(
                     school_id=u_school_id,
                     total_questions=150,
                     num_papers=15,
-                    questions_per_paper=40
+                    questions_per_paper=40,
                 )
             except Exception as e:
                 import logging
+
                 logging.error(f"Error in generate_and_create_papers: {e}")
 
     background_tasks.add_task(run_generation, book_id, user.id, user.school_id)

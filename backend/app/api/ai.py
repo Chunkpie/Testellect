@@ -34,10 +34,14 @@ async def assistant_chat(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role != "teacher":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only teachers can use the AI assistant")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only teachers can use the AI assistant",
+        )
 
     try:
         from app.services.ai_service import AiService
+
         ai = AiService()
         response = await ai.chat_assistant(
             db=db,
@@ -46,7 +50,11 @@ async def assistant_chat(
             conversation_id=data.conversation_id,
         )
     except Exception as e:
-        response = {"reply": f"AI Service not available. You said: {data.message}", "conversation_id": data.conversation_id, "error": str(e)}
+        response = {
+            "reply": f"AI Service not available. You said: {data.message}",
+            "conversation_id": data.conversation_id,
+            "error": str(e),
+        }
 
     return response
 
@@ -69,27 +77,35 @@ async def start_batch_generation(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role != "teacher":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only teachers can generate questions")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only teachers can generate questions",
+        )
 
     concept_ids = data.concept_ids or []
 
     if not concept_ids:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="At least one concept_id is required")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="At least one concept_id is required",
+        )
 
     job_id = str(uuid.uuid4())
     job = Job(
         id=job_id,
         type="question_generation",
         status="queued",
-        params=json.dumps({
-            "concept_ids": concept_ids,
-            "bloom_level": data.bloom_level,
-            "difficulty": data.difficulty,
-            "question_type": data.question_type,
-            "total_count": data.total_count,
-            "batch_size": data.batch_size,
-            "language": data.language,
-        }),
+        params=json.dumps(
+            {
+                "concept_ids": concept_ids,
+                "bloom_level": data.bloom_level,
+                "difficulty": data.difficulty,
+                "question_type": data.question_type,
+                "total_count": data.total_count,
+                "batch_size": data.batch_size,
+                "language": data.language,
+            }
+        ),
         progress=0,
         created_by=str(current_user.id),
     )
@@ -97,13 +113,18 @@ async def start_batch_generation(
     await db.commit()
 
     await log_audit_entry(
-        db=db, user_id=current_user.id, school_id=current_user.school_id,
-        action="generate_questions", resource_type="ai_job",
+        db=db,
+        user_id=current_user.id,
+        school_id=current_user.school_id,
+        action="generate_questions",
+        resource_type="ai_job",
         resource_id=job_id,
         extra_data={"concept_ids": concept_ids, "total_count": data.total_count},
     )
 
-    logger.info("Starting background task for job %s with concept_ids=%s", job_id, concept_ids)
+    logger.info(
+        "Starting background task for job %s with concept_ids=%s", job_id, concept_ids
+    )
     task = asyncio.create_task(
         _run_batch_generation(
             job_id=job_id,
@@ -119,7 +140,11 @@ async def start_batch_generation(
     )
     _active_jobs[job_id] = task
 
-    return {"job_id": job_id, "status": "queued", "message": f"Question generation enqueued. Total: {data.total_count} questions in batches of {data.batch_size}."}
+    return {
+        "job_id": job_id,
+        "status": "queued",
+        "message": f"Question generation enqueued. Total: {data.total_count} questions in batches of {data.batch_size}.",
+    }
 
 
 @router.get("/generate-questions/{job_id}")
@@ -129,12 +154,16 @@ async def get_generation_job_status(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role not in ("teacher", "administrator"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
+        )
 
     result = await db.execute(select(Job).where(Job.id == job_id))
     job = result.scalar_one_or_none()
     if not job:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Job not found"
+        )
 
     await db.refresh(job)
     params = json.loads(job.params) if job.params else {}
@@ -157,7 +186,9 @@ async def stream_generation_progress(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role not in ("teacher", "administrator"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
+        )
 
     from app.core.database import async_session_factory
 
@@ -237,7 +268,13 @@ async def _run_batch_generation(
             ai = AiService()
             total_generated = 0
 
-            async def on_progress(progress: int, total: int, batch: int, batches: int, error: str | None = None):
+            async def on_progress(
+                progress: int,
+                total: int,
+                batch: int,
+                batches: int,
+                error: str | None = None,
+            ):
                 nonlocal total_generated
                 total_generated = progress
                 job_result = await db.execute(select(Job).where(Job.id == job_id))
@@ -252,7 +289,9 @@ async def _run_batch_generation(
                 questions = await ai.generate_questions_batched(
                     db=db,
                     concept_id=concept_id,
-                    total_count=total_count // len(concept_ids) if concept_ids else total_count,
+                    total_count=(
+                        total_count // len(concept_ids) if concept_ids else total_count
+                    ),
                     batch_size=batch_size,
                     bloom_level=bloom_level,
                     difficulty=difficulty,
@@ -261,7 +300,9 @@ async def _run_batch_generation(
                     school_id=school_id,
                     on_progress=on_progress,
                 )
-                logger.info("Concept %d: generated %d questions", concept_id, len(questions))
+                logger.info(
+                    "Concept %d: generated %d questions", concept_id, len(questions)
+                )
 
             job_result = await db.execute(select(Job).where(Job.id == job_id))
             job = job_result.scalar_one_or_none()

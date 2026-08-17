@@ -1,0 +1,91 @@
+{
+  "sequence": 6,
+  "title": "Triangles",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Introduction",
+      "concepts": [
+        {
+          "name": "Similarity of Figures",
+          "description": "Two figures are said to be similar if they have the same shape but may differ in size. Corresponding angles are equal, and corresponding sides are proportional.",
+          "learning_outcome": "Students will be able to distinguish between similar and congruent figures by comparing their corresponding dimensions and angles."
+        },
+        {
+          "name": "Similarity in Geometry",
+          "description": "The concept of similarity helps compare geometric figures and solve problems involving scale, proportion, and measurement.",
+          "learning_outcome": "Students will be able to explain the importance of similarity in geometric reasoning and practical applications."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Similar Figures",
+      "concepts": [
+        {
+          "name": "Properties of Similar Figures",
+          "description": "Similar figures have equal corresponding angles and proportional corresponding sides. Their perimeters are proportional, while their areas are related by the square of the similarity ratio.",
+          "learning_outcome": "Students will be able to identify similar figures and determine the ratio of corresponding sides."
+        },
+        {
+          "name": "Scale Factor",
+          "description": "The scale factor represents the ratio between corresponding sides of similar figures. It is used to enlarge or reduce geometric shapes while preserving their proportions.",
+          "learning_outcome": "Students will be able to calculate and apply the scale factor between similar figures."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Similarity of Triangles",
+      "concepts": [
+        {
+          "name": "AA Similarity Criterion",
+          "description": "If two angles of one triangle are equal to two corresponding angles of another triangle, then the triangles are similar.",
+          "learning_outcome": "Students will be able to prove the similarity of triangles using the AA criterion."
+        },
+        {
+          "name": "SAS Similarity Criterion",
+          "description": "If two sides of one triangle are proportional to two corresponding sides of another triangle and the included angles are equal, then the triangles are similar.",
+          "learning_outcome": "Students will be able to determine triangle similarity using the SAS criterion."
+        },
+        {
+          "name": "SSS Similarity Criterion",
+          "description": "If the three sides of one triangle are proportional to the three corresponding sides of another triangle, the triangles are similar.",
+          "learning_outcome": "Students will be able to establish similarity of triangles using the SSS criterion."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Criteria for Similarity of Triangles",
+      "concepts": [
+        {
+          "name": "Basic Proportionality Theorem (Thales' Theorem)",
+          "description": "A line drawn parallel to one side of a triangle divides the other two sides in the same ratio. This theorem is fundamental in proving triangle similarity.",
+          "learning_outcome": "Students will be able to apply the Basic Proportionality Theorem to solve geometric problems."
+        },
+        {
+          "name": "Converse of Basic Proportionality Theorem",
+          "description": "If a line divides two sides of a triangle in the same ratio, then the line is parallel to the third side. This converse is useful for geometric proofs.",
+          "learning_outcome": "Students will be able to prove whether a line is parallel to a side of a triangle using proportional relationships."
+        },
+        {
+          "name": "Applications of Similarity",
+          "description": "Triangle similarity is widely used to determine unknown lengths, heights, distances, and proportional relationships in geometric constructions and real-life situations.",
+          "learning_outcome": "Students will be able to solve geometric and real-life problems using properties of similar triangles."
+        }
+      ]
+    },
+    {
+      "sequence": 5,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Key Concepts of Triangles",
+          "description": "This chapter consolidates the concepts of similar figures, similarity criteria, proportionality theorems, and their applications in solving geometric problems.",
+          "learning_outcome": "Students will be able to select appropriate similarity criteria and proportionality principles to solve problems involving triangles."
+        }
+      ]
+    }
+  ]
+}

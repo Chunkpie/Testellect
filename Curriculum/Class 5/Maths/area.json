@@ -1,0 +1,101 @@
+{
+  "sequence": 11,
+  "title": "Area and its Boundary",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Understanding Perimeter",
+      "concepts": [
+        {
+          "name": "Perimeter",
+          "description": "The perimeter of a closed figure is the total length of its boundary. Students explore perimeter by measuring the sides of regular and irregular shapes.",
+          "learning_outcome": "Students will be able to calculate the perimeter of simple closed figures by adding the lengths of all sides."
+        },
+        {
+          "name": "Measuring Boundary Length",
+          "description": "Boundary length can be measured using rulers, strings, or grids. Students compare the boundaries of different shapes through practical activities.",
+          "learning_outcome": "Students will be able to measure and compare the boundary lengths of different shapes."
+        },
+        {
+          "name": "Units of Perimeter",
+          "description": "Perimeter is measured using units of length such as centimetres and metres. Choosing the appropriate unit depends on the size of the object.",
+          "learning_outcome": "Students will be able to express perimeter using appropriate units of measurement."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Understanding Area",
+      "concepts": [
+        {
+          "name": "Area as Surface Coverage",
+          "description": "Area measures the amount of surface covered by a shape. Students understand area by covering figures with equal-sized square units.",
+          "learning_outcome": "Students will be able to explain area as the amount of surface covered by a shape."
+        },
+        {
+          "name": "Square Units",
+          "description": "Square units provide a standard method for measuring area. Students estimate and calculate area by counting unit squares.",
+          "learning_outcome": "Students will be able to determine the area of simple figures using square units."
+        },
+        {
+          "name": "Comparing Areas",
+          "description": "Different shapes may have the same area even if their boundaries differ. Students compare figures to understand this relationship.",
+          "learning_outcome": "Students will be able to compare the areas of different shapes using unit squares."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Relationship Between Area and Perimeter",
+      "concepts": [
+        {
+          "name": "Difference Between Area and Perimeter",
+          "description": "Perimeter measures the boundary of a figure, while area measures the space inside it. These two measurements describe different properties of a shape.",
+          "learning_outcome": "Students will be able to distinguish between area and perimeter in practical situations."
+        },
+        {
+          "name": "Comparing Shapes",
+          "description": "Shapes with equal perimeters can have different areas, and shapes with equal areas can have different perimeters.",
+          "learning_outcome": "Students will be able to compare shapes based on both area and perimeter."
+        },
+        {
+          "name": "Practical Applications",
+          "description": "Area and perimeter are used in planning gardens, fencing fields, tiling floors, and designing rooms.",
+          "learning_outcome": "Students will be able to solve everyday problems involving area and perimeter."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Estimating and Measuring Area",
+      "concepts": [
+        {
+          "name": "Estimation Using Grids",
+          "description": "Students estimate the area of irregular shapes by counting complete and partial squares on a grid.",
+          "learning_outcome": "Students will be able to estimate the area of irregular figures using grid methods."
+        },
+        {
+          "name": "Measuring Regular Shapes",
+          "description": "Regular shapes can be measured accurately using square units and simple counting strategies.",
+          "learning_outcome": "Students will be able to calculate the area of regular figures using square units."
+        },
+        {
+          "name": "Reasonableness of Measurement",
+          "description": "Students verify their measurements by comparing estimates with calculated values and checking for accuracy.",
+          "learning_outcome": "Students will be able to evaluate whether measured areas and perimeters are reasonable."
+        }
+      ]
+    },
+    {
+      "sequence": 5,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Understanding Area and Boundary",
+          "description": "This chapter develops students' understanding of perimeter, area, square units, and the relationship between boundary length and surface coverage through practical measurement activities.",
+          "learning_outcome": "Students will be able to measure, compare, and apply the concepts of area and perimeter to solve real-life mathematical problems."
+        }
+      ]
+    }
+  ]
+}

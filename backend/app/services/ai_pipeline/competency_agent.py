@@ -4,8 +4,14 @@ import logging
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models.curriculum import Competency, Concept, LearningOutcome, Topic, Chapter
-from app.services.ai_pipeline.gemini_client import GeminiClient as OllamaClient
+from app.db.models.curriculum import (
+    Competency,
+    Concept,
+    LearningOutcome,
+    Topic,
+    Chapter,
+)
+from app.services.ai_pipeline.client_factory import get_ai_client
 
 logger = logging.getLogger(__name__)
 
@@ -23,33 +29,41 @@ Respond ONLY with valid JSON, no other text:
   ]
 }"""
 
+
 class CompetencyAgentResult:
-    def __init__(self, success: bool, outcomes_created: int = 0, mappings_created: int = 0, failed_concepts: int = 0, error: str | None = None):
+    def __init__(
+        self,
+        success: bool,
+        outcomes_created: int = 0,
+        mappings_created: int = 0,
+        failed_concepts: int = 0,
+        error: str | None = None,
+    ):
         self.success = success
         self.outcomes_created = outcomes_created
         self.mappings_created = mappings_created
         self.failed_concepts = failed_concepts
         self.error = error
 
+
 class CompetencyAgent:
     stage_name = "building_curriculum"
 
-    def __init__(self, ollama: OllamaClient | None = None):
-        self.ollama = ollama or OllamaClient()
+    def __init__(self, ollama=None):
+        self.ollama = ollama or get_ai_client()
 
     async def run(self, db: AsyncSession, book_id: int) -> CompetencyAgentResult:
         comp_result = await db.execute(select(Competency))
         existing_competencies = comp_result.scalars().all()
 
         comp_candidates = [
-            {"id": c.id, "name": c.name_en}
-            for c in existing_competencies
+            {"id": c.id, "name": c.name_en} for c in existing_competencies
         ]
-        
+
         # Limit to 50 competencies max to save context window, or just pass names
         if len(comp_candidates) > 50:
             comp_candidates = comp_candidates[:50]
-            
+
         candidates_json = json.dumps(comp_candidates, indent=2)
 
         ch_result = await db.execute(
@@ -64,21 +78,32 @@ class CompetencyAgent:
         for chapter in chapters:
             try:
                 # Get all topics in this chapter
-                t_result = await db.execute(select(Topic).where(Topic.chapter_id == chapter.id))
+                t_result = await db.execute(
+                    select(Topic).where(Topic.chapter_id == chapter.id)
+                )
                 topics = t_result.scalars().all()
                 topic_ids = [t.id for t in topics]
-                
+
                 if not topic_ids:
                     continue
-                    
+
                 # Get all concepts for these topics
-                c_result = await db.execute(select(Concept).where(Concept.topic_id.in_(topic_ids)))
+                c_result = await db.execute(
+                    select(Concept).where(Concept.topic_id.in_(topic_ids))
+                )
                 concepts = c_result.scalars().all()
-                
+
                 if not concepts:
                     continue
-                    
-                concepts_list = [{"concept_id": c.id, "name": c.name_en, "description": c.description} for c in concepts]
+
+                concepts_list = [
+                    {
+                        "concept_id": c.id,
+                        "name": c.name_en,
+                        "description": c.description,
+                    }
+                    for c in concepts
+                ]
                 concepts_json = json.dumps(concepts_list, indent=2)
 
                 prompt = (
@@ -88,11 +113,16 @@ class CompetencyAgent:
                 )
 
                 import asyncio
+
                 await asyncio.sleep(4)
+                from app.services.ai_pipeline.ollama_settings import AGENT_MODEL_MAP
+                
                 result_data = await self.ollama.generate_structured(
                     prompt=prompt,
                     system=COMPETENCY_MAPPING_SYSTEM,
                     temperature=0.2,
+                    num_ctx=4000,
+                    model=AGENT_MODEL_MAP["competency_agent"],
                 )
 
                 mappings = result_data.get("mappings", [])
@@ -104,14 +134,16 @@ class CompetencyAgent:
                         )
                         db.add(lo)
                         total_outcomes += 1
-                        
+
                         # Ideally we map the competency too, but the model has it
                         # (omitting the competency_id assignment for now to match old behavior which just didn't use it)
 
                 await db.flush()
 
             except RuntimeError as e:
-                logger.warning("Competency mapping failed for chapter %d: %s", chapter.id, e)
+                logger.warning(
+                    "Competency mapping failed for chapter %d: %s", chapter.id, e
+                )
                 failed_chapters += 1
                 continue
 

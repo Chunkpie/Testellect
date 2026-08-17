@@ -1,0 +1,81 @@
+{
+  "book_title": "Mathematics",
+  "grade": 10,
+  "chapters": [
+    {
+      "sequence": 1,
+      "title": "Real Numbers",
+      "topics": [
+        {
+          "sequence": 1,
+          "title": "Introduction",
+          "concepts": [
+            {
+              "name": "Real Number System",
+              "description": "The real number system consists of rational and irrational numbers. It provides a complete framework for representing quantities on the number line.",
+              "learning_outcome": "Students will be able to classify numbers as rational or irrational and identify them as members of the real number system."
+            },
+            {
+              "name": "Properties of Real Numbers",
+              "description": "Real numbers obey fundamental arithmetic properties such as closure, commutativity, associativity and distributivity, which simplify mathematical operations.",
+              "learning_outcome": "Students will be able to apply the basic properties of real numbers to simplify numerical expressions."
+            }
+          ]
+        },
+        {
+          "sequence": 2,
+          "title": "The Fundamental Theorem of Arithmetic",
+          "concepts": [
+            {
+              "name": "Prime Factorization",
+              "description": "Every composite number can be expressed uniquely as a product of prime numbers, apart from the order of the factors.",
+              "learning_outcome": "Students will be able to determine the prime factorization of any composite number."
+            },
+            {
+              "name": "Fundamental Theorem of Arithmetic",
+              "description": "The theorem guarantees the uniqueness of the prime factorization of every integer greater than one. It forms the basis for many number theory applications.",
+              "learning_outcome": "Students will be able to explain and apply the Fundamental Theorem of Arithmetic in mathematical problems."
+            },
+            {
+              "name": "Applications of Prime Factorization",
+              "description": "Prime factorization is used to find the Highest Common Factor (HCF), Least Common Multiple (LCM), and to solve divisibility-related problems.",
+              "learning_outcome": "Students will be able to calculate the HCF and LCM of two or more numbers using prime factorization."
+            }
+          ]
+        },
+        {
+          "sequence": 3,
+          "title": "Revisiting Irrational Numbers",
+          "concepts": [
+            {
+              "name": "Irrational Numbers",
+              "description": "Irrational numbers cannot be expressed as the ratio of two integers and have non-terminating, non-repeating decimal expansions.",
+              "learning_outcome": "Students will be able to distinguish irrational numbers from rational numbers based on their decimal representation."
+            },
+            {
+              "name": "Decimal Expansion of Real Numbers",
+              "description": "The decimal expansion of a rational number either terminates or repeats, whereas that of an irrational number is non-terminating and non-repeating.",
+              "learning_outcome": "Students will be able to identify the nature of a real number from its decimal expansion."
+            },
+            {
+              "name": "Relationship Between Rational and Irrational Numbers",
+              "description": "Operations involving rational and irrational numbers produce different types of results depending on the operation and operands.",
+              "learning_outcome": "Students will be able to predict and justify whether the result of operations involving rational and irrational numbers is rational or irrational."
+            }
+          ]
+        },
+        {
+          "sequence": 4,
+          "title": "Summary",
+          "concepts": [
+            {
+              "name": "Key Ideas of Real Numbers",
+              "description": "The chapter consolidates concepts including the real number system, unique prime factorization, and properties of irrational numbers.",
+              "learning_outcome": "Students will be able to summarize the major concepts of the chapter and connect them to problem-solving situations."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

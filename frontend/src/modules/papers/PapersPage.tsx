@@ -605,34 +605,65 @@ export default function PapersPage() {
               Gujarati
             </Button>
           </div>
-          <DialogFooter>
+          <DialogFooter className="sm:justify-between">
             <Button type="button" variant="outline" onClick={() => setDownloadTarget(null)}>Cancel</Button>
-            <Button 
-              disabled={isDownloading} 
-              onClick={async () => {
-                if (!downloadTarget) return;
-                setIsDownloading(true);
-                try {
-                  const blob = await papersApi.exportPaperPdf(downloadTarget.id, downloadLanguage);
-                  const url = window.URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = `${downloadTarget.name.replace(/\s+/g, '_')}_${downloadLanguage}.pdf`;
-                  document.body.appendChild(a);
-                  a.click();
-                  document.body.removeChild(a);
-                  setTimeout(() => window.URL.revokeObjectURL(url), 1000);
-                  setDownloadTarget(null);
-                } catch {
-                   alert('Failed to download paper');
-                } finally {
-                  setIsDownloading(false);
-                }
-              }}
-            >
-              {isDownloading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
-              {isDownloading ? 'Generating...' : 'Download PDF'}
-            </Button>
+            <div className="flex gap-2">
+              {downloadTarget?.blueprint_id && (
+                <Button
+                  variant="secondary"
+                  disabled={isDownloading}
+                  onClick={async () => {
+                    if (!downloadTarget || !downloadTarget.blueprint_id) return;
+                    setIsDownloading(true);
+                    try {
+                      const blob = await papersApi.downloadAllPaperSetsPdf(downloadTarget.blueprint_id, downloadLanguage);
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `All_Sets_${downloadTarget.blueprint_id}_${downloadLanguage}.pdf`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+                      setDownloadTarget(null);
+                    } catch {
+                       alert('Failed to download merged sets');
+                    } finally {
+                      setIsDownloading(false);
+                    }
+                  }}
+                >
+                  {isDownloading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+                  Download All Sets
+                </Button>
+              )}
+              <Button 
+                disabled={isDownloading} 
+                onClick={async () => {
+                  if (!downloadTarget) return;
+                  setIsDownloading(true);
+                  try {
+                    const blob = await papersApi.exportPaperPdf(downloadTarget.id, downloadLanguage);
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${downloadTarget.name.replace(/\s+/g, '_')}_${downloadLanguage}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+                    setDownloadTarget(null);
+                  } catch {
+                     alert('Failed to download paper');
+                  } finally {
+                    setIsDownloading(false);
+                  }
+                }}
+              >
+                {isDownloading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+                {isDownloading ? 'Generating...' : 'Download Single Set'}
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>

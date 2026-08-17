@@ -6,15 +6,20 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
+
 class GeminiClient:
     """Now acting as an OpenRouter Client, but keeping the name to prevent refactoring the whole codebase"""
+
     def __init__(
         self,
         api_key: str | None = None,
         model: str | None = None,
         timeout_seconds: int = 120,
     ):
-        self.api_key = api_key or "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"
+        self.api_key = (
+            api_key
+            or "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"
+        )
         self.model = "nvidia/nemotron-3-ultra-550b-a55b:free"
         self.timeout_seconds = timeout_seconds
         self.timeout = httpx.Timeout(self.timeout_seconds)
@@ -30,18 +35,18 @@ class GeminiClient:
     ) -> str:
         if not self.api_key:
             raise RuntimeError("OpenRouter API key is missing")
-            
+
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
             "HTTP-Referer": "https://testellect.local",
-            "X-Title": "Testellect"
+            "X-Title": "Testellect",
         }
-        
+
         messages = []
         if system:
             messages.append({"role": "system", "content": system})
-            
+
         messages.append({"role": "user", "content": prompt})
 
         payload: dict[str, Any] = {
@@ -49,7 +54,7 @@ class GeminiClient:
             "messages": messages,
             "temperature": temperature if temperature is not None else 0.2,
         }
-        
+
         if json_mode:
             payload["response_format"] = {"type": "json_object"}
 
@@ -87,6 +92,7 @@ class GeminiClient:
 
     def _fix_json(self, text: str) -> str:
         import re
+
         text = re.sub(r"\{\{", "{", text)
         text = re.sub(r"\}\}", "}", text)
         text = re.sub(r"(\s)(\w+)(\s*:)", r'\1"\2"\3', text)
@@ -136,6 +142,7 @@ class GeminiClient:
                 )
                 parsed = self._parse_json_lenient(raw)
                 import asyncio
+
                 if isinstance(parsed, dict):
                     await asyncio.sleep(1.5)
                     return parsed
@@ -144,24 +151,42 @@ class GeminiClient:
                         await asyncio.sleep(1.5)
                         return {"items": parsed}
                 logger.error(f"Failed to parse JSON. Raw output: {raw}")
-                raise json.JSONDecodeError(f"Could not extract valid JSON object from response", raw, 0)
+                raise json.JSONDecodeError(
+                    f"Could not extract valid JSON object from response", raw, 0
+                )
             except httpx.HTTPStatusError as e:
                 if e.response.status_code == 429:
-                    logger.warning(f"Rate limit exceeded (429). Waiting 60 seconds before retrying (attempt {attempt + 1}/{max_retries + 1})...")
+                    logger.warning(
+                        f"Rate limit exceeded (429). Waiting 60 seconds before retrying (attempt {attempt + 1}/{max_retries + 1})..."
+                    )
                     import asyncio
+
                     await asyncio.sleep(60)
                 else:
-                    logger.warning(f"HTTP error {e.response.status_code} (attempt {attempt + 1}/{max_retries + 1}): {e.response.text}")
+                    logger.warning(
+                        f"HTTP error {e.response.status_code} (attempt {attempt + 1}/{max_retries + 1}): {e.response.text}"
+                    )
                     if attempt == max_retries:
-                        raise RuntimeError(f"OpenRouter generation failed after {max_retries + 1} retries") from e
+                        raise RuntimeError(
+                            f"OpenRouter generation failed after {max_retries + 1} retries"
+                        ) from e
             except httpx.RequestError as e:
-                logger.warning(f"Network error {type(e).__name__} (attempt {attempt + 1}/{max_retries + 1}): {str(e)}")
+                logger.warning(
+                    f"Network error {type(e).__name__} (attempt {attempt + 1}/{max_retries + 1}): {str(e)}"
+                )
                 import asyncio
+
                 await asyncio.sleep(5)
                 if attempt == max_retries:
-                    raise RuntimeError(f"OpenRouter generation failed after {max_retries + 1} retries") from e
+                    raise RuntimeError(
+                        f"OpenRouter generation failed after {max_retries + 1} retries"
+                    ) from e
             except json.JSONDecodeError as e:
-                logger.warning(f"JSON parse failed (attempt {attempt + 1}/{max_retries + 1}): {str(e)}")
+                logger.warning(
+                    f"JSON parse failed (attempt {attempt + 1}/{max_retries + 1}): {str(e)}"
+                )
                 if attempt == max_retries:
-                    raise RuntimeError(f"OpenRouter generation failed after {max_retries + 1} retries") from e
+                    raise RuntimeError(
+                        f"OpenRouter generation failed after {max_retries + 1} retries"
+                    ) from e
         return {}

@@ -42,7 +42,9 @@ def _estimate_tokens(text: str) -> int:
     return int(len(text.split()) / 0.75)
 
 
-def _chunk_text(text: str, min_tokens: int = 300, max_tokens: int = 500, overlap_tokens: int = 50) -> list[dict]:
+def _chunk_text(
+    text: str, min_tokens: int = 300, max_tokens: int = 500, overlap_tokens: int = 50
+) -> list[dict]:
     paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
     chunks: list[dict] = []
     current_chunk: list[str] = []
@@ -57,11 +59,13 @@ def _chunk_text(text: str, min_tokens: int = 300, max_tokens: int = 500, overlap
         else:
             if current_chunk:
                 chunk_text = "\n\n".join(current_chunk)
-                chunks.append({
-                    "text": chunk_text,
-                    "token_count": current_token_count,
-                    "chunk_index": len(chunks),
-                })
+                chunks.append(
+                    {
+                        "text": chunk_text,
+                        "token_count": current_token_count,
+                        "chunk_index": len(chunks),
+                    }
+                )
                 overlap_words: list[str] = []
                 overlap_tok = 0
                 for p in reversed(current_chunk):
@@ -78,17 +82,21 @@ def _chunk_text(text: str, min_tokens: int = 300, max_tokens: int = 500, overlap
 
     if current_chunk:
         chunk_text = "\n\n".join(current_chunk)
-        chunks.append({
-            "text": chunk_text,
-            "token_count": current_token_count,
-            "chunk_index": len(chunks),
-        })
+        chunks.append(
+            {
+                "text": chunk_text,
+                "token_count": current_token_count,
+                "chunk_index": len(chunks),
+            }
+        )
 
     return chunks
 
 
 class DocumentAgentResult:
-    def __init__(self, success: bool, chunks_created: int = 0, error: str | None = None):
+    def __init__(
+        self, success: bool, chunks_created: int = 0, error: str | None = None
+    ):
         self.success = success
         self.chunks_created = chunks_created
         self.error = error
@@ -113,9 +121,10 @@ class DocumentAgent:
     @staticmethod
     def _ocr_extract(file_path: str) -> str:
         from pdf2image import pdfinfo_from_path, convert_from_path
+
         info = pdfinfo_from_path(file_path)
         num_pages = info["Pages"]
-        
+
         all_text: list[str] = []
         for i in range(1, num_pages + 1):
             images = convert_from_path(file_path, dpi=300, first_page=i, last_page=i)
@@ -147,7 +156,12 @@ class DocumentAgent:
             # If there's suspiciously little text for the number of pages, it's likely a scanned PDF with just metadata text.
             if page_count > 0 and len(cleaned) < page_count * 50:
                 if HAS_OCR:
-                    logger.info("Insufficient selectable text found (only %d chars for %d pages); falling back to OCR for %s", len(cleaned), page_count, file_path)
+                    logger.info(
+                        "Insufficient selectable text found (only %d chars for %d pages); falling back to OCR for %s",
+                        len(cleaned),
+                        page_count,
+                        file_path,
+                    )
                     ocr_text = self._ocr_extract(file_path)
                     cleaned = _clean_text(ocr_text)
                     if not cleaned:
@@ -162,7 +176,9 @@ class DocumentAgent:
                     )
 
             # Remove previous chunks to avoid duplicates on re-runs
-            old = await db.execute(select(KnowledgeChunk).where(KnowledgeChunk.book_id == book_id))
+            old = await db.execute(
+                select(KnowledgeChunk).where(KnowledgeChunk.book_id == book_id)
+            )
             for old_kc in old.scalars().all():
                 await db.delete(old_kc)
 
@@ -183,7 +199,9 @@ class DocumentAgent:
             return DocumentAgentResult(success=True, chunks_created=len(chunks))
 
         except FileNotFoundError:
-            return DocumentAgentResult(success=False, error=f"PDF file not found at {file_path}")
+            return DocumentAgentResult(
+                success=False, error=f"PDF file not found at {file_path}"
+            )
         except Exception as e:
             await db.rollback()
             logger.exception("Document agent failed for book %d", book_id)

@@ -2,12 +2,20 @@ from datetime import timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select, func
+from sqlalchemy.orm import joinedload, selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 
 from app.core.deps import get_db, get_current_user
 from app.core.constants import ApprovalStatus
-from app.models.models import User, QuestionBank, QuestionOption, Concept, Topic, Chapter
+from app.models.models import (
+    User,
+    QuestionBank,
+    QuestionOption,
+    Concept,
+    Topic,
+    Chapter,
+)
 
 
 def _to_utc_iso(dt):
@@ -55,6 +63,9 @@ async def list_questions(
             .where(Chapter.book_id == book_id)
         )
     stmt = stmt.where(QuestionBank.is_deleted == False)
+    stmt = stmt.options(
+        joinedload(QuestionBank.image), selectinload(QuestionBank.options)
+    )
     stmt = stmt.order_by(QuestionBank.created_at.desc())
 
     count_stmt = select(func.count()).select_from(stmt.subquery())
@@ -66,39 +77,49 @@ async def list_questions(
 
     items = []
     for q in questions:
-        opts_result = await db.execute(
-            select(QuestionOption).where(QuestionOption.question_id == q.id).order_by(QuestionOption.sequence)
+        options = sorted(q.options, key=lambda x: x.sequence)
+        items.append(
+            {
+                "id": q.id,
+                "school_id": q.school_id,
+                "question_text_en": q.question_text_en,
+                "question_type": q.question_type,
+                "bloom_level": q.bloom_level,
+                "difficulty": q.difficulty,
+                "marks": q.marks,
+                "concept_id": q.concept_id,
+                "competency_id": q.competency_id,
+                "approval_status": q.approval_status,
+                "image_asset_id": q.image_asset_id,
+                "image_url": q.image.file_path if q.image else None,
+                "confidence_score": q.confidence_score,
+                "options": [
+                    {
+                        "id": o.id,
+                        "option_text_en": o.option_text_en,
+                        "is_correct": o.is_correct,
+                        "sequence": o.sequence,
+                    }
+                    for o in options
+                ],
+                "created_at": _to_utc_iso(q.created_at) or "",
+            }
         )
-        options = opts_result.scalars().all()
-        items.append({
-            "id": q.id,
-            "school_id": q.school_id,
-            "question_text_en": q.question_text_en,
-            "question_type": q.question_type,
-            "bloom_level": q.bloom_level,
-            "difficulty": q.difficulty,
-            "marks": q.marks,
-            "concept_id": q.concept_id,
-            "competency_id": q.competency_id,
-            "approval_status": q.approval_status,
-            "confidence_score": q.confidence_score,
-            "options": [{"id": o.id, "option_text_en": o.option_text_en, "is_correct": o.is_correct, "sequence": o.sequence} for o in options],
-            "created_at": _to_utc_iso(q.created_at) or "",
-        })
 
     return {"items": items, "total": total, "limit": limit, "offset": offset}
 
 
 @router.get("/{question_id}")
 async def get_question(question_id: int, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(QuestionBank).where(QuestionBank.id == question_id))
+    result = await db.execute(
+        select(QuestionBank)
+        .options(joinedload(QuestionBank.image), selectinload(QuestionBank.options))
+        .where(QuestionBank.id == question_id)
+    )
     q = result.scalar_one_or_none()
     if not q:
         raise HTTPException(status_code=404, detail="Question not found")
-    opts_result = await db.execute(
-        select(QuestionOption).where(QuestionOption.question_id == q.id).order_by(QuestionOption.sequence)
-    )
-    options = opts_result.scalars().all()
+    options = sorted(q.options, key=lambda x: x.sequence)
     return {
         "id": q.id,
         "school_id": q.school_id,
@@ -110,8 +131,18 @@ async def get_question(question_id: int, db: AsyncSession = Depends(get_db)):
         "concept_id": q.concept_id,
         "competency_id": q.competency_id,
         "approval_status": q.approval_status,
+        "image_asset_id": q.image_asset_id,
+        "image_url": q.image.file_path if q.image else None,
         "confidence_score": q.confidence_score,
-        "options": [{"id": o.id, "option_text_en": o.option_text_en, "is_correct": o.is_correct, "sequence": o.sequence} for o in options],
+        "options": [
+            {
+                "id": o.id,
+                "option_text_en": o.option_text_en,
+                "is_correct": o.is_correct,
+                "sequence": o.sequence,
+            }
+            for o in options
+        ],
         "created_at": q.created_at.isoformat() if q.created_at else "",
     }
 
@@ -121,7 +152,10 @@ async def create_question(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Manual question creation not yet implemented")
+    raise HTTPException(
+        status_code=status.HTTP_501_NOT_IMPLEMENTED,
+        detail="Manual question creation not yet implemented",
+    )
 
 
 @router.post("/bulk-action")
@@ -129,7 +163,10 @@ async def bulk_action(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Bulk actions not yet implemented")
+    raise HTTPException(
+        status_code=status.HTTP_501_NOT_IMPLEMENTED,
+        detail="Bulk actions not yet implemented",
+    )
 
 
 @router.post("/{question_id}/approve")
@@ -138,7 +175,9 @@ async def approve_question(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    result = await db.execute(select(QuestionBank).where(QuestionBank.id == question_id))
+    result = await db.execute(
+        select(QuestionBank).where(QuestionBank.id == question_id)
+    )
     q = result.scalar_one_or_none()
     if not q:
         raise HTTPException(status_code=404, detail="Question not found")
@@ -153,7 +192,9 @@ async def reject_question(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    result = await db.execute(select(QuestionBank).where(QuestionBank.id == question_id))
+    result = await db.execute(
+        select(QuestionBank).where(QuestionBank.id == question_id)
+    )
     q = result.scalar_one_or_none()
     if not q:
         raise HTTPException(status_code=404, detail="Question not found")
@@ -161,10 +202,14 @@ async def reject_question(
     await db.commit()
     return {"status": "rejected"}
 
+
 from pydantic import BaseModel
+
 
 class QuestionPatch(BaseModel):
     image_asset_id: Optional[int] = None
+    remove_image: Optional[bool] = False
+
 
 @router.patch("/{question_id}")
 async def patch_question(
@@ -173,13 +218,17 @@ async def patch_question(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    result = await db.execute(select(QuestionBank).where(QuestionBank.id == question_id))
+    result = await db.execute(
+        select(QuestionBank).where(QuestionBank.id == question_id)
+    )
     q = result.scalar_one_or_none()
     if not q:
         raise HTTPException(status_code=404, detail="Question not found")
-    
-    if payload.image_asset_id is not None:
+
+    if payload.remove_image:
+        q.image_asset_id = None
+    elif payload.image_asset_id is not None:
         q.image_asset_id = payload.image_asset_id
-        
+
     await db.commit()
     return {"status": "updated"}

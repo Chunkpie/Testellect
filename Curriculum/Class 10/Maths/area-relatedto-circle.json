@@ -1,0 +1,80 @@
+{
+  "sequence": 11,
+  "title": "Areas Related to Circles",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Areas of a Sector and Segment of a Circle",
+      "concepts": [
+        {
+          "name": "Sector of a Circle",
+          "description": "A sector is the region enclosed by two radii and the corresponding arc of a circle. Its area depends on the central angle subtended by the arc.",
+          "learning_outcome": "Students will be able to identify sectors and calculate their areas using the appropriate formula."
+        },
+        {
+          "name": "Area of a Sector",
+          "description": "The area of a sector is proportional to its central angle and is calculated using the formula (θ/360°) × πr².",
+          "learning_outcome": "Students will be able to compute the area of a sector for a given radius and central angle."
+        },
+        {
+          "name": "Arc Length",
+          "description": "The length of an arc is the portion of the circle's circumference corresponding to a central angle and is calculated using (θ/360°) × 2πr.",
+          "learning_outcome": "Students will be able to calculate the length of an arc using the radius and central angle."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Segment of a Circle",
+      "concepts": [
+        {
+          "name": "Segment of a Circle",
+          "description": "A segment is the region bounded by a chord and its corresponding arc. It differs from a sector because it is not enclosed by radii.",
+          "learning_outcome": "Students will be able to distinguish between a sector and a segment of a circle."
+        },
+        {
+          "name": "Area of a Segment",
+          "description": "The area of a segment is obtained by subtracting the area of the corresponding triangle from the area of the sector.",
+          "learning_outcome": "Students will be able to calculate the area of a segment using sector and triangle areas."
+        },
+        {
+          "name": "Minor and Major Segments",
+          "description": "A chord divides a circle into a minor segment and a major segment. Their areas together equal the total area of the circle.",
+          "learning_outcome": "Students will be able to identify and determine the areas of minor and major segments."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Applications of Areas Related to Circles",
+      "concepts": [
+        {
+          "name": "Composite Figures",
+          "description": "Many practical problems involve figures composed of sectors, segments, and other geometric shapes. Solving such problems requires decomposing the figure into simpler parts.",
+          "learning_outcome": "Students will be able to determine the area of composite figures involving circles."
+        },
+        {
+          "name": "Real-Life Applications",
+          "description": "Concepts of sectors and segments are used in designing roads, gardens, machinery, architecture, and engineering structures.",
+          "learning_outcome": "Students will be able to solve practical problems involving areas related to circles."
+        },
+        {
+          "name": "Selection of Appropriate Formula",
+          "description": "Choosing the correct formula depends on whether the required region is a sector, segment, or a combination of geometric figures.",
+          "learning_outcome": "Students will be able to select and apply the appropriate area formula for various circle-related problems."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Key Concepts of Areas Related to Circles",
+          "description": "This chapter summarizes the calculation of arc lengths, sector areas, segment areas, and their applications in solving geometric and real-world problems.",
+          "learning_outcome": "Students will be able to calculate and apply formulas for sectors, segments, and arc lengths to solve mathematical and practical problems."
+        }
+      ]
+    }
+  ]
+}

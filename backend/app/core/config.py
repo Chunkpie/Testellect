@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     OLLAMA_MODEL: str = "llama3.2"
     OLLAMA_VISION_MODEL: str = "llava"
     GEMINI_API_KEY: str | None = None
+    AI_PROVIDER_MODE: str = "local" # 'local' | 'cloud' | 'auto'
+    AI_MODE: str = "local_llm" # 'local_llm' | 'edge_retrieval' | 'cloud_api'
     OLLAMA_FALLBACK_MODELS: list[str] = []
     OLLAMA_TIMEOUT: int = 300
     OLLAMA_NUM_THREAD: int = 8
@@ -20,7 +22,13 @@ class Settings(BaseSettings):
     BACKUP_PATH: str = "/data/backups"
     ENVIRONMENT: str = "production"
     DEBUG: bool = False
-    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000", "http://localhost", "http://localhost:80", "http://localhost:8000"]
+    CORS_ORIGINS: list[str] = [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://localhost",
+        "http://localhost:80",
+        "http://localhost:8000",
+    ]
     UPLOAD_DIR: str = "uploads"
     REPORTS_DIR: str = "reports"
 

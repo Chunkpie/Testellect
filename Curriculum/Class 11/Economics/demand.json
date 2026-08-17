@@ -1,0 +1,122 @@
+{
+  "sequence": 3,
+  "title": "Demand",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Meaning and Determinants of Demand",
+      "concepts": [
+        {
+          "name": "Meaning of Demand",
+          "description": "Demand refers to the quantity of a good or service that consumers are willing and able to purchase at different prices during a given period. Demand requires both willingness to buy and purchasing power.",
+          "learning_outcome": "Students will be able to define demand and distinguish it from desire or want."
+        },
+        {
+          "name": "Determinants of Demand",
+          "description": "Demand is influenced by factors such as the price of the commodity, consumer income, prices of related goods, tastes and preferences, population, and future expectations.",
+          "learning_outcome": "Students will be able to identify and explain the major determinants of demand."
+        },
+        {
+          "name": "Individual and Market Demand",
+          "description": "Individual demand refers to the quantity demanded by a single consumer, while market demand is the total demand of all consumers in the market.",
+          "learning_outcome": "Students will be able to differentiate between individual demand and market demand."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Law of Demand",
+      "concepts": [
+        {
+          "name": "Law of Demand",
+          "description": "The law of demand states that, other things remaining constant, the quantity demanded of a commodity decreases when its price increases and increases when its price decreases.",
+          "learning_outcome": "Students will be able to explain the law of demand with suitable examples."
+        },
+        {
+          "name": "Demand Schedule and Demand Curve",
+          "description": "A demand schedule presents the relationship between price and quantity demanded in tabular form, while a demand curve represents the same relationship graphically.",
+          "learning_outcome": "Students will be able to construct and interpret a demand schedule and demand curve."
+        },
+        {
+          "name": "Assumptions of the Law of Demand",
+          "description": "The law of demand assumes that factors such as consumer income, tastes, prices of related goods, and population remain unchanged.",
+          "learning_outcome": "Students will be able to state the assumptions underlying the law of demand."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Changes in Demand",
+      "concepts": [
+        {
+          "name": "Extension and Contraction of Demand",
+          "description": "Changes in quantity demanded caused solely by changes in the commodity's own price result in movement along the demand curve.",
+          "learning_outcome": "Students will be able to distinguish between extension and contraction of demand."
+        },
+        {
+          "name": "Increase and Decrease in Demand",
+          "description": "Changes in demand due to factors other than price cause the entire demand curve to shift either to the right or to the left.",
+          "learning_outcome": "Students will be able to explain shifts in the demand curve using practical examples."
+        },
+        {
+          "name": "Demand Curve Movements",
+          "description": "Students study the difference between movements along a demand curve and shifts of the demand curve caused by non-price factors.",
+          "learning_outcome": "Students will be able to interpret movements and shifts in a demand curve."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Elasticity of Demand",
+      "concepts": [
+        {
+          "name": "Price Elasticity of Demand",
+          "description": "Price elasticity of demand measures the responsiveness of quantity demanded to changes in the price of a commodity.",
+          "learning_outcome": "Students will be able to explain the concept of price elasticity of demand."
+        },
+        {
+          "name": "Degrees of Elasticity",
+          "description": "Demand may be perfectly elastic, perfectly inelastic, relatively elastic, relatively inelastic, or unitary elastic depending on consumer responsiveness.",
+          "learning_outcome": "Students will be able to classify different degrees of price elasticity of demand."
+        },
+        {
+          "name": "Factors Affecting Elasticity",
+          "description": "Elasticity depends on factors such as the availability of substitutes, nature of the commodity, proportion of income spent, and time available for adjustment.",
+          "learning_outcome": "Students will be able to explain the factors influencing price elasticity of demand."
+        }
+      ]
+    },
+    {
+      "sequence": 5,
+      "title": "Applications of Demand Analysis",
+      "concepts": [
+        {
+          "name": "Consumer Decision Making",
+          "description": "Understanding demand helps consumers make rational purchasing decisions based on price and income changes.",
+          "learning_outcome": "Students will be able to apply demand concepts to everyday consumer decisions."
+        },
+        {
+          "name": "Business Pricing Decisions",
+          "description": "Producers use demand analysis to determine pricing strategies, estimate sales, and maximize revenue.",
+          "learning_outcome": "Students will be able to explain how businesses use demand analysis in pricing decisions."
+        },
+        {
+          "name": "Government Policy",
+          "description": "Governments analyze demand while designing taxation, subsidies, and public welfare policies to influence market outcomes.",
+          "learning_outcome": "Students will be able to relate demand analysis to government economic policies."
+        }
+      ]
+    },
+    {
+      "sequence": 6,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Understanding Demand",
+          "description": "This chapter explains the meaning of demand, determinants, the law of demand, demand schedules and curves, changes in demand, elasticity of demand, and their practical applications.",
+          "learning_outcome": "Students will be able to analyze demand, interpret demand curves, explain elasticity, and apply demand concepts to real-world economic situations."
+        }
+      ]
+    }
+  ]
+}

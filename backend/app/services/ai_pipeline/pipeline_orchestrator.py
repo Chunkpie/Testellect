@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.admin import Job
 from app.db.models.curriculum import Book
-from app.services.ai_pipeline.gemini_client import GeminiClient as OllamaClient
+from app.services.ai_pipeline.client_factory import get_ai_client
 from app.services.ai_pipeline.document_agent import DocumentAgent
 from app.services.ai_pipeline.curriculum_agent import CurriculumAgent
 from app.services.ai_pipeline.concept_agent import ConceptAgent
@@ -26,8 +26,8 @@ PROCESSING_STATUSES = {
 
 
 class PipelineOrchestrator:
-    def __init__(self, ollama: OllamaClient | None = None):
-        self.ollama = ollama or OllamaClient()
+    def __init__(self, ollama=None):
+        self.ollama = ollama or get_ai_client()
         self.document_agent = DocumentAgent()
         self.curriculum_agent = CurriculumAgent(self.ollama)
         self.concept_agent = ConceptAgent(self.ollama)
@@ -140,7 +140,12 @@ class PipelineOrchestrator:
             job.error = str(e)
             db.add(job)
             await db.commit()
-            return {"success": False, "job_id": job_id, "stages": stage_results, "error": str(e)}
+            return {
+                "success": False,
+                "job_id": job_id,
+                "stages": stage_results,
+                "error": str(e),
+            }
 
         book.processing_status = "ready" if all_success else "failed"
         if not all_success:

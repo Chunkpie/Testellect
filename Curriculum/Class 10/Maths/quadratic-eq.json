@@ -1,0 +1,91 @@
+{
+  "sequence": 4,
+  "title": "Quadratic Equations",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Introduction",
+      "concepts": [
+        {
+          "name": "Quadratic Equations",
+          "description": "A quadratic equation is a polynomial equation of degree two that can be written in the standard form ax² + bx + c = 0, where a ≠ 0. Such equations arise in geometry, algebra, and real-life applications involving areas, motion, and optimization.",
+          "learning_outcome": "Students will be able to identify quadratic equations and express them in standard form."
+        },
+        {
+          "name": "Standard Form and Components",
+          "description": "The coefficients a, b, and c determine the characteristics of a quadratic equation. Understanding these components is essential for selecting appropriate solution methods.",
+          "learning_outcome": "Students will be able to identify the coefficients and constant term of a quadratic equation."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Quadratic Equations",
+      "concepts": [
+        {
+          "name": "Formation of Quadratic Equations",
+          "description": "Quadratic equations can be formed from algebraic expressions and real-life situations involving geometric measurements, product relationships, and numerical conditions.",
+          "learning_outcome": "Students will be able to formulate quadratic equations from mathematical statements and word problems."
+        },
+        {
+          "name": "Verification of Solutions",
+          "description": "A solution of a quadratic equation is verified by substituting it into the original equation and checking whether it satisfies the equality.",
+          "learning_outcome": "Students will be able to verify whether a given value is a solution of a quadratic equation."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Solution of a Quadratic Equation by Factorisation",
+      "concepts": [
+        {
+          "name": "Factorisation Method",
+          "description": "The factorisation method solves quadratic equations by expressing the quadratic polynomial as a product of two linear factors and applying the zero-product property.",
+          "learning_outcome": "Students will be able to solve quadratic equations using the factorisation method."
+        },
+        {
+          "name": "Zero Product Property",
+          "description": "If the product of two algebraic factors is zero, then at least one of the factors must be zero. This principle forms the basis of solving factorised quadratic equations.",
+          "learning_outcome": "Students will be able to apply the zero-product property to determine the roots of quadratic equations."
+        },
+        {
+          "name": "Applications of Factorisation",
+          "description": "Many real-world mathematical problems can be converted into quadratic equations and solved efficiently using factorisation when suitable factors exist.",
+          "learning_outcome": "Students will be able to solve contextual problems involving quadratic equations using factorisation."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Nature of Roots",
+      "concepts": [
+        {
+          "name": "Discriminant",
+          "description": "The discriminant (b² − 4ac) determines the nature of the roots of a quadratic equation without solving it. It indicates whether the roots are real, equal, distinct, or imaginary.",
+          "learning_outcome": "Students will be able to calculate the discriminant and determine the nature of the roots of a quadratic equation."
+        },
+        {
+          "name": "Types of Roots",
+          "description": "Quadratic equations may have two distinct real roots, one repeated real root, or no real roots depending on the value of the discriminant.",
+          "learning_outcome": "Students will be able to classify the roots of quadratic equations based on the discriminant."
+        },
+        {
+          "name": "Relationship Between Graph and Roots",
+          "description": "The number of points where the graph of a quadratic function intersects the x-axis corresponds to the number of real roots of the quadratic equation.",
+          "learning_outcome": "Students will be able to relate the graphical representation of a quadratic function to the nature of its roots."
+        }
+      ]
+    },
+    {
+      "sequence": 5,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Key Concepts of Quadratic Equations",
+          "description": "This chapter consolidates the identification, formation, factorisation, and analysis of quadratic equations along with determining the nature of their roots.",
+          "learning_outcome": "Students will be able to select appropriate methods to solve quadratic equations and interpret the significance of their roots in mathematical and real-world contexts."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "sequence": 7,
+  "title": "Indian Economy",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Overview of the Indian Economy",
+      "concepts": [
+        {
+          "name": "Meaning of Indian Economy",
+          "description": "The Indian economy refers to the system through which India produces, distributes, and consumes goods and services. It is a mixed economy where both the public and private sectors contribute to economic development.",
+          "learning_outcome": "Students will be able to describe the nature and structure of the Indian economy."
+        },
+        {
+          "name": "Characteristics of the Indian Economy",
+          "description": "The Indian economy is characterized by a large population, mixed economic structure, regional diversity, and a growing service sector alongside agriculture and industry.",
+          "learning_outcome": "Students will be able to identify the major characteristics of the Indian economy."
+        },
+        {
+          "name": "Economic Development",
+          "description": "Economic development involves improvements in income, employment, infrastructure, education, healthcare, and the overall standard of living of people.",
+          "learning_outcome": "Students will be able to explain the concept of economic development using suitable indicators."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Sectors of the Indian Economy",
+      "concepts": [
+        {
+          "name": "Primary Sector",
+          "description": "The primary sector includes agriculture, forestry, fishing, mining, and other activities that directly utilize natural resources.",
+          "learning_outcome": "Students will be able to identify activities belonging to the primary sector."
+        },
+        {
+          "name": "Secondary Sector",
+          "description": "The secondary sector consists of manufacturing, construction, and industries that convert raw materials into finished products.",
+          "learning_outcome": "Students will be able to explain the role of the secondary sector in economic growth."
+        },
+        {
+          "name": "Tertiary Sector",
+          "description": "The tertiary or service sector includes banking, transportation, communication, healthcare, education, tourism, and information technology services.",
+          "learning_outcome": "Students will be able to classify service-based activities under the tertiary sector."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Major Economic Challenges",
+      "concepts": [
+        {
+          "name": "Poverty",
+          "description": "Poverty refers to the inability of individuals or households to meet their basic needs such as food, clothing, housing, education, and healthcare.",
+          "learning_outcome": "Students will be able to explain the causes and effects of poverty in India."
+        },
+        {
+          "name": "Unemployment",
+          "description": "Unemployment occurs when people who are willing and able to work cannot find suitable employment opportunities.",
+          "learning_outcome": "Students will be able to identify different forms of unemployment and their impact on the economy."
+        },
+        {
+          "name": "Population Growth",
+          "description": "Rapid population growth increases the demand for employment, education, healthcare, housing, and other essential resources.",
+          "learning_outcome": "Students will be able to analyze the economic effects of population growth."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Agriculture, Industry and Services",
+      "concepts": [
+        {
+          "name": "Agriculture in India",
+          "description": "Agriculture remains an important source of employment, food security, and raw materials for industries despite the growth of other sectors.",
+          "learning_outcome": "Students will be able to explain the importance of agriculture in the Indian economy."
+        },
+        {
+          "name": "Industrial Development",
+          "description": "Industrial development increases production, creates employment opportunities, promotes exports, and contributes to economic modernization.",
+          "learning_outcome": "Students will be able to explain the contribution of industries to India's economic development."
+        },
+        {
+          "name": "Growth of the Service Sector",
+          "description": "The service sector has become the largest contributor to India's Gross Domestic Product (GDP), supported by information technology, finance, education, healthcare, and tourism.",
+          "learning_outcome": "Students will be able to describe the growing importance of the service sector in India."
+        }
+      ]
+    },
+    {
+      "sequence": 5,
+      "title": "Government Initiatives for Economic Development",
+      "concepts": [
+        {
+          "name": "Development Planning",
+          "description": "The government formulates economic policies and development programs to promote inclusive growth, employment, infrastructure, and social welfare.",
+          "learning_outcome": "Students will be able to explain the role of government planning in economic development."
+        },
+        {
+          "name": "Inclusive Growth",
+          "description": "Inclusive growth aims to ensure that the benefits of economic development reach all sections of society, including disadvantaged groups.",
+          "learning_outcome": "Students will be able to explain the concept and importance of inclusive growth."
+        },
+        {
+          "name": "Sustainable Development",
+          "description": "Sustainable development promotes economic progress while conserving natural resources and protecting the environment for future generations.",
+          "learning_outcome": "Students will be able to explain the importance of sustainable development in the Indian economy."
+        }
+      ]
+    },
+    {
+      "sequence": 6,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Understanding the Indian Economy",
+          "description": "This chapter introduces the structure, sectors, challenges, and development of the Indian economy while highlighting the government's role in promoting inclusive and sustainable growth.",
+          "learning_outcome": "Students will be able to analyze the structure and major challenges of the Indian economy and explain the contribution of different sectors to national development."
+        }
+      ]
+    }
+  ]
+}

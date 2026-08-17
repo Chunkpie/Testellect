@@ -1,0 +1,122 @@
+{
+  "sequence": 5,
+  "title": "Cost of Production and Concepts of Revenue",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Meaning of Cost of Production",
+      "concepts": [
+        {
+          "name": "Cost of Production",
+          "description": "Cost of production refers to the total expenditure incurred by a producer in producing goods or services. It includes payments made for all factors of production such as land, labour, capital, and enterprise.",
+          "learning_outcome": "Students will be able to define cost of production and explain its significance in business decision-making."
+        },
+        {
+          "name": "Explicit and Implicit Costs",
+          "description": "Explicit costs are direct monetary payments made for resources, while implicit costs represent the opportunity cost of using self-owned resources in production.",
+          "learning_outcome": "Students will be able to distinguish between explicit and implicit costs with suitable examples."
+        },
+        {
+          "name": "Opportunity Cost in Production",
+          "description": "Opportunity cost is the value of the next best alternative forgone when resources are used for a particular production activity.",
+          "learning_outcome": "Students will be able to explain opportunity cost in production-related decisions."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Types of Costs",
+      "concepts": [
+        {
+          "name": "Fixed Cost",
+          "description": "Fixed costs remain constant regardless of the level of production in the short run. Examples include rent, insurance, and salaries of permanent employees.",
+          "learning_outcome": "Students will be able to identify fixed costs in different business situations."
+        },
+        {
+          "name": "Variable Cost",
+          "description": "Variable costs change directly with the level of production. Expenses such as raw materials, electricity for production, and daily wages vary according to output.",
+          "learning_outcome": "Students will be able to distinguish variable costs from fixed costs."
+        },
+        {
+          "name": "Total Cost",
+          "description": "Total cost is the sum of fixed cost and variable cost incurred in producing a given level of output.",
+          "learning_outcome": "Students will be able to calculate total cost using fixed and variable costs."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Cost Concepts",
+      "concepts": [
+        {
+          "name": "Average Cost",
+          "description": "Average cost represents the cost of producing one unit of output and is calculated by dividing total cost by total output.",
+          "learning_outcome": "Students will be able to calculate and interpret average cost."
+        },
+        {
+          "name": "Marginal Cost",
+          "description": "Marginal cost is the additional cost incurred in producing one extra unit of output. It helps firms determine optimal production levels.",
+          "learning_outcome": "Students will be able to calculate marginal cost from changes in total cost and output."
+        },
+        {
+          "name": "Relationship Among Cost Concepts",
+          "description": "Fixed cost, variable cost, total cost, average cost, and marginal cost are interrelated and collectively influence production decisions.",
+          "learning_outcome": "Students will be able to explain the relationship among different cost concepts."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Revenue Concepts",
+      "concepts": [
+        {
+          "name": "Total Revenue",
+          "description": "Total revenue is the total income earned from selling goods or services. It is calculated by multiplying price per unit by quantity sold.",
+          "learning_outcome": "Students will be able to calculate total revenue from given data."
+        },
+        {
+          "name": "Average Revenue and Marginal Revenue",
+          "description": "Average revenue is the revenue earned per unit sold, while marginal revenue is the additional revenue obtained from selling one more unit.",
+          "learning_outcome": "Students will be able to differentiate between average revenue and marginal revenue."
+        },
+        {
+          "name": "Profit",
+          "description": "Profit is the excess of total revenue over total cost, whereas a loss occurs when total cost exceeds total revenue.",
+          "learning_outcome": "Students will be able to calculate profit or loss using revenue and cost data."
+        }
+      ]
+    },
+    {
+      "sequence": 5,
+      "title": "Applications of Cost and Revenue Analysis",
+      "concepts": [
+        {
+          "name": "Production Decisions",
+          "description": "Businesses analyze costs and revenues to determine the most profitable level of production and efficient use of resources.",
+          "learning_outcome": "Students will be able to explain how cost and revenue analysis supports production decisions."
+        },
+        {
+          "name": "Pricing Decisions",
+          "description": "Understanding production costs and expected revenue enables firms to set competitive and profitable prices.",
+          "learning_outcome": "Students will be able to relate cost and revenue concepts to pricing strategies."
+        },
+        {
+          "name": "Business Planning",
+          "description": "Cost and revenue analysis helps businesses estimate profits, control expenses, and prepare effective financial plans.",
+          "learning_outcome": "Students will be able to apply cost and revenue concepts in simple business planning scenarios."
+        }
+      ]
+    },
+    {
+      "sequence": 6,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Understanding Cost and Revenue",
+          "description": "This chapter explains production costs, cost classifications, revenue concepts, profit determination, and their importance in business decision-making.",
+          "learning_outcome": "Students will be able to calculate and analyze cost, revenue, and profit while applying these concepts to practical economic situations."
+        }
+      ]
+    }
+  ]
+}

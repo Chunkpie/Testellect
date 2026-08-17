@@ -1,0 +1,91 @@
+{
+  "sequence": 5,
+  "title": "Does it Look the Same?",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Understanding Symmetry",
+      "concepts": [
+        {
+          "name": "Line of Symmetry",
+          "description": "A line of symmetry divides a figure into two identical halves that match exactly when folded. Students explore symmetry using paper folding and everyday objects.",
+          "learning_outcome": "Students will be able to identify whether a figure has one or more lines of symmetry."
+        },
+        {
+          "name": "Symmetrical and Asymmetrical Figures",
+          "description": "Some shapes can be divided into equal mirror-image halves, while others cannot. Students compare different figures to recognize symmetry.",
+          "learning_outcome": "Students will be able to distinguish between symmetrical and asymmetrical figures."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Mirror Images",
+      "concepts": [
+        {
+          "name": "Reflection",
+          "description": "A mirror image is formed by reflecting an object across a line. Reflection preserves the size and shape of the object while reversing its orientation.",
+          "learning_outcome": "Students will be able to identify and draw the mirror image of simple figures."
+        },
+        {
+          "name": "Mirror Line",
+          "description": "The mirror line acts as the axis of reflection. Every point on the reflected image is at an equal distance from the mirror line as the corresponding point on the original figure.",
+          "learning_outcome": "Students will be able to locate the mirror line and complete reflected figures."
+        },
+        {
+          "name": "Reflection in Daily Life",
+          "description": "Reflections are commonly observed in mirrors, still water, polished surfaces, and various designs used in art and architecture.",
+          "learning_outcome": "Students will be able to recognize examples of reflection in everyday life."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Completing Symmetrical Figures",
+      "concepts": [
+        {
+          "name": "Drawing the Missing Half",
+          "description": "Students complete partially drawn figures by using the line of symmetry as a guide to create identical halves.",
+          "learning_outcome": "Students will be able to complete symmetrical figures accurately."
+        },
+        {
+          "name": "Grid-Based Symmetry",
+          "description": "Grids help students draw and verify symmetrical figures by counting equal distances from the line of symmetry.",
+          "learning_outcome": "Students will be able to construct symmetrical figures using square grids."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Symmetry in Nature and Design",
+      "concepts": [
+        {
+          "name": "Natural Symmetry",
+          "description": "Many living organisms and natural objects, such as butterflies, flowers, and leaves, display symmetry. Students observe these examples to connect mathematics with nature.",
+          "learning_outcome": "Students will be able to identify symmetrical patterns in natural objects."
+        },
+        {
+          "name": "Symmetry in Art and Architecture",
+          "description": "Artists and architects use symmetry to create attractive and balanced designs in rangoli, buildings, logos, and decorative patterns.",
+          "learning_outcome": "Students will be able to identify and create symmetrical designs using geometric shapes."
+        },
+        {
+          "name": "Pattern Recognition",
+          "description": "Recognizing symmetry helps students understand repeating patterns and develop spatial reasoning skills.",
+          "learning_outcome": "Students will be able to analyze and extend symmetrical patterns."
+        }
+      ]
+    },
+    {
+      "sequence": 5,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Understanding Symmetry and Reflection",
+          "description": "This chapter develops spatial reasoning through the study of symmetry, mirror images, reflections, and symmetrical patterns found in everyday life.",
+          "learning_outcome": "Students will be able to identify lines of symmetry, draw mirror images, complete symmetrical figures, and apply symmetry concepts in real-world contexts."
+        }
+      ]
+    }
+  ]
+}

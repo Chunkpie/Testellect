@@ -23,3 +23,15 @@ export async function getImages(params?: {
   const { data } = await client.get('/image-bank', { params })
   return data
 }
+
+export async function uploadImage(file: File, tags: string = ''): Promise<{id: number, file_path: string, tags: string, message: string}> {
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('tags', tags)
+  
+  const { data } = await client.post('/image-bank/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+  
+  return data
+}

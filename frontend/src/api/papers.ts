@@ -66,6 +66,14 @@ export async function exportPaperPdf(id: number, lang?: string): Promise<Blob> {
   return data
 }
 
+export async function downloadAllPaperSetsPdf(blueprintId: number, lang?: string): Promise<Blob> {
+  const { data } = await api.get(`/papers/blueprint/${blueprintId}/download-all-sets`, {
+    params: { lang },
+    responseType: 'blob',
+  })
+  return data
+}
+
 export async function downloadPaper(id: number): Promise<Blob> {
   const { data } = await api.get(`/papers/${id}/download`, {
     responseType: 'blob',
@@ -79,6 +87,7 @@ export async function customGeneratePaper(params: {
   chapter_ids: number[]
   total_questions: number
   difficulty: string
+  bloom_level: string
   num_sets?: number
 }): Promise<{ message: string; job_id: string }> {
   const { data } = await api.post('/papers/custom-generate', params)

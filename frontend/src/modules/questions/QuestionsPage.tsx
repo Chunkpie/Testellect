@@ -24,6 +24,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
+import { Label } from '@/components/ui/label'
 import {
   Dialog,
   DialogContent,
@@ -48,6 +49,7 @@ import {
   Sparkles,
   Plus,
   ImageIcon,
+  Upload,
 } from 'lucide-react'
 import type { Question } from '@/types'
 
@@ -279,61 +281,101 @@ function DeleteConfirmDialog({
   )
 }
 
-function AttachImageDialog({
-  questionId,
+function ImageManagerDialog({
+  question,
   open,
   onOpenChange,
-  onConfirm,
+  onUpload,
+  onRemove,
   isPending,
 }: {
-  questionId: string | null
+  question: Question | null
   open: boolean
   onOpenChange: (open: boolean) => void
-  onConfirm: (imageId: number) => void
+  onUpload: (file: File, tags: string) => void
+  onRemove: () => void
   isPending: boolean
 }) {
-  const { data: imagesData, isLoading: imagesLoading } = useQuery({
-    queryKey: ['images'],
-    queryFn: () => imageApi.getImages(),
-    enabled: open,
-  })
+  const [file, setFile] = useState<File | null>(null)
+  const [tags, setTags] = useState('')
+
+  if (!question) return null
+
+  const handleUpload = () => {
+    if (file) {
+      onUpload(file, tags)
+    }
+  }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
+    <Dialog open={open} onOpenChange={(v) => {
+      if (!v) { setFile(null); setTags('') }
+      onOpenChange(v)
+    }}>
+      <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Attach Image</DialogTitle>
-          <DialogDescription>Select an image from the Image Bank to attach to this question.</DialogDescription>
+          <DialogTitle>Manage Question Image</DialogTitle>
+          <DialogDescription>
+            {question.image_url 
+              ? 'View or remove the image attached to this question.'
+              : 'Upload an image directly to this question.'}
+          </DialogDescription>
         </DialogHeader>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto p-2">
-          {imagesLoading ? (
-            <div className="col-span-full flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
-          ) : !imagesData?.items?.length ? (
-            <div className="col-span-full text-center p-8 text-muted-foreground">No images found in the Image Bank.</div>
-          ) : (
-            imagesData.items.map(img => (
-              <div 
-                key={img.id} 
-                className="relative group cursor-pointer border rounded-md overflow-hidden hover:border-primary transition-colors"
-                onClick={() => onConfirm(img.id)}
-              >
-                <img 
-                  src={`${import.meta.env.VITE_API_URL}${img.file_path}`} 
-                  alt={img.tags} 
-                  className="w-full h-32 object-cover"
+        <div className="space-y-4 py-2">
+          {question.image_url ? (
+            <div className="flex flex-col items-center gap-4">
+              <div className="relative rounded-md border overflow-hidden bg-muted w-full aspect-video flex items-center justify-center p-2">
+                  <img 
+                    src={question.image_url.startsWith('/') ? question.image_url : `/${question.image_url}`} 
+                    alt="Question visual" 
+                    className="max-h-64 object-contain rounded-lg border border-border"
                 />
-                <div className="absolute bottom-0 w-full bg-black/60 text-white text-xs p-1 truncate">
-                  {img.tags}
-                </div>
               </div>
-            ))
+              <Button 
+                variant="destructive" 
+                onClick={onRemove}
+                disabled={isPending}
+                className="w-full"
+              >
+                {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+                Remove Image
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="grid gap-2">
+                <Label htmlFor="image-file">Image File</Label>
+                <Input 
+                  id="image-file" 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files.length > 0) {
+                      setFile(e.target.files[0])
+                    }
+                  }} 
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="image-tags">Tags (optional)</Label>
+                <Input 
+                  id="image-tags" 
+                  placeholder="e.g. geometry, triangle" 
+                  value={tags} 
+                  onChange={(e) => setTags(e.target.value)} 
+                />
+              </div>
+              <Button 
+                onClick={handleUpload}
+                disabled={!file || isPending}
+                className="w-full"
+              >
+                {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+                Upload & Attach
+              </Button>
+            </div>
           )}
         </div>
-        <DialogFooter>
-          <DialogClose>
-            <Button type="button" variant="outline">Cancel</Button>
-          </DialogClose>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   )
@@ -360,8 +402,8 @@ export default function QuestionsPage() {
   const [rejectOpen, setRejectOpen] = useState(false)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const [attachImageId, setAttachImageId] = useState<string | null>(null)
-  const [attachImageOpen, setAttachImageOpen] = useState(false)
+  const [manageImageQuestion, setManageImageQuestion] = useState<Question | null>(null)
+  const [manageImageOpen, setManageImageOpen] = useState(false)
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['questions', bloomFilter, difficultyFilter, statusFilter, bookFilter, offset],
@@ -405,13 +447,26 @@ export default function QuestionsPage() {
     },
   })
 
-  const attachImageMutation = useMutation({
-    mutationFn: ({ id, image_asset_id }: { id: string; image_asset_id: number }) => 
-      questionsApi.updateQuestion(id, { image_asset_id: image_asset_id } as any),
+  const uploadAndAttachMutation = useMutation({
+    mutationFn: async ({ id, file, tags }: { id: string, file: File, tags: string }) => {
+      const uploadRes = await imageApi.uploadImage(file, tags)
+      return questionsApi.updateQuestion(id, { image_asset_id: uploadRes.id })
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['questions'] })
-      setAttachImageOpen(false)
-      setAttachImageId(null)
+      setManageImageOpen(false)
+      setManageImageQuestion(null)
+    },
+  })
+
+  const removeImageMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return questionsApi.updateQuestion(id, { remove_image: true })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['questions'] })
+      setManageImageOpen(false)
+      setManageImageQuestion(null)
     },
   })
 
@@ -446,16 +501,22 @@ export default function QuestionsPage() {
     }
   }, [deleteId, deleteMutation])
 
-  const handleAttachImageClick = useCallback((id: string) => {
-    setAttachImageId(id)
-    setAttachImageOpen(true)
+  const handleManageImageClick = useCallback((q: Question) => {
+    setManageImageQuestion(q)
+    setManageImageOpen(true)
   }, [])
 
-  const handleAttachImageConfirm = useCallback((imageId: number) => {
-    if (attachImageId) {
-      attachImageMutation.mutate({ id: attachImageId, image_asset_id: imageId })
+  const handleUploadImage = useCallback((file: File, tags: string) => {
+    if (manageImageQuestion) {
+      uploadAndAttachMutation.mutate({ id: manageImageQuestion.id, file, tags })
     }
-  }, [attachImageId, attachImageMutation])
+  }, [manageImageQuestion, uploadAndAttachMutation])
+
+  const handleRemoveImage = useCallback(() => {
+    if (manageImageQuestion) {
+      removeImageMutation.mutate(manageImageQuestion.id)
+    }
+  }, [manageImageQuestion, removeImageMutation])
 
   const [generateDialogOpen, setGenerateDialogOpen] = useState(false)
   const [currentJobId, setCurrentJobId] = useState<string | null>(null)
@@ -659,9 +720,9 @@ export default function QuestionsPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleAttachImageClick(question.id)}
-                            disabled={attachImageMutation.isPending}
-                            title="Attach Image"
+                            onClick={() => handleManageImageClick(question)}
+                            disabled={uploadAndAttachMutation.isPending || removeImageMutation.isPending}
+                            title="Manage Image"
                             className="text-blue-500 hover:text-blue-400"
                           >
                             <ImageIcon className="h-4 w-4" />
@@ -737,12 +798,13 @@ export default function QuestionsPage() {
         isPending={deleteMutation.isPending}
       />
 
-      <AttachImageDialog
-        questionId={attachImageId}
-        open={attachImageOpen}
-        onOpenChange={(v) => { setAttachImageOpen(v); if (!v) setAttachImageId(null) }}
-        onConfirm={handleAttachImageConfirm}
-        isPending={attachImageMutation.isPending}
+      <ImageManagerDialog
+        question={manageImageQuestion}
+        open={manageImageOpen}
+        onOpenChange={(v) => { setManageImageOpen(v); if (!v) setManageImageQuestion(null) }}
+        onUpload={handleUploadImage}
+        onRemove={handleRemoveImage}
+        isPending={uploadAndAttachMutation.isPending || removeImageMutation.isPending}
       />
 
       <Dialog open={generateDialogOpen} onOpenChange={setGenerateDialogOpen}>

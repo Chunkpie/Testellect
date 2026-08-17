@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.curriculum import Book, Chapter, KnowledgeChunk, Topic
-from app.services.ai_pipeline.gemini_client import GeminiClient as OllamaClient
+from app.services.ai_pipeline.client_factory import get_ai_client
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,13 @@ Respond ONLY with valid JSON matching this schema, with no other text:
 
 
 class CurriculumAgentResult:
-    def __init__(self, success: bool, chapters_created: int = 0, topics_created: int = 0, error: str | None = None):
+    def __init__(
+        self,
+        success: bool,
+        chapters_created: int = 0,
+        topics_created: int = 0,
+        error: str | None = None,
+    ):
         self.success = success
         self.chapters_created = chapters_created
         self.topics_created = topics_created
@@ -35,14 +41,16 @@ class CurriculumAgentResult:
 class CurriculumAgent:
     stage_name = "building_curriculum"
 
-    def __init__(self, ollama: OllamaClient | None = None):
-        self.ollama = ollama or OllamaClient()
+    def __init__(self, ollama=None):
+        self.ollama = ollama or get_ai_client()
 
     async def run(self, db: AsyncSession, book_id: int) -> CurriculumAgentResult:
         result = await db.execute(select(Book).where(Book.id == book_id))
         book = result.scalar_one_or_none()
         if not book:
-            return CurriculumAgentResult(success=False, error=f"Book {book_id} not found")
+            return CurriculumAgentResult(
+                success=False, error=f"Book {book_id} not found"
+            )
 
         chunk_result = await db.execute(
             select(KnowledgeChunk)
@@ -51,7 +59,10 @@ class CurriculumAgent:
         )
         chunks = chunk_result.scalars().all()
         if not chunks:
-            return CurriculumAgentResult(success=False, error="No knowledge chunks found; run Document Agent first")
+            return CurriculumAgentResult(
+                success=False,
+                error="No knowledge chunks found; run Document Agent first",
+            )
 
         full_text = "\n\n".join(c.chunk_text for c in chunks)
 
@@ -60,10 +71,14 @@ class CurriculumAgent:
             task = "Confirm or correct the chapter and topic boundaries and titles for the text above."
             text_sample = full_text[:40000] if len(full_text) > 40000 else full_text
             prompt = f"Raw textbook text:\n\n{text_sample}\n\n{task}"
+            from app.services.ai_pipeline.ollama_settings import AGENT_MODEL_MAP
+            
             result_data = await self.ollama.generate_structured(
                 prompt=prompt,
                 system=CURRICULUM_SEGMENTATION_SYSTEM,
                 temperature=0.2,
+                num_ctx=10000,
+                model=AGENT_MODEL_MAP["curriculum_agent"],
             )
         except RuntimeError as e:
             logger.warning("LLM segmentation failed, using fallback: %s", e)
@@ -118,11 +133,29 @@ class CurriculumAgent:
         chapters = []
         topics = []
         chapter_title = "Chapter 1"
-        chapters.append({"title": chapter_title, "unit_name": None, "start_marker": lines[0][:80] if lines else ""})
+        chapters.append(
+            {
+                "title": chapter_title,
+                "unit_name": None,
+                "start_marker": lines[0][:80] if lines else "",
+            }
+        )
         for i, line in enumerate(lines[:50]):
             stripped = line.strip()
             if stripped and len(stripped) < 100 and stripped.isupper():
-                topics.append({"chapter_title": chapter_title, "title": stripped, "start_marker": stripped})
+                topics.append(
+                    {
+                        "chapter_title": chapter_title,
+                        "title": stripped,
+                        "start_marker": stripped,
+                    }
+                )
         if not topics:
-            topics.append({"chapter_title": chapter_title, "title": lines[0][:60] if lines else "Content", "start_marker": lines[0][:80] if lines else ""})
+            topics.append(
+                {
+                    "chapter_title": chapter_title,
+                    "title": lines[0][:60] if lines else "Content",
+                    "start_marker": lines[0][:80] if lines else "",
+                }
+            )
         return {"chapters": chapters, "topics": topics}

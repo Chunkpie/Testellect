@@ -4,7 +4,7 @@
   <h1>Testellect AI Assessment Platform</h1>
   
   <p>
-    <strong>An open-source AI-powered competency assessment platform built for scale — runs fully offline, or with free cloud APIs like Groq.</strong>
+    <strong>An open-source AI-powered competency assessment platform built for scale — runs fully offline, or with free cloud APIs.</strong>
   </p>
 
   <p>
@@ -13,94 +13,105 @@
     <a href="#installation"><img src="https://img.shields.io/badge/Docker-Ready-2496ED.svg?style=flat-square&logo=docker" alt="Docker Ready" /></a>
     <a href="#license"><img src="https://img.shields.io/badge/License-MIT-green.svg?style=flat-square" alt="License" /></a>
   </p>
-
-  <p>
-    <em>Generate competency-tagged questions, create OMR sheets, grade via computer vision, and view district-wide analytics—run fully offline at zero cost, or connect to free cloud APIs like Groq for faster inference.</em>
-  </p>
-
-  <img src="assets/images/preview.jpg" alt="Application Dashboard Preview" style="max-width: 800px; width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />
 </div>
 
 <br />
 
-## Project Overview
+## 📖 What is Testellect?
 
-India's National Education Policy (NEP) 2020 mandates competency-based assessments via the PARAKH and NAS frameworks. However, government schools often lack the budget for cloud AI subscriptions or expensive pre-printed OMR sheets, and many operate in low-connectivity areas.
+India's National Education Policy (NEP) 2020 mandates competency-based assessments. However, government schools often lack the budget for cloud AI subscriptions and many operate in low-connectivity areas. 
 
-Testellect solves these problems by providing a flexible, privacy-first AI assessment ecosystem. It runs fully offline on school hardware for zero-cost, no-internet operation, or connects to free cloud APIs like Groq when internet access is available and faster inference is preferred — giving every school a path that fits their infrastructure.
+**Testellect** solves these problems by providing a flexible, privacy-first AI assessment ecosystem. It allows educators to:
+1. Generate competency-tagged questions from curriculum PDFs.
+2. Extract syllabus topics and map them directly to Bloom's Taxonomy.
+3. Conduct district-wide analytics and evaluations.
 
----
-
-## Key Features
-
-### 1. Flexible AI Question Generation
-*   **Offline or Cloud, Your Choice:** Runs on local open-source LLMs (Llama 3.1 / Qwen) via Ollama for zero-cost, no-internet operation — or connects to free cloud APIs like Groq for faster inference when internet is available. No OpenAI/Google API bills either way.
-*   **Curriculum Aligned:** Upload GSEB chapter PDFs and let the AI extract concepts mapped directly to Bloom's Taxonomy.
-*   **Multi-Language Mastery:** Automatically generates grammatically perfect MCQs in English, Hindi, and Gujarati with full Devanagari/Gujarati Unicode font support.
-
-### 2. End-to-End Exam Management
-*   **Exam Blueprints:** Design test structures defining competency distributions and difficulty ratios.
-*   **Anti-Cheating Variants:** One click generates Set A, B, C, D with shuffled question orders.
-*   **Primary School Image Bank:** Supports visual scenario-based questions for Grades 1–5, auto-linking uploaded images to generated questions.
-
-### 3. Computer Vision OMR Grading
-*   **Print on A4 Paper:** Generates custom OMR sheets embedded with QR codes that schools can print on standard A4 paper.
-*   **Instant Grading:** Teachers scan filled sheets using any standard webcam or smartphone camera.
-*   **OpenCV Powered:** Accurately detects filled bubbles and maps them to student roll numbers instantly.
-
-### 4. Deep Competency Analytics
-*   **Actionable Insights:** Tracks performance not just by total marks, but by specific competencies (e.g., Knowledge, Understanding, Application).
-*   **Multi-Tier Dashboards:**
-    *   **Teacher:** Class-level remediation tracking.
-    *   **Principal:** School-wide subject comparisons.
-    *   **DEO (District):** District-wide taluka heatmaps, school rankings, and automated alerts for underperforming zones.
-*   **QR Data Sync:** Offline schools can sync their analytics to the District office simply by letting a visiting official scan a summary QR code off the screen.
+It's designed to run **fully offline on school hardware for zero-cost** using local LLMs, or connect to free cloud APIs (like OpenRouter) when internet access is available. It bridges the digital divide, bringing state-of-the-art AI to the most remote classrooms.
 
 ---
 
-## Tech Stack
+## ⚡ Key Features
 
-<div align="center">
-
-| Area | Technologies |
-| :--- | :--- |
-| **Frontend** | React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui, Framer Motion |
-| **Backend** | Python 3.12, FastAPI, SQLAlchemy 2.0, Pydantic v2 |
-| **AI / ML** | Ollama (Local LLM) / Groq (Free Cloud API), ChromaDB (Vector DB), PyMuPDF |
-| **Computer Vision** | OpenCV, NumPy |
-| **Database** | PostgreSQL (Production) / SQLite (MVP) |
-| **DevOps** | Docker, Docker Compose, Nginx |
-
-</div>
+*   **Hybrid AI Generation:** The core AI pipeline uses local open-source LLMs (`llama3.2`) via Ollama for zero-cost, no-internet operation. If connected, it uses cloud models (e.g., `gemini-2.5-flash`) for faster generation.
+*   **Curriculum Aligned & Extracted:** Upload GSEB chapter PDFs. The system extracts text (via PyMuPDF/pdfplumber), chunks it into ChromaDB, and extracts topics and concepts mapped to Bloom's Taxonomy.
+*   **Automated Question Paper Generation:** Using Blueprints, the platform can auto-generate complete PDF question papers balancing various difficulty levels and competencies.
+*   **Multi-Language Mastery:** Automatically generates MCQs in English, Hindi, and Gujarati.
+*   **Automated OMR Grading:** Integrated Computer Vision (OpenCV/PyZbar) for scanning student physical OMR sheets directly from a webcam or uploaded image, processing grades instantly.
+*   **📱 WhatsApp Bot Integration:** We've built a Twilio/WhatsApp Webhook integration! Teachers can simply snap a photo of the student's OMR sheet on their phone, send it to the WhatsApp Bot, and the background AI instantly grades it.
+*   **Deep Competency Analytics & Reports:** Tracks performance across specific competencies (e.g., Knowledge, Understanding, Application). Generates downloadable PDF reports. Multi-tier dashboards cater to Teachers, Principals, and DEOs (District Education Officers) for remediation tracking and automated alerts.
 
 ---
 
-## Quick Start (Docker)
+## ⚙️ How It Works (Technical Architecture)
 
-The fastest way to get the platform running is via Docker. 
+Testellect is built on a modern, decoupled architecture.
 
-> **Prerequisites:** Docker, Docker Compose, and at least 16GB of RAM (32GB+ and an NVIDIA GPU recommended for fast AI inference).
+### Data Flow
+1. **Data Ingestion:** A teacher uploads a PDF curriculum chapter. 
+2. **Vectorization:** The backend uses PyMuPDF to extract the text, which is embedded and stored into a local **ChromaDB**.
+3. **Prompt Orchestration:** The user specifies the type of questions they want to generate. The backend's `pipeline_orchestrator.py` dynamically fetches relevant text chunks via Retrieval-Augmented Generation (RAG).
+4. **AI Generation:** The prompt is sent to either the local Ollama instance (Offline Mode) or a cloud API (Online Mode). The LLM generates the JSON-structured MCQs.
+5. **Storage & Serving:** The output is stored in PostgreSQL (or SQLite for lightweight setups) and served to the React frontend via FastAPI REST endpoints.
+
+### Tech Stack
+* **Frontend:** React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui, Zustand (State), React Query.
+* **Backend:** Python 3.12, FastAPI, SQLAlchemy (Async), Pydantic v2.
+* **AI / ML Pipeline:** Ollama (Local LLM), OpenRouter (Cloud LLM), ChromaDB (Vector DB).
+* **Computer Vision:** OpenCV, PyTesseract, PyZbar (for OMR and Barcode processing).
+* **Database:** PostgreSQL 16 (or SQLite in lightweight mode).
+* **DevOps:** Docker, Docker Compose.
+
+---
+
+## 🚀 How We Built It to Scale
+
+Scalability was a primary design constraint, especially considering deployment in resource-constrained environments (like a legacy school laptop with 8GB RAM). 
+
+1. **Zero-Config Standalone Containers:** We collapsed the architecture to just **two Docker containers** (`parakh-backend` and `parakh-ollama`). 
+2. **Embedded Infrastructure:** 
+   * The backend automatically falls back to SQLite via `aiosqlite` based on the `DB_MODE=sqlite` flag, bypassing heavy Postgres instances for local deployments.
+   * ChromaDB is embedded directly inside the Python backend using `chromadb.PersistentClient`, dropping the need for a separate ChromaDB server.
+3. **Offline Local LLM Optimizations:**
+   * `OLLAMA_NUM_PARALLEL=1` and `OLLAMA_MAX_LOADED_MODELS=1` enforce absolute strict single-stream processing to prevent OOM (Out Of Memory) crashes.
+   * Parallel Python `asyncio.gather` pipeline queues execute sequentially behind an `asyncio.Semaphore(1)` bottleneck.
+   * Inference context window sizes are strictly gated dynamically.
+   * Model routing assigns simple text extraction to a 1B parameter model and generation tasks to a 3B parameter model to conserve RAM.
+4. **Cloud Scalability (District/State Level):** If deployed in the cloud, the FastAPI backend is fully asynchronous and stateless, ready to be scaled horizontally via Kubernetes. PostgreSQL handles concurrent scaling naturally.
+
+---
+
+## 🔒 Security & Privacy Architecture
+
+*   **Role-Based Access Control (RBAC):** Strict separation between School operations and District/Admin operations.
+*   **JWT Authentication:** Uses secure, HttpOnly cookies for session management to prevent XSS token theft.
+*   **Data Sovereignty:** In offline mode, nothing ever touches the public internet — all AI processing happens completely on-device. In cloud mode, only curriculum/question-generation prompts are sent to the API provider — student names, marks, and grading data are never transmitted.
+
+---
+
+## 🛠️ Quick Start (Docker)
+
+The fastest way to get the platform running is via Docker.
+
+> **Prerequisites:** Docker, Docker Compose.
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/Chunkpie/Testellect.git
-cd Testellect
+# 1. Navigate into the folder
+cd TestEllect
 
-# 2. Build and start the containers
+# 2. Build and start the containers in detached mode
 docker compose up -d --build
+
+# 3. CRITICAL: Pull the offline AI model (if using offline mode)
+docker exec parakh-ollama ollama pull llama3.2
 ```
 
-*Note: If running in offline mode, the system will automatically pull the required local AI model on first run. This is a large download and may take several minutes. Skip this entirely by configuring cloud mode with a free Groq API key instead (see Manual Development Setup below for details).*
+*Note: The `llama3.2` model is approximately 2GB. You must run the `ollama pull` command for the offline AI pipelines to function properly.*
 
 ### Access Points
-
-Once the containers are running, access the platform at:
-
-*   **Platform UI:** `http://localhost:80`
+*   **Platform UI:** `http://localhost:8000` (Static files served via backend, or `http://localhost:5173` if running Vite dev server)
 *   **Backend API Docs:** `http://localhost:8000/docs`
 
 ### Demo Credentials
-
 | Role | Login Portal | Email | Password |
 | :--- | :--- | :--- | :--- |
 | **Teacher** | `/login` | `r.sharma@gseb.org` | `Teacher@123` |
@@ -110,7 +121,7 @@ Once the containers are running, access the platform at:
 
 ---
 
-## Manual Development Setup
+## 💻 Manual Development Setup
 
 If you prefer to run the services locally without Docker for active development:
 
@@ -130,53 +141,14 @@ npm install
 npm run dev
 ```
 
-### 3. Choose Your AI Mode
+---
 
-**Offline mode** — you must have [Ollama](https://ollama.com/) installed locally on your machine.
-```bash
-ollama run qwen3:8b
-```
-
-**Cloud mode (optional)** — skip Ollama and instead add a free [Groq](https://groq.com/) API key to your backend `.env` file:
-```bash
-GROQ_API_KEY=your_free_groq_api_key
-AI_PROVIDER=groq
-```
+## 🔮 What's Next / Future Scope
+* **Predictive Analytics:** Using historical student performance to predict dropout risks or failure rates in upcoming standardized tests.
+* **Regional Language Audio Output:** Text-to-speech for visually impaired students to take competency assessments audibly.
 
 ---
 
-## Security & Privacy Architecture
-
-*   **Role-Based Access Control (RBAC):** Strict separation between School operations and District/Admin operations.
-*   **JWT Authentication:** Uses secure, HttpOnly cookies for session management to prevent XSS token theft.
-*   **Data Sovereignty:** In offline mode, nothing ever touches the public internet — all AI processing happens completely on-device. In cloud mode, only curriculum/question-generation prompts are sent to the API provider (e.g., Groq) — student names, marks, and grading data are never transmitted and are processed locally at all times.
-
----
-
-## Repository Structure
-
-```text
-testellect/
-├── backend/                  # FastAPI Application
-│   ├── app/
-│   │   ├── api/              # Route handlers
-│   │   ├── core/             # Configuration & DB setup
-│   │   ├── models/           # SQLAlchemy schemas
-│   │   └── services/         # Core logic (AI, CV, PDF, Auth)
-│   └── requirements.txt
-├── frontend/                 # React Application
-│   ├── src/
-│   │   ├── api/              # Axios client functions
-│   │   ├── components/       # Reusable UI components
-│   │   ├── modules/          # Feature-based pages (OMR, Analytics, etc.)
-│   │   └── stores/           # Zustand global state
-│   └── package.json
-├── docs/                     # Technical specifications & design docs
-└── docker-compose.yml        # Orchestration configuration
-```
-
----
 <div align="center">
-  <p>Engineered for the educators and students of Gujarat.</p>
+  <p>Engineered for the educators and students.</p>
 </div>
-                        

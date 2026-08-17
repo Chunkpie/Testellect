@@ -217,6 +217,10 @@ export default function OMRPage() {
   const [resultsData, setResultsData] = useState<{ results: EvaluatedAnswer[], summary: OMRSummary } | null>(null)
   const [deleteBatchId, setDeleteBatchId] = useState<string | null>(null)
 
+  const [downloadTarget, setDownloadTarget] = useState<{batchId: string, studentId: number} | null>(null)
+  const [downloadLanguage, setDownloadLanguage] = useState<'english' | 'hindi' | 'gujarati'>('english')
+  const [isDownloadingReport, setIsDownloadingReport] = useState(false)
+
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['omr-sessions'],
     queryFn: () => omrApi.listSessions(),
@@ -257,15 +261,18 @@ export default function OMRPage() {
     }
   }, [])
 
-  const handleDownloadReport = useCallback(async (batchId: string, studentId: number) => {
+  const handleDownloadReport = useCallback(async () => {
+    if (!downloadTarget) return
+    const { batchId, studentId } = downloadTarget
+    setIsDownloadingReport(true)
     try {
-      const response = await api.get(`/omr/${encodeURIComponent(batchId)}/student/${studentId}/download-reports`, {
+      const response = await api.get(`/omr/${encodeURIComponent(batchId)}/student/${studentId}/download-reports?lang=${downloadLanguage}`, {
         responseType: 'blob'
       })
       const url = window.URL.createObjectURL(response.data)
       const a = document.createElement('a')
       a.href = url
-      let filename = `Reports_Student_${studentId}.zip`
+      let filename = `Reports_Student_${studentId}_${downloadLanguage}.zip`
       const disposition = response.headers['content-disposition']
       if (disposition && disposition.indexOf('filename=') !== -1) {
         const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition)
@@ -278,11 +285,14 @@ export default function OMRPage() {
       a.click()
       document.body.removeChild(a)
       setTimeout(() => window.URL.revokeObjectURL(url), 1000)
+      setDownloadTarget(null)
     } catch (e) {
       console.error('Failed to download report', e)
       alert('Failed to download report')
+    } finally {
+      setIsDownloadingReport(false)
     }
-  }, [])
+  }, [downloadTarget, downloadLanguage])
 
   const handleUploadClick = (batchId: string) => {
     if (!batchId) return
@@ -338,7 +348,10 @@ export default function OMRPage() {
                           <Upload className="h-4 w-4 mr-2" /> Upload Scanned OMR
                         </Button>
                       ) : (
-                        <Button variant="default" size="sm" onClick={() => handleDownloadReport(viewingSession.batch_id, s.student_id || 1)}>
+                        <Button variant="default" size="sm" onClick={() => {
+                          setDownloadLanguage('english')
+                          setDownloadTarget({ batchId: viewingSession.batch_id, studentId: s.student_id || 1 })
+                        }}>
                           <Download className="h-4 w-4 mr-2" /> Download Reports
                         </Button>
                       )}
@@ -468,6 +481,51 @@ export default function OMRPage() {
             >
               {deleteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Trash2 className="h-4 w-4 mr-2" />}
               Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!downloadTarget} onOpenChange={(v) => { if (!v) setDownloadTarget(null) }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Download Student Report</DialogTitle>
+            <DialogDescription>
+              Select the language you want to generate the PDF report in.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 py-4">
+            <Button 
+              variant={downloadLanguage === 'english' ? 'default' : 'outline'} 
+              onClick={() => setDownloadLanguage('english')}
+              className="justify-start"
+            >
+              English
+            </Button>
+            <Button 
+              variant={downloadLanguage === 'hindi' ? 'default' : 'outline'} 
+              onClick={() => setDownloadLanguage('hindi')}
+              className="justify-start"
+            >
+              Hindi
+            </Button>
+            <Button 
+              variant={downloadLanguage === 'gujarati' ? 'default' : 'outline'} 
+              onClick={() => setDownloadLanguage('gujarati')}
+              className="justify-start"
+            >
+              Gujarati
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setDownloadTarget(null)}>Cancel</Button>
+            <Button 
+              type="button" 
+              onClick={handleDownloadReport} 
+              disabled={isDownloadingReport} 
+            >
+              {isDownloadingReport ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+              {isDownloadingReport ? 'Generating...' : 'Download PDF'}
             </Button>
           </DialogFooter>
         </DialogContent>

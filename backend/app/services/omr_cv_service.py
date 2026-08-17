@@ -15,17 +15,21 @@ from app.core.config import settings
 
 class OMRCVService:
     # ---- Tunable constants (kept in one place instead of scattered magic numbers) ----
-    MIN_PAGE_CONTOUR_AREA_RATIO = 0.65   # a "page" contour must cover >=65% of the frame
-    OPTIONS_PER_QUESTION = 4              # A/B/C/D
-    FALLBACK_COVERAGE_THRESHOLD = 0.8     # trigger Gemini fallback if <80% of questions were read
-    FALLBACK_CONFIDENCE_THRESHOLD = 0.55  # or if average fill-confidence is too low/ambiguous
+    MIN_PAGE_CONTOUR_AREA_RATIO = 0.65  # a "page" contour must cover >=65% of the frame
+    OPTIONS_PER_QUESTION = 4  # A/B/C/D
+    FALLBACK_COVERAGE_THRESHOLD = (
+        0.8  # trigger Gemini fallback if <80% of questions were read
+    )
+    FALLBACK_CONFIDENCE_THRESHOLD = (
+        0.55  # or if average fill-confidence is too low/ambiguous
+    )
 
     @staticmethod
     def read_qr(image: np.ndarray) -> str:
         """Extract QR code payload from image."""
         decoded = decode(image)
         if decoded:
-            return decoded[0].data.decode('utf-8')
+            return decoded[0].data.decode("utf-8")
         return ""
 
     @staticmethod
@@ -42,18 +46,22 @@ class OMRCVService:
     @staticmethod
     def four_point_transform(image, pts):
         rect = OMRCVService.order_points(pts)
-        (tl, tr, br, bl) = rect
+        tl, tr, br, bl = rect
         widthA = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
         widthB = np.sqrt(((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))
         maxWidth = max(int(widthA), int(widthB))
         heightA = np.sqrt(((tr[0] - br[0]) ** 2) + ((tr[1] - br[1]) ** 2))
         heightB = np.sqrt(((tl[0] - bl[0]) ** 2) + ((tl[1] - bl[1]) ** 2))
         maxHeight = max(int(heightA), int(heightB))
-        dst = np.array([
-            [0, 0],
-            [maxWidth - 1, 0],
-            [maxWidth - 1, maxHeight - 1],
-            [0, maxHeight - 1]], dtype="float32")
+        dst = np.array(
+            [
+                [0, 0],
+                [maxWidth - 1, 0],
+                [maxWidth - 1, maxHeight - 1],
+                [0, maxHeight - 1],
+            ],
+            dtype="float32",
+        )
         M = cv2.getPerspectiveTransform(rect, dst)
         warped = cv2.warpPerspective(image, M, (maxWidth, maxHeight))
         return warped
@@ -73,7 +81,9 @@ class OMRCVService:
         # dilate to help close small gaps in the page border
         edged = cv2.dilate(edged, np.ones((3, 3), np.uint8), iterations=1)
 
-        cnts, _ = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        cnts, _ = cv2.findContours(
+            edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+        )
         if not cnts:
             return gray
 
@@ -106,7 +116,9 @@ class OMRCVService:
         # generous net: anywhere from tiny noise to a large chunk of the page
         lo, hi = img_diag * 0.001, img_diag * 0.08
 
-        cnts, _ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        cnts, _ = cv2.findContours(
+            thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+        )
         sizes = []
         for c in cnts:
             x, y, w, h = cv2.boundingRect(c)
@@ -137,13 +149,16 @@ class OMRCVService:
         if method in ("right-to-left", "bottom-to-top"):
             reverse = True
         boundingBoxes = [cv2.boundingRect(c) for c in cnts]
-        cnts, boundingBoxes = zip(*sorted(zip(cnts, boundingBoxes),
-                                           key=lambda b: b[1][i], reverse=reverse))
+        cnts, boundingBoxes = zip(
+            *sorted(zip(cnts, boundingBoxes), key=lambda b: b[1][i], reverse=reverse)
+        )
         return cnts, boundingBoxes
 
     @staticmethod
     def _detect_bubble_contours(thresh: np.ndarray) -> List[Any]:
-        cnts, _ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        cnts, _ = cv2.findContours(
+            thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+        )
         min_dim, max_dim = OMRCVService._estimate_bubble_size(thresh)
 
         candidates = []
@@ -176,7 +191,9 @@ class OMRCVService:
         median_h = float(np.median([h for (_, _, _, h) in boxes]))
         row_tol = max(median_h * 0.7, 8)
 
-        questionCnts, _ = OMRCVService._sort_contours(questionCnts, method="top-to-bottom")
+        questionCnts, _ = OMRCVService._sort_contours(
+            questionCnts, method="top-to-bottom"
+        )
 
         y_bands = []
         current_band = [questionCnts[0]]
@@ -230,7 +247,9 @@ class OMRCVService:
                 start = idx
             all_chunks.append(list(band[start:]))
 
-        valid_chunks = [chk for chk in all_chunks if len(chk) == OMRCVService.OPTIONS_PER_QUESTION]
+        valid_chunks = [
+            chk for chk in all_chunks if len(chk) == OMRCVService.OPTIONS_PER_QUESTION
+        ]
 
         chunk_data = []
         for chk in valid_chunks:
@@ -245,8 +264,10 @@ class OMRCVService:
             # right block of 26-50) using relative gap size rather than a fixed
             # pixel threshold, so this adapts to whatever column spacing this
             # particular sheet uses.
-            x_gaps = [chunk_data[i]["avg_x"] - chunk_data[i - 1]["avg_x"]
-                      for i in range(1, len(chunk_data))]
+            x_gaps = [
+                chunk_data[i]["avg_x"] - chunk_data[i - 1]["avg_x"]
+                for i in range(1, len(chunk_data))
+            ]
             gap_cutoff = (float(np.median(x_gaps)) * 3.0) if x_gaps else 0
 
             current_col = [chunk_data[0]]
@@ -305,7 +326,9 @@ class OMRCVService:
         return darkest_idx, confidence
 
     @staticmethod
-    async def process_image(image_path: str, total_questions: int = 30) -> Dict[str, Any]:
+    async def process_image(
+        image_path: str, total_questions: int = 30, skip_qr: bool = False
+    ) -> Dict[str, Any]:
         """
         Process a single scanned OMR image/PDF page.
         Returns extracted answers and metadata, plus a confidence score.
@@ -314,16 +337,19 @@ class OMRCVService:
         if image is None:
             raise ValueError(f"Could not read image: {image_path}")
 
-        qr_payload = OMRCVService.read_qr(image)
         metadata = {}
-        if qr_payload:
-            try:
-                metadata = json.loads(qr_payload)
-            except json.JSONDecodeError:
-                metadata = {"raw": qr_payload}
+        if not skip_qr:
+            qr_payload = OMRCVService.read_qr(image)
+            if qr_payload:
+                try:
+                    metadata = json.loads(qr_payload)
+                except json.JSONDecodeError:
+                    metadata = {"raw": qr_payload}
 
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        gray = OMRCVService._find_page(gray)  # only warps if a trustworthy page contour is found
+        gray = OMRCVService._find_page(
+            gray
+        )  # only warps if a trustworthy page contour is found
 
         thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
         questionCnts = OMRCVService._detect_bubble_contours(thresh)
@@ -348,12 +374,15 @@ class OMRCVService:
         used_fallback = False
         if needs_fallback:
             try:
-                gemini_answers = await OMRCVService._vlm_fallback(image_path, total_questions)
+                gemini_answers = await OMRCVService._vlm_fallback(
+                    image_path, total_questions
+                )
                 if gemini_answers:
                     answers = gemini_answers
                     used_fallback = True
             except Exception:
                 import traceback
+
                 traceback.print_exc()
                 # keep whatever the CV heuristic found rather than returning nothing
 
@@ -368,10 +397,12 @@ class OMRCVService:
         }
 
     @staticmethod
-    async def _vlm_fallback(image_path: str, total_questions: int) -> List[Dict[str, Any]]:
+    async def _vlm_fallback(
+        image_path: str, total_questions: int
+    ) -> List[Dict[str, Any]]:
         with open(image_path, "rb") as f:
             image_bytes = f.read()
-        base64_image = base64.b64encode(image_bytes).decode('utf-8')
+        base64_image = base64.b64encode(image_bytes).decode("utf-8")
 
         prompt = (
             f"Extract all the answers marked by the student on this OMR sheet. "
@@ -387,7 +418,7 @@ class OMRCVService:
         # Try Local Ollama Vision Model first
         ollama_url = getattr(settings, "OLLAMA_BASE_URL", "http://ollama:11434")
         ollama_model = getattr(settings, "OLLAMA_VISION_MODEL", "llama3.2-vision")
-        
+
         if ollama_url and ollama_model:
             try:
                 payload = {
@@ -396,24 +427,35 @@ class OMRCVService:
                     "images": [base64_image],
                     "stream": False,
                     "format": "json",
-                    "options": {"temperature": 0.1}
+                    "options": {"temperature": 0.1},
                 }
                 async with httpx.AsyncClient(timeout=120) as client:
-                    response = await client.post(f"{ollama_url}/api/generate", json=payload)
+                    response = await client.post(
+                        f"{ollama_url}/api/generate", json=payload
+                    )
                     if response.status_code == 200:
                         text_resp = response.json().get("response", "[]").strip()
                         # Strip markdown if present
-                        if text_resp.startswith('```json'): text_resp = text_resp[7:]
-                        elif text_resp.startswith('```'): text_resp = text_resp[3:]
-                        if text_resp.endswith('```'): text_resp = text_resp[:-3]
+                        if text_resp.startswith("```json"):
+                            text_resp = text_resp[7:]
+                        elif text_resp.startswith("```"):
+                            text_resp = text_resp[3:]
+                        if text_resp.endswith("```"):
+                            text_resp = text_resp[:-3]
                         text_resp = text_resp.strip()
                         return json.loads(text_resp)
                     else:
                         import logging
-                        logging.error(f"Ollama vision fallback failed with status {response.status_code}: {response.text}")
+
+                        logging.error(
+                            f"Ollama vision fallback failed with status {response.status_code}: {response.text}"
+                        )
             except Exception as e:
                 import logging
-                logging.error(f"Ollama vision fallback exception: {e}. Falling back to Gemini.")
+
+                logging.error(
+                    f"Ollama vision fallback exception: {e}. Falling back to Gemini."
+                )
 
         # Fallback to Gemini if Ollama fails or isn't configured
         api_key = getattr(settings, "GEMINI_API_KEY", None)
@@ -430,54 +472,80 @@ class OMRCVService:
                     "role": "user",
                     "parts": [
                         {"text": prompt},
-                        {"inlineData": {"mimeType": "image/jpeg", "data": base64_image}},
+                        {
+                            "inlineData": {
+                                "mimeType": "image/jpeg",
+                                "data": base64_image,
+                            }
+                        },
                     ],
                 }
             ],
-            "generationConfig": {"temperature": 0.1, "responseMimeType": "application/json"},
+            "generationConfig": {
+                "temperature": 0.1,
+                "responseMimeType": "application/json",
+            },
         }
 
         async with httpx.AsyncClient(timeout=60) as client:
             response = await client.post(url, headers=headers, json=payload)
             response.raise_for_status()
             response_data = response.json()
-            text_resp = response_data.get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text', '[]')
-        
+            text_resp = (
+                response_data.get("candidates", [{}])[0]
+                .get("content", {})
+                .get("parts", [{}])[0]
+                .get("text", "[]")
+            )
+
             text_resp = text_resp.strip()
-            if text_resp.startswith('```json'): text_resp = text_resp[7:]
-            elif text_resp.startswith('```'): text_resp = text_resp[3:]
-            if text_resp.endswith('```'): text_resp = text_resp[:-3]
+            if text_resp.startswith("```json"):
+                text_resp = text_resp[7:]
+            elif text_resp.startswith("```"):
+                text_resp = text_resp[3:]
+            if text_resp.endswith("```"):
+                text_resp = text_resp[:-3]
             text_resp = text_resp.strip()
 
             return json.loads(text_resp)
 
     @staticmethod
-    async def process_pdf(pdf_path: str, total_questions: int = 30) -> List[Dict[str, Any]]:
+    async def process_pdf(
+        pdf_path: str, total_questions: int = 30, skip_qr: bool = False
+    ) -> List[Dict[str, Any]]:
         results = []
         with tempfile.TemporaryDirectory() as path:
             images = convert_from_path(pdf_path, output_folder=path)
             for i, img in enumerate(images):
                 img_path = os.path.join(path, f"page_{i}.jpg")
-                img.save(img_path, 'JPEG')
-                result = await OMRCVService.process_image(img_path, total_questions)
+                img.save(img_path, "JPEG")
+                result = await OMRCVService.process_image(
+                    img_path, total_questions, skip_qr=skip_qr
+                )
                 results.append(result)
         return results
 
     @staticmethod
-    async def process_zip(zip_path: str, total_questions: int = 30) -> List[Dict[str, Any]]:
+    async def process_zip(
+        zip_path: str, total_questions: int = 30, skip_qr: bool = False
+    ) -> List[Dict[str, Any]]:
         results = []
         with tempfile.TemporaryDirectory() as extract_dir:
-            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            with zipfile.ZipFile(zip_path, "r") as zip_ref:
                 zip_ref.extractall(extract_dir)
 
             for root, _, files in os.walk(extract_dir):
                 for file in files:
-                    ext = file.lower().split('.')[-1]
+                    ext = file.lower().split(".")[-1]
                     file_path = os.path.join(root, file)
-                    if ext in ['jpg', 'jpeg', 'png']:
-                        result = await OMRCVService.process_image(file_path, total_questions)
+                    if ext in ["jpg", "jpeg", "png"]:
+                        result = await OMRCVService.process_image(
+                            file_path, total_questions, skip_qr=skip_qr
+                        )
                         results.append(result)
-                    elif ext == 'pdf':
-                        pdf_results = await OMRCVService.process_pdf(file_path, total_questions)
+                    elif ext == "pdf":
+                        pdf_results = await OMRCVService.process_pdf(
+                            file_path, total_questions, skip_qr=skip_qr
+                        )
                         results.extend(pdf_results)
         return results

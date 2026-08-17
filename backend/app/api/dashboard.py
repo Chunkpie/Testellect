@@ -3,13 +3,23 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_db, get_current_user
-from app.models.models import User, Chapter, QuestionBank, Assessment, StudentResult, School, Student
+from app.models.models import (
+    User,
+    Chapter,
+    QuestionBank,
+    Assessment,
+    StudentResult,
+    School,
+    Student,
+)
 
 router = APIRouter()
 
 
 @router.get("")
-async def get_dashboard(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def get_dashboard(
+    user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+):
     result = await db.execute(select(func.count()).select_from(Chapter))
     total_chapters = result.scalar()
 

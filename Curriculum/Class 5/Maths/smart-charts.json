@@ -1,0 +1,101 @@
+{
+  "sequence": 12,
+  "title": "Smart Charts",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Collecting and Organizing Data",
+      "concepts": [
+        {
+          "name": "Data Collection",
+          "description": "Data is a collection of facts or information gathered through observation, surveys, or counting. Students learn to collect data from simple real-life situations such as classroom activities and daily observations.",
+          "learning_outcome": "Students will be able to collect and record data from simple observations and surveys."
+        },
+        {
+          "name": "Organizing Data in Tables",
+          "description": "Organizing data into tables makes it easier to read, compare, and analyze information. Tables provide a systematic way to present collected data.",
+          "learning_outcome": "Students will be able to organize collected data into simple tables."
+        },
+        {
+          "name": "Frequency",
+          "description": "Frequency represents the number of times a particular observation or category occurs in a dataset.",
+          "learning_outcome": "Students will be able to determine and record the frequency of different observations."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Reading and Interpreting Charts",
+      "concepts": [
+        {
+          "name": "Pictographs",
+          "description": "Pictographs represent data using pictures or symbols, where each symbol stands for a fixed number of items. They provide an attractive and simple way to display information.",
+          "learning_outcome": "Students will be able to read and interpret information presented in pictographs."
+        },
+        {
+          "name": "Bar Graphs",
+          "description": "Bar graphs display data using bars of equal width and varying heights or lengths. They allow easy comparison between different categories.",
+          "learning_outcome": "Students will be able to read and interpret simple bar graphs."
+        },
+        {
+          "name": "Comparing Data",
+          "description": "Charts help compare quantities across different categories by observing the relative sizes of bars or symbols.",
+          "learning_outcome": "Students will be able to compare values represented in charts and identify the highest and lowest quantities."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Representing Data",
+      "concepts": [
+        {
+          "name": "Creating Pictographs",
+          "description": "Students create pictographs by selecting suitable symbols and assigning an appropriate value to each symbol.",
+          "learning_outcome": "Students will be able to construct simple pictographs from given data."
+        },
+        {
+          "name": "Drawing Bar Graphs",
+          "description": "Students represent numerical data using bar graphs with properly labeled axes and uniform scales.",
+          "learning_outcome": "Students will be able to draw simple bar graphs from tabulated data."
+        },
+        {
+          "name": "Choosing Appropriate Representation",
+          "description": "Different forms of charts are suitable for different types of data. Students learn to select an appropriate method for presenting information.",
+          "learning_outcome": "Students will be able to choose a suitable chart to represent a given dataset."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Using Charts in Everyday Life",
+      "concepts": [
+        {
+          "name": "Data-Based Decision Making",
+          "description": "Charts help people make informed decisions by presenting information clearly and allowing easy comparison of data.",
+          "learning_outcome": "Students will be able to use charts to answer questions and make simple decisions based on data."
+        },
+        {
+          "name": "Applications of Charts",
+          "description": "Charts are used in schools, newspapers, weather reports, sports, business, and scientific studies to communicate information effectively.",
+          "learning_outcome": "Students will be able to identify real-life situations where charts are used."
+        },
+        {
+          "name": "Interpreting Trends",
+          "description": "Students observe patterns and trends in data to identify increases, decreases, and comparisons across categories.",
+          "learning_outcome": "Students will be able to interpret simple trends shown in pictographs and bar graphs."
+        }
+      ]
+    },
+    {
+      "sequence": 5,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Understanding Smart Charts",
+          "description": "This chapter develops students' ability to collect, organize, represent, interpret, and analyze data using tables, pictographs, and bar graphs.",
+          "learning_outcome": "Students will be able to organize data, construct charts, interpret graphical information, and apply data-handling skills to solve everyday problems."
+        }
+      ]
+    }
+  ]
+}

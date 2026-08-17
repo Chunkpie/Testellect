@@ -21,7 +21,14 @@ _warmup_task: asyncio.Task | None = None
 async def _warmup_ollama():
     try:
         from app.services.ai_pipeline.ollama_client import OllamaClient
+
         client = OllamaClient(timeout_seconds=900)
+        
+        # Task 2b/3c: Auto-pull models before warming up
+        await client.pull_model("llama3.2")
+        await client.pull_model("llama3.2:1b")
+        await client.pull_model("nomic-embed-text")
+        
         logger.info("Pre-warming model (timeout=%d)...", client.timeout_seconds)
         await client.generate(
             prompt="Reply with just the word 'ready'.",
@@ -43,6 +50,7 @@ async def lifespan(app: FastAPI):
     from sqlalchemy import select, or_
     from sqlalchemy.ext.asyncio import AsyncSession
     from app.core.database import async_session_factory
+
     async with async_session_factory() as cleanup_db:
         stale = await cleanup_db.execute(
             select(Job).where(
@@ -88,12 +96,40 @@ def create_app() -> FastAPI:
 
     @application.get("/health")
     async def health():
-        return {"status": "ok", "app": settings.APP_NAME if hasattr(settings, "APP_NAME") else "Testellect Platform"}
+        return {
+            "status": "ok",
+            "app": (
+                settings.APP_NAME
+                if hasattr(settings, "APP_NAME")
+                else "Testellect Platform"
+            ),
+        }
 
     @application.get("/health/ready")
     async def health_ready(request: Request):
-        return {"status": "ready", "app": settings.APP_NAME if hasattr(settings, "APP_NAME") else "Testellect Platform"}
+        return {
+            "status": "ready",
+            "app": (
+                settings.APP_NAME
+                if hasattr(settings, "APP_NAME")
+                else "Testellect Platform"
+            ),
+        }
 
+    import os
+    from fastapi.responses import FileResponse
+
+    if os.path.isdir("dist"):
+        application.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
+        
+        @application.get("/{full_path:path}")
+        async def serve_spa(full_path: str):
+            # If the path is an API call that wasn't matched, let it 404 naturally
+            if full_path.startswith("api/"):
+                return {"detail": "Not Found"}
+            # Otherwise, serve the React app
+            return FileResponse("dist/index.html")
+            
     return application
 
 

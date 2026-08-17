@@ -1,0 +1,80 @@
+{
+  "sequence": 13,
+  "title": "Statistics",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Mean of Grouped Data",
+      "concepts": [
+        {
+          "name": "Grouped Frequency Distribution",
+          "description": "Grouped data organizes observations into class intervals along with their corresponding frequencies. This representation simplifies the analysis of large datasets.",
+          "learning_outcome": "Students will be able to organize raw data into grouped frequency distributions and identify class intervals, class marks, and frequencies."
+        },
+        {
+          "name": "Arithmetic Mean of Grouped Data",
+          "description": "The arithmetic mean represents the average value of grouped data and is calculated using class marks and frequencies. It provides a measure of the central tendency of the dataset.",
+          "learning_outcome": "Students will be able to calculate the arithmetic mean of grouped data using the direct method."
+        },
+        {
+          "name": "Assumed Mean Method",
+          "description": "The assumed mean method simplifies calculations by selecting a convenient reference value and computing deviations from it.",
+          "learning_outcome": "Students will be able to determine the mean of grouped data using the assumed mean method."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Mode of Grouped Data",
+      "concepts": [
+        {
+          "name": "Mode",
+          "description": "The mode is the value or class that occurs most frequently in a dataset. For grouped data, it is estimated using the modal class and a standard formula.",
+          "learning_outcome": "Students will be able to identify the modal class and calculate the mode of grouped data."
+        },
+        {
+          "name": "Modal Class",
+          "description": "The modal class is the class interval having the highest frequency. It serves as the basis for estimating the mode of grouped data.",
+          "learning_outcome": "Students will be able to identify the modal class from a grouped frequency distribution."
+        },
+        {
+          "name": "Applications of Mode",
+          "description": "The mode is useful in identifying the most common or frequently occurring value in practical situations such as market research and surveys.",
+          "learning_outcome": "Students will be able to interpret the mode in real-life contexts involving grouped data."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Median of Grouped Data",
+      "concepts": [
+        {
+          "name": "Median",
+          "description": "The median is the middle value that divides an ordered dataset into two equal parts. For grouped data, it is estimated using the median class and interpolation formula.",
+          "learning_outcome": "Students will be able to calculate the median of grouped data using the standard formula."
+        },
+        {
+          "name": "Median Class",
+          "description": "The median class is the class interval that contains the median value of the grouped data. It is identified using cumulative frequencies.",
+          "learning_outcome": "Students will be able to determine the median class using cumulative frequency."
+        },
+        {
+          "name": "Cumulative Frequency",
+          "description": "Cumulative frequency is the running total of frequencies across class intervals. It is essential for locating the median class.",
+          "learning_outcome": "Students will be able to construct cumulative frequency tables and use them to determine the median."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Measures of Central Tendency",
+          "description": "This chapter summarizes the methods for determining the mean, median, and mode of grouped data. These statistical measures help describe the central value of a dataset.",
+          "learning_outcome": "Students will be able to select and apply the appropriate measure of central tendency for grouped data in mathematical and real-world situations."
+        }
+      ]
+    }
+  ]
+}

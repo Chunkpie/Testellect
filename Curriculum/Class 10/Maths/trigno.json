@@ -1,0 +1,96 @@
+{
+  "sequence": 8,
+  "title": "Introduction to Trigonometry",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Introduction",
+      "concepts": [
+        {
+          "name": "Trigonometry and Its Applications",
+          "description": "Trigonometry is the branch of mathematics that studies the relationships between the sides and angles of triangles. It has applications in engineering, architecture, astronomy, navigation, and surveying.",
+          "learning_outcome": "Students will be able to explain the purpose of trigonometry and identify its applications in real-life situations."
+        },
+        {
+          "name": "Right-Angled Triangles",
+          "description": "Trigonometric ratios are defined using the sides of a right-angled triangle, namely the hypotenuse, opposite side, and adjacent side with respect to an acute angle.",
+          "learning_outcome": "Students will be able to identify the hypotenuse, opposite side, and adjacent side for a given angle in a right-angled triangle."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Trigonometric Ratios",
+      "concepts": [
+        {
+          "name": "Six Trigonometric Ratios",
+          "description": "The six trigonometric ratios—sine, cosine, tangent, cosecant, secant, and cotangent—describe the relationships between the sides of a right-angled triangle.",
+          "learning_outcome": "Students will be able to define and calculate the six trigonometric ratios for acute angles."
+        },
+        {
+          "name": "Relationship Between Trigonometric Ratios",
+          "description": "The reciprocal relationships between trigonometric ratios help simplify calculations and establish connections among the six ratios.",
+          "learning_outcome": "Students will be able to derive reciprocal trigonometric ratios from given values."
+        },
+        {
+          "name": "Using Trigonometric Ratios",
+          "description": "Trigonometric ratios are used to determine unknown sides or angles in right-angled triangles.",
+          "learning_outcome": "Students will be able to solve right-angled triangle problems using appropriate trigonometric ratios."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Trigonometric Ratios of Some Specific Angles",
+      "concepts": [
+        {
+          "name": "Standard Angle Values",
+          "description": "The trigonometric ratios of 0°, 30°, 45°, 60°, and 90° have fixed values that are frequently used in mathematical calculations.",
+          "learning_outcome": "Students will be able to recall and use the standard trigonometric values for 0°, 30°, 45°, 60°, and 90°."
+        },
+        {
+          "name": "Special Right Triangles",
+          "description": "The standard trigonometric values are derived from the properties of 45°–45°–90° and 30°–60°–90° triangles.",
+          "learning_outcome": "Students will be able to derive standard trigonometric values using special right triangles."
+        },
+        {
+          "name": "Application of Standard Values",
+          "description": "Standard trigonometric values simplify calculations in geometry and real-life measurement problems.",
+          "learning_outcome": "Students will be able to solve problems involving standard trigonometric values without using a calculator."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Trigonometric Identities",
+      "concepts": [
+        {
+          "name": "Fundamental Trigonometric Identity",
+          "description": "The identity sin²θ + cos²θ = 1 is the fundamental relationship among trigonometric ratios and forms the basis for proving other identities.",
+          "learning_outcome": "Students will be able to verify and apply the fundamental trigonometric identity."
+        },
+        {
+          "name": "Derived Identities",
+          "description": "Other trigonometric identities are obtained by manipulating the fundamental identity and reciprocal relationships.",
+          "learning_outcome": "Students will be able to derive and use basic trigonometric identities in algebraic simplification."
+        },
+        {
+          "name": "Verification of Identities",
+          "description": "Verifying identities involves simplifying one side of an equation until it matches the other using known trigonometric relationships.",
+          "learning_outcome": "Students will be able to verify simple trigonometric identities using standard formulas."
+        }
+      ]
+    },
+    {
+      "sequence": 5,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Key Concepts of Introduction to Trigonometry",
+          "description": "This chapter introduces trigonometric ratios, standard angle values, and fundamental identities used to solve right-angled triangle problems.",
+          "learning_outcome": "Students will be able to apply trigonometric ratios and identities to solve mathematical and practical problems involving right-angled triangles."
+        }
+      ]
+    }
+  ]
+}

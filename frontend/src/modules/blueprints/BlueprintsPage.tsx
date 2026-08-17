@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import * as blueprintsApi from '@/api/blueprints'
+import * as papersApi from '@/api/papers'
 import type { Blueprint } from '@/api/blueprints'
 import {
   Table,
@@ -35,6 +36,7 @@ import {
 import {
   FileEdit,
   Eye,
+  Download,
   Loader2,
   AlertCircle,
   ChevronLeft,
@@ -336,6 +338,28 @@ export default function BlueprintsPage() {
     }
   }, [deleteTarget, deleteMutation])
 
+  
+  const [isDownloading, setIsDownloading] = useState<number | null>(null);
+
+  const handleDownloadAll = useCallback(async (bpId: number) => {
+    try {
+      setIsDownloading(bpId);
+      const blob = await papersApi.downloadAllPaperSetsPdf(bpId, 'english');
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Blueprint_${bpId}_All_Sets.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Download all failed", error);
+    } finally {
+      setIsDownloading(null);
+    }
+  }, []);
+
   const handleGenerate = useCallback((bp: Blueprint) => {
     setGeneratingId(bp.id)
     generateMutation.mutate({ id: bp.id, name: `Paper from ${bp.name}` })
@@ -617,6 +641,21 @@ export default function BlueprintsPage() {
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDownloadAll(bp.id)}
+                            disabled={isDownloading === bp.id}
+                            title="Download All Sets"
+                            className="text-indigo-500 hover:text-indigo-400"
+                          >
+                            {isDownloading === bp.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Download className="h-4 w-4" />
+                            )}
+                          </Button>
+
                         </div>
                       </TableCell>
                     </TableRow>

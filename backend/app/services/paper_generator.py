@@ -10,6 +10,7 @@ from app.db.models.papers import Blueprint, Paper, PaperQuestion
 
 logger = logging.getLogger(__name__)
 
+
 async def create_blueprint_and_papers(
     db: AsyncSession,
     book_id: int,
@@ -17,18 +18,18 @@ async def create_blueprint_and_papers(
     school_id: int,
     questions: list[QuestionBank],
     num_papers: int = 15,
-    questions_per_paper: int = 40
+    questions_per_paper: int = 40,
 ):
     # Fetch book and subject
     b_res = await db.execute(select(Book).where(Book.id == book_id))
     book = b_res.scalar_one_or_none()
     if not book:
         return
-        
+
     s_res = await db.execute(select(Subject).where(Subject.id == book.subject_id))
     subject = s_res.scalar_one_or_none()
     sub_name = subject.name_en if subject else "General"
-    
+
     # Create Blueprint
     bp = Blueprint(
         school_id=school_id,
@@ -42,7 +43,7 @@ async def create_blueprint_and_papers(
     )
     db.add(bp)
     await db.flush()
-    
+
     # Create 15 Papers
     for i in range(num_papers):
         paper = Paper(
@@ -53,12 +54,12 @@ async def create_blueprint_and_papers(
         )
         db.add(paper)
         await db.flush()
-        
+
         # Shuffle all generated questions and pick top N
         paper_qs = list(questions)
         random.shuffle(paper_qs)
         selected_qs = paper_qs[:questions_per_paper]
-        
+
         for seq, q in enumerate(selected_qs):
             pq = PaperQuestion(
                 paper_id=paper.id,
@@ -66,6 +67,8 @@ async def create_blueprint_and_papers(
                 sequence=seq + 1,
             )
             db.add(pq)
-            
+
     await db.commit()
-    logger.info(f"Successfully generated {num_papers} papers with {questions_per_paper} questions each.")
+    logger.info(
+        f"Successfully generated {num_papers} papers with {questions_per_paper} questions each."
+    )

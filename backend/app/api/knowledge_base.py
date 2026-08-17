@@ -6,8 +6,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.deps import get_db, get_current_user
 from app.core.audit import log_audit_entry
 from app.models.models import (
-    User, Subject, Book, Chapter, Topic, Concept,
-    LearningOutcome, Competency,
+    User,
+    Subject,
+    Book,
+    Chapter,
+    Topic,
+    Concept,
+    LearningOutcome,
+    Competency,
 )
 
 router = APIRouter()
@@ -21,7 +27,9 @@ async def get_knowledge_tree(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role not in ("teacher", "administrator"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
+        )
 
     stmt = select(Subject)
     if grade is not None:
@@ -51,7 +59,9 @@ async def get_knowledge_tree(
 
         for book in books:
             chap_result = await db.execute(
-                select(Chapter).where(Chapter.book_id == book.id).order_by(Chapter.sequence)
+                select(Chapter)
+                .where(Chapter.book_id == book.id)
+                .order_by(Chapter.sequence)
             )
             chapters = chap_result.scalars().all()
 
@@ -64,7 +74,9 @@ async def get_knowledge_tree(
 
             for ch in chapters:
                 topic_result = await db.execute(
-                    select(Topic).where(Topic.chapter_id == ch.id).order_by(Topic.sequence)
+                    select(Topic)
+                    .where(Topic.chapter_id == ch.id)
+                    .order_by(Topic.sequence)
                 )
                 topics = topic_result.scalars().all()
 
@@ -80,7 +92,9 @@ async def get_knowledge_tree(
 
                 for t in topics:
                     concept_result = await db.execute(
-                        select(Concept).where(Concept.topic_id == t.id).order_by(Concept.name_en)
+                        select(Concept)
+                        .where(Concept.topic_id == t.id)
+                        .order_by(Concept.name_en)
                     )
                     concepts = concept_result.scalars().all()
 
@@ -93,7 +107,9 @@ async def get_knowledge_tree(
 
                     for c in concepts:
                         lo_result = await db.execute(
-                            select(LearningOutcome).where(LearningOutcome.concept_id == c.id)
+                            select(LearningOutcome).where(
+                                LearningOutcome.concept_id == c.id
+                            )
                         )
                         los = lo_result.scalars().all()
 
@@ -104,7 +120,11 @@ async def get_knowledge_tree(
                             "name_gu": c.name_gu,
                             "description": c.description,
                             "learning_outcomes": [
-                                {"id": lo.id, "code": lo.code, "description_en": lo.description_en}
+                                {
+                                    "id": lo.id,
+                                    "code": lo.code,
+                                    "description_en": lo.description_en,
+                                }
                                 for lo in los
                             ],
                         }
@@ -131,7 +151,9 @@ async def search_knowledge_base(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role not in ("teacher", "administrator"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
+        )
 
     from app.models.models import KnowledgeChunk
 
@@ -158,14 +180,20 @@ async def get_concept(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role not in ("teacher", "administrator"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
+        )
 
     result = await db.execute(select(Concept).where(Concept.id == concept_id))
     concept = result.scalar_one_or_none()
     if not concept:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Concept not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Concept not found"
+        )
 
-    lo_result = await db.execute(select(LearningOutcome).where(LearningOutcome.concept_id == concept_id))
+    lo_result = await db.execute(
+        select(LearningOutcome).where(LearningOutcome.concept_id == concept_id)
+    )
     learning_outcomes = lo_result.scalars().all()
 
     comp_result = await db.execute(
@@ -184,10 +212,12 @@ async def get_concept(
         "description": concept.description,
         "extracted_by": concept.extracted_by,
         "learning_outcomes": [
-            {"id": lo.id, "code": lo.code, "description_en": lo.description_en} for lo in learning_outcomes
+            {"id": lo.id, "code": lo.code, "description_en": lo.description_en}
+            for lo in learning_outcomes
         ],
         "competencies": [
-            {"id": c.id, "name_en": c.name_en, "nas_parakh_code": c.nas_parakh_code} for c in competencies
+            {"id": c.id, "name_en": c.name_en, "nas_parakh_code": c.nas_parakh_code}
+            for c in competencies
         ],
     }
 
@@ -207,12 +237,16 @@ async def update_concept(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role not in ("teacher", "administrator"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
+        )
 
     result = await db.execute(select(Concept).where(Concept.id == concept_id))
     concept = result.scalar_one_or_none()
     if not concept:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Concept not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Concept not found"
+        )
 
     for key, val in data.model_dump(exclude_unset=True).items():
         setattr(concept, key, val)
@@ -221,8 +255,12 @@ async def update_concept(
     await db.refresh(concept)
 
     await log_audit_entry(
-        db=db, user_id=current_user.id, school_id=current_user.school_id,
-        action="update", resource_type="concept", resource_id=concept_id,
+        db=db,
+        user_id=current_user.id,
+        school_id=current_user.school_id,
+        action="update",
+        resource_type="concept",
+        resource_id=concept_id,
     )
 
     return concept

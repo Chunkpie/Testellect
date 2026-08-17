@@ -43,7 +43,11 @@ async def get_dashboard_stats(
     result = await db.execute(q)
     total_assessments = result.scalar()
 
-    q = select(func.count()).select_from(QuestionBank).where(QuestionBank.is_deleted == False)
+    q = (
+        select(func.count())
+        .select_from(QuestionBank)
+        .where(QuestionBank.is_deleted == False)
+    )
     if scope:
         q = q.where(QuestionBank.school_id == scope)
     result = await db.execute(q)
@@ -51,26 +55,26 @@ async def get_dashboard_stats(
 
     score_q = select(func.avg(StudentResult.percentage))
     if scope:
-        score_q = (
-            score_q
-            .join(Assessment, StudentResult.assessment_id == Assessment.id)
-            .where(Assessment.school_id == scope)
-        )
+        score_q = score_q.join(
+            Assessment, StudentResult.assessment_id == Assessment.id
+        ).where(Assessment.school_id == scope)
     result = await db.execute(score_q)
     avg_score = result.scalar()
     average_score = round(float(avg_score), 2) if avg_score else 0.0
 
     completed_q = select(func.count(func.distinct(StudentResult.student_id)))
     if scope:
-        completed_q = (
-            completed_q
-            .join(Assessment, StudentResult.assessment_id == Assessment.id)
-            .where(Assessment.school_id == scope)
-        )
+        completed_q = completed_q.join(
+            Assessment, StudentResult.assessment_id == Assessment.id
+        ).where(Assessment.school_id == scope)
     result = await db.execute(completed_q)
     students_with_results = result.scalar()
 
-    completion_rate = round((students_with_results / total_students) * 100, 2) if total_students > 0 else 0.0
+    completion_rate = (
+        round((students_with_results / total_students) * 100, 2)
+        if total_students > 0
+        else 0.0
+    )
 
     return {
         "total_students": total_students,
@@ -199,7 +203,11 @@ async def list_reports(
         "items": [
             {
                 "id": r.id,
-                "title": f"{r.report_type.replace('_', ' ').title()} Report" if r.report_type else "Report",
+                "title": (
+                    f"{r.report_type.replace('_', ' ').title()} Report"
+                    if r.report_type
+                    else "Report"
+                ),
                 "report_type": r.report_type or "unknown",
                 "school_id": r.school_id,
                 "generated_at": r.generated_at.isoformat() if r.generated_at else None,
@@ -213,7 +221,10 @@ async def list_reports(
 
 @router.post("/generate")
 async def generate_report(
-    report_type: str = Query(..., description="Report type: school_summary, class_performance, student_detail"),
+    report_type: str = Query(
+        ...,
+        description="Report type: school_summary, class_performance, student_detail",
+    ),
     school_id: int = Query(None),
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
@@ -237,7 +248,9 @@ async def generate_report(
         "title": f"{report_type.replace('_', ' ').title()} Report",
         "report_type": report.report_type,
         "school_id": report.school_id,
-        "generated_at": report.generated_at.isoformat() if report.generated_at else None,
+        "generated_at": (
+            report.generated_at.isoformat() if report.generated_at else None
+        ),
         "parameters": "{}",
     }
 
@@ -253,10 +266,16 @@ async def get_report(
         raise HTTPException(status_code=404, detail="Report not found")
     return {
         "id": report.id,
-        "title": f"{report.report_type.replace('_', ' ').title()} Report" if report.report_type else "Report",
+        "title": (
+            f"{report.report_type.replace('_', ' ').title()} Report"
+            if report.report_type
+            else "Report"
+        ),
         "report_type": report.report_type,
         "school_id": report.school_id,
-        "generated_at": report.generated_at.isoformat() if report.generated_at else None,
+        "generated_at": (
+            report.generated_at.isoformat() if report.generated_at else None
+        ),
         "parameters": "{}",
     }
 
@@ -273,13 +292,17 @@ async def download_report(
 
     from app.services.pdf_report_service import PDFReportService
     from fastapi.responses import FileResponse
-    
-    if report.report_type == 'school_summary':
-        filepath = await PDFReportService.generate_school_summary(db, report.school_id, report.id)
+
+    if report.report_type == "school_summary":
+        filepath = await PDFReportService.generate_school_summary(
+            db, report.school_id, report.id
+        )
     else:
         # Default to a generic report or student report
-        filepath = await PDFReportService.generate_school_summary(db, report.school_id, report.id)
-        
+        filepath = await PDFReportService.generate_school_summary(
+            db, report.school_id, report.id
+        )
+
     return FileResponse(
         filepath,
         media_type="application/pdf",

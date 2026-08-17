@@ -33,14 +33,16 @@ def _draw_qr(c: canvas.Canvas, x: float, y: float, data: str, tmp_dir: str) -> N
         pass
 
 
-def _draw_bubbles(c: canvas.Canvas, x: float, y: float, qnum: int, bubble_r: float, label_w: float) -> None:
+def _draw_bubbles(
+    c: canvas.Canvas, x: float, y: float, qnum: int, bubble_r: float, label_w: float
+) -> None:
     c.saveState()
     # Question Number
     c.setFont("Helvetica-Bold", 9 if bubble_r < 3.5 * mm else 10)
     # Right align the question number slightly
     q_str = f"{qnum:02d}."
     c.drawString(x, y - 3, q_str)
-    
+
     bx = x + label_w
     for opt in OPTIONS:
         # Draw bubble
@@ -58,8 +60,8 @@ def _draw_fiducials(c: canvas.Canvas, w: float, h: float):
     # Draw 4 solid black squares at the corners as fiducials
     c.saveState()
     c.setFillColor(black)
-    s = 8 * mm # size of fiducial
-    m = 8 * mm # margin from page edge
+    s = 8 * mm  # size of fiducial
+    m = 8 * mm  # margin from page edge
     # Top Left
     c.rect(m, h - m - s, s, s, fill=1)
     # Top Right
@@ -112,7 +114,7 @@ def generate_omr_pdf(
     student_count = len(students)
     for sheet_num, student in enumerate(students, start=1):
         _draw_fiducials(c, W, H)
-        
+
         # Outer Border for the main content area
         c.setLineWidth(2)
         c.rect(MARGIN, MARGIN, W - 2 * MARGIN, H - 2 * MARGIN)
@@ -121,77 +123,95 @@ def generate_omr_pdf(
         header_y = H - MARGIN
         c.saveState()
         c.setFillColor(HexColor("#F8F9FA"))
-        c.rect(MARGIN, header_y - 25*mm, W - 2*MARGIN, 25*mm, fill=1, stroke=0)
+        c.rect(MARGIN, header_y - 25 * mm, W - 2 * MARGIN, 25 * mm, fill=1, stroke=0)
         c.restoreState()
 
         # Separator line under header
         c.setLineWidth(1)
-        c.line(MARGIN, header_y - 25*mm, W - MARGIN, header_y - 25*mm)
+        c.line(MARGIN, header_y - 25 * mm, W - MARGIN, header_y - 25 * mm)
 
         # Title
         c.setFont("Helvetica-Bold", 18)
-        c.drawString(MARGIN + 5*mm, header_y - 10*mm, "TESTELLECT")
+        c.drawString(MARGIN + 5 * mm, header_y - 10 * mm, "TESTELLECT")
         c.setFont("Helvetica", 14)
-        c.drawString(MARGIN + 5*mm, header_y - 17*mm, "OMR Answer Sheet")
-        
+        c.drawString(MARGIN + 5 * mm, header_y - 17 * mm, "OMR Answer Sheet")
+
         # Info
         c.setFont("Helvetica", 9)
         if paper_name:
-            c.drawString(MARGIN + 5*mm, header_y - 22*mm, f"Exam: {paper_name.upper()}")
-        
+            c.drawString(
+                MARGIN + 5 * mm, header_y - 22 * mm, f"Exam: {paper_name.upper()}"
+            )
+
         # Right side of header (Sheet X of Y)
-        c.drawRightString(W - MARGIN - 5*mm, header_y - 10*mm, f"Sheet {sheet_num} of {student_count}")
+        c.drawRightString(
+            W - MARGIN - 5 * mm,
+            header_y - 10 * mm,
+            f"Sheet {sheet_num} of {student_count}",
+        )
 
         # --- QR Code ---
-        qr_y = header_y - 25*mm - 5*mm - QR_SIZE
-        qr_x = W - MARGIN - 5*mm - QR_SIZE
-        qr_payload = json.dumps({
-            "batch_id": batch_id, 
-            "paper_id": paper_id, 
-            "school_id": school_id,
-            "student_id": student.id
-        })
+        qr_y = header_y - 25 * mm - 5 * mm - QR_SIZE
+        qr_x = W - MARGIN - 5 * mm - QR_SIZE
+        qr_payload = json.dumps(
+            {
+                "batch_id": batch_id,
+                "paper_id": paper_id,
+                "school_id": school_id,
+                "student_id": student.id,
+            }
+        )
         _draw_qr(c, qr_x, qr_y, qr_payload, settings.REPORTS_DIR)
 
         # --- Student Info Section (Left of QR) ---
-        info_y = header_y - 25*mm - 5*mm
-        info_w = W - 2*MARGIN - QR_SIZE - 15*mm
-        
+        info_y = header_y - 25 * mm - 5 * mm
+        info_w = W - 2 * MARGIN - QR_SIZE - 15 * mm
+
         c.saveState()
         c.setLineWidth(0.5)
-        c.rect(MARGIN + 5*mm, info_y - QR_SIZE, info_w, QR_SIZE)
-        
+        c.rect(MARGIN + 5 * mm, info_y - QR_SIZE, info_w, QR_SIZE)
+
         # Title of Info Box
         c.setFillColor(lightgrey)
-        c.rect(MARGIN + 5*mm, info_y - 6*mm, info_w, 6*mm, fill=1, stroke=1)
+        c.rect(MARGIN + 5 * mm, info_y - 6 * mm, info_w, 6 * mm, fill=1, stroke=1)
         c.setFillColor(black)
         c.setFont("Helvetica-Bold", 9)
-        c.drawString(MARGIN + 7*mm, info_y - 4.5*mm, "STUDENT DETAILS")
-        
+        c.drawString(MARGIN + 7 * mm, info_y - 4.5 * mm, "STUDENT DETAILS")
+
         c.setFont("Helvetica-Bold", 11)
-        c.drawString(MARGIN + 7*mm, info_y - 15*mm, f"Name:  {student.full_name.upper()}")
-        c.drawString(MARGIN + 7*mm, info_y - 25*mm, f"Roll No: {student.roll_number or 'N/A'}")
+        c.drawString(
+            MARGIN + 7 * mm, info_y - 15 * mm, f"Name:  {student.full_name.upper()}"
+        )
+        c.drawString(
+            MARGIN + 7 * mm,
+            info_y - 25 * mm,
+            f"Roll No: {student.roll_number or 'N/A'}",
+        )
         c.restoreState()
 
         # --- Instructions ---
-        inst_y = info_y - QR_SIZE - 10*mm
+        inst_y = info_y - QR_SIZE - 10 * mm
         c.setFont("Helvetica-Oblique", 9)
-        c.drawString(MARGIN + 5*mm, inst_y, "Instructions: Darken the circles completely using a dark pen/pencil. Do not fold or scratch the sheet.")
+        c.drawString(
+            MARGIN + 5 * mm,
+            inst_y,
+            "Instructions: Darken the circles completely using a dark pen/pencil. Do not fold or scratch the sheet.",
+        )
 
         # --- Questions Section ---
         c.setLineWidth(1)
-        c.line(MARGIN, inst_y - 5*mm, W - MARGIN, inst_y - 5*mm)
+        c.line(MARGIN, inst_y - 5 * mm, W - MARGIN, inst_y - 5 * mm)
 
         content_w = W - 2 * MARGIN
         section_w = content_w / num_cols
         col_w_content = label_w + 8.5 * bubble_r
-        
+
         # Draw vertical dividers
         c.setLineWidth(0.5)
         c.setStrokeColor(lightgrey)
         for col in range(1, num_cols):
             div_x = MARGIN + col * section_w
-            c.line(div_x, inst_y - 5*mm, div_x, MARGIN)
+            c.line(div_x, inst_y - 5 * mm, div_x, MARGIN)
 
         q_per_col = (total_questions + num_cols - 1) // num_cols
 

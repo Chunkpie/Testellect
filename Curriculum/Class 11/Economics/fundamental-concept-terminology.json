@@ -1,0 +1,101 @@
+{
+  "sequence": 2,
+  "title": "Fundamental Concepts and Terminologies",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Human Wants and Resources",
+      "concepts": [
+        {
+          "name": "Human Wants",
+          "description": "Human wants are desires for goods and services that provide satisfaction. They are unlimited, recurring, and vary according to time, place, income, and individual preferences.",
+          "learning_outcome": "Students will be able to explain the characteristics of human wants and distinguish between different types of wants."
+        },
+        {
+          "name": "Economic Resources",
+          "description": "Economic resources are the inputs used to produce goods and services. Since these resources are limited, they must be utilized efficiently.",
+          "learning_outcome": "Students will be able to identify various economic resources and explain their role in production."
+        },
+        {
+          "name": "Scarcity",
+          "description": "Scarcity arises because available resources are insufficient to satisfy unlimited human wants, making choice an unavoidable part of economic activity.",
+          "learning_outcome": "Students will be able to explain how scarcity creates the need for economic decision-making."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Goods and Services",
+      "concepts": [
+        {
+          "name": "Goods",
+          "description": "Goods are tangible products that satisfy human wants. They may be classified as free goods, economic goods, consumer goods, or capital goods.",
+          "learning_outcome": "Students will be able to classify goods into different categories with suitable examples."
+        },
+        {
+          "name": "Services",
+          "description": "Services are intangible activities provided to satisfy human needs, such as education, healthcare, banking, and transportation.",
+          "learning_outcome": "Students will be able to distinguish between goods and services using real-life examples."
+        },
+        {
+          "name": "Utility",
+          "description": "Utility refers to the ability of a good or service to satisfy a human want. It depends on the needs and preferences of consumers.",
+          "learning_outcome": "Students will be able to explain the concept of utility and its importance in consumption."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Factors of Production",
+      "concepts": [
+        {
+          "name": "Land",
+          "description": "Land includes all natural resources used in production, such as soil, forests, minerals, and water resources.",
+          "learning_outcome": "Students will be able to identify land as a factor of production and explain its characteristics."
+        },
+        {
+          "name": "Labour, Capital and Enterprise",
+          "description": "Labour provides human effort, capital includes man-made productive assets, and enterprise organizes other factors while bearing business risk.",
+          "learning_outcome": "Students will be able to explain the roles of labour, capital, and enterprise in production."
+        },
+        {
+          "name": "Factor Rewards",
+          "description": "Each factor of production receives a specific reward: rent for land, wages for labour, interest for capital, and profit for enterprise.",
+          "learning_outcome": "Students will be able to match each factor of production with its corresponding reward."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Economic Activities and Economic Systems",
+      "concepts": [
+        {
+          "name": "Economic Activities",
+          "description": "Economic activities involve the production, exchange, distribution, and consumption of goods and services to satisfy human wants.",
+          "learning_outcome": "Students will be able to identify different types of economic activities in everyday life."
+        },
+        {
+          "name": "Economic Systems",
+          "description": "Different countries organize their economies through capitalist, socialist, or mixed economic systems, each having distinct ownership and decision-making structures.",
+          "learning_outcome": "Students will be able to compare the main features of capitalist, socialist, and mixed economies."
+        },
+        {
+          "name": "Economic Agents",
+          "description": "Households, firms, and governments are the primary economic agents responsible for production, consumption, regulation, and distribution.",
+          "learning_outcome": "Students will be able to explain the roles of major economic agents in an economy."
+        }
+      ]
+    },
+    {
+      "sequence": 5,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Understanding Basic Economic Terminology",
+          "description": "This chapter introduces the foundational concepts of economics, including wants, resources, goods, services, utility, factors of production, and economic systems.",
+          "learning_outcome": "Students will be able to apply fundamental economic terminology correctly while explaining basic economic situations."
+        }
+      ]
+    }
+  ]
+}

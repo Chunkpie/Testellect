@@ -14,8 +14,12 @@ class Class(TimestampMixin, Base):
     class_teacher_id = Column(Integer, ForeignKey("teachers.id"), nullable=True)
 
     school = relationship("School", back_populates="classes")
-    class_teacher = relationship("Teacher", back_populates="classes_teaching", foreign_keys=[class_teacher_id])
-    students = relationship("Student", back_populates="class_obj", cascade="all, delete-orphan")
+    class_teacher = relationship(
+        "Teacher", back_populates="classes_teaching", foreign_keys=[class_teacher_id]
+    )
+    students = relationship(
+        "Student", back_populates="class_obj", cascade="all, delete-orphan"
+    )
     assessments = relationship("Assessment", back_populates="class_obj")
 
 
@@ -62,13 +66,17 @@ class Assessment(TimestampMixin, Base):
     blueprint = relationship("Blueprint", back_populates="assessments")
     class_obj = relationship("Class", back_populates="assessments")
     omr_sheets = relationship("OMRSheet", back_populates="assessment")
-    student_results = relationship("StudentResult", back_populates="assessment", cascade="all, delete-orphan")
+    student_results = relationship(
+        "StudentResult", back_populates="assessment", cascade="all, delete-orphan"
+    )
 
 
 class StudentResult(TimestampMixin, Base):
     __tablename__ = "student_results"
 
-    assessment_id = Column(Integer, ForeignKey("assessments.id"), nullable=False, index=True)
+    assessment_id = Column(
+        Integer, ForeignKey("assessments.id"), nullable=False, index=True
+    )
     student_id = Column(Integer, ForeignKey("students.id"), nullable=False, index=True)
     omr_result_id = Column(Integer, ForeignKey("omr_results.id"), nullable=True)
     total_score = Column(Float, nullable=True)
@@ -78,13 +86,19 @@ class StudentResult(TimestampMixin, Base):
     assessment = relationship("Assessment", back_populates="student_results")
     student = relationship("Student", back_populates="student_results")
     omr_result = relationship("OMRResult", back_populates="student_results")
-    competency_results = relationship("CompetencyResult", back_populates="student_result", cascade="all, delete-orphan")
+    competency_results = relationship(
+        "CompetencyResult",
+        back_populates="student_result",
+        cascade="all, delete-orphan",
+    )
 
 
 class CompetencyResult(TimestampMixin, Base):
     __tablename__ = "competency_results"
 
-    student_result_id = Column(Integer, ForeignKey("student_results.id"), nullable=False, index=True)
+    student_result_id = Column(
+        Integer, ForeignKey("student_results.id"), nullable=False, index=True
+    )
     competency_id = Column(Integer, ForeignKey("competencies.id"), nullable=False)
     questions_attempted = Column(Integer, nullable=True)
     questions_correct = Column(Integer, nullable=True)

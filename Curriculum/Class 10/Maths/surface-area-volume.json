@@ -1,0 +1,75 @@
+{
+  "sequence": 12,
+  "title": "Surface Areas and Volumes",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Introduction",
+      "concepts": [
+        {
+          "name": "Three-Dimensional Solids",
+          "description": "Three-dimensional (3D) solids occupy space and have measurable dimensions such as length, breadth, and height. Common solids include cubes, cuboids, cylinders, cones, hemispheres, and spheres.",
+          "learning_outcome": "Students will be able to identify common three-dimensional solids and describe their basic characteristics."
+        },
+        {
+          "name": "Surface Area and Volume",
+          "description": "Surface area measures the total area covering the outer surface of a solid, while volume measures the space enclosed by the solid.",
+          "learning_outcome": "Students will be able to distinguish between surface area and volume and identify appropriate units for each."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Surface Area of a Combination of Solids",
+      "concepts": [
+        {
+          "name": "Combined Solids",
+          "description": "Many practical objects are formed by joining two or more basic solids. Their surface area is determined by considering only the exposed surfaces.",
+          "learning_outcome": "Students will be able to identify composite solids and determine their total surface area."
+        },
+        {
+          "name": "Calculation of Surface Area",
+          "description": "The surface area of a composite solid is calculated by adding the surface areas of the individual solids and subtracting the common contact surfaces when necessary.",
+          "learning_outcome": "Students will be able to calculate the surface area of combined solids using appropriate formulas."
+        },
+        {
+          "name": "Applications of Surface Area",
+          "description": "Surface area calculations are used in painting, polishing, packaging, and material estimation for three-dimensional objects.",
+          "learning_outcome": "Students will be able to solve real-life problems involving the surface area of composite solids."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Volume of a Combination of Solids",
+      "concepts": [
+        {
+          "name": "Volume of Composite Solids",
+          "description": "The volume of a composite solid is obtained by adding or subtracting the volumes of its component solids depending on the structure of the object.",
+          "learning_outcome": "Students will be able to calculate the volume of composite solids using standard volume formulas."
+        },
+        {
+          "name": "Volume Formulas for Standard Solids",
+          "description": "Standard formulas for cubes, cuboids, cylinders, cones, hemispheres, and spheres provide the basis for calculating the volume of more complex objects.",
+          "learning_outcome": "Students will be able to apply appropriate volume formulas for different three-dimensional solids."
+        },
+        {
+          "name": "Applications of Volume",
+          "description": "Volume calculations are essential in determining storage capacity, material requirements, liquid capacity, and engineering measurements.",
+          "learning_outcome": "Students will be able to solve practical problems involving the volume of combined solids."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Key Concepts of Surface Areas and Volumes",
+          "description": "This chapter summarizes methods for calculating the surface area and volume of individual and composite three-dimensional solids using standard geometric formulas.",
+          "learning_outcome": "Students will be able to select appropriate formulas and accurately calculate the surface area and volume of composite solids in mathematical and real-world contexts."
+        }
+      ]
+    }
+  ]
+}

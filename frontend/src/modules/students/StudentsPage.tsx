@@ -562,7 +562,6 @@ export default function StudentsPage() {
                     <TableHead>{t('students.rollNumber')}</TableHead>
                     <TableHead>{t('students.class')}</TableHead>
                     <TableHead>{t('students.gender')}</TableHead>
-                    <TableHead>{t('students.school')}</TableHead>
                     <TableHead>{t('students.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -589,9 +588,6 @@ export default function StudentsPage() {
                           } className="capitalize">
                             {student.gender || '-'}
                           </Badge>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground text-sm">
-                          {student.school_name || '-'}
                         </TableCell>
                         <TableCell>
                           <Button variant="ghost" size="sm" onClick={() => { setEditingStudent(student); setEditOpen(true); }}>

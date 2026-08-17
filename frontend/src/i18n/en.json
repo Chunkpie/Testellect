@@ -44,7 +44,8 @@
     "noResults": "No results found",
     "back": "Back",
     "next": "Next",
-    "submit": "Submit"
+    "submit": "Submit",
+    "close": "Close"
   },
   "dashboard": {
     "welcome": "Welcome",
@@ -71,7 +72,8 @@
     "school": "School",
     "actions": "Actions",
     "editStudent": "Edit Student",
-    "editStudentDesc": "Update student information."
+    "editStudentDesc": "Update student information.",
+    "edit": "Edit"
   },
   "questions": {
     "title": "Question Bank",

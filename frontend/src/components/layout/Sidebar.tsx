@@ -24,7 +24,6 @@ const navItems = [
   { path: '/knowledge-base', icon: TreePine, label: 'nav.knowledgeBase', roles: ['admin', 'teacher'] },
   { path: '/questions', icon: Brain, label: 'Question Bank', roles: ['admin', 'teacher'] },
   { path: '/image-bank', icon: Image, label: 'Image Bank', roles: ['admin', 'teacher'] },
-  { path: '/blueprints', icon: FileEdit, label: 'nav.blueprints', roles: ['admin', 'teacher'] },
   { path: '/papers', icon: FileText, label: 'nav.papers', roles: ['admin', 'teacher'] },
   { path: '/omr', icon: Scan, label: 'nav.omr', roles: ['admin', 'teacher'] },
   { path: '/reports', icon: BarChart3, label: 'nav.reports', roles: ['admin', 'teacher', 'principal', 'deo'] },

@@ -57,6 +57,8 @@ export interface Question {
   bloom_level: 'remember' | 'understand' | 'apply' | 'analyze' | 'evaluate' | 'create'
   concept_id?: string
   competency_id?: string
+  image_asset_id?: number
+  image_url?: string
   approval_status: 'pending_review' | 'approved' | 'rejected'
   generated_by: 'ai' | 'manual'
   subject_id?: string

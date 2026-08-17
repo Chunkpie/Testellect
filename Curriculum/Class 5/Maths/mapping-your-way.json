@@ -1,0 +1,101 @@
+{
+  "sequence": 8,
+  "title": "Mapping Your Way",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Understanding Maps",
+      "concepts": [
+        {
+          "name": "Purpose of Maps",
+          "description": "Maps are simplified representations of places that help us locate positions, understand surroundings, and plan routes. They provide information that is difficult to visualize from the ground.",
+          "learning_outcome": "Students will be able to explain the purpose of maps and identify situations where maps are useful."
+        },
+        {
+          "name": "Map Symbols",
+          "description": "Maps use standardized symbols and colours to represent roads, rivers, buildings, parks, railway lines, and other geographical features.",
+          "learning_outcome": "Students will be able to interpret common symbols and colours used on simple maps."
+        },
+        {
+          "name": "Map Legend",
+          "description": "A map legend or key explains the meaning of symbols used on a map, enabling users to interpret information accurately.",
+          "learning_outcome": "Students will be able to use a map legend to understand and interpret map features."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Directions and Routes",
+      "concepts": [
+        {
+          "name": "Cardinal Directions",
+          "description": "The four cardinal directions—North, South, East, and West—help describe locations and movements on a map.",
+          "learning_outcome": "Students will be able to identify and use the four cardinal directions to describe locations."
+        },
+        {
+          "name": "Intermediate Directions",
+          "description": "Directions such as North-East, North-West, South-East, and South-West provide more precise location information.",
+          "learning_outcome": "Students will be able to identify intermediate directions while reading simple maps."
+        },
+        {
+          "name": "Planning Routes",
+          "description": "Maps help compare different routes and choose the most suitable path based on distance and direction.",
+          "learning_outcome": "Students will be able to trace and describe routes between two locations using a map."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Reading and Drawing Simple Maps",
+      "concepts": [
+        {
+          "name": "Locating Places",
+          "description": "Students learn to identify the positions of places by observing landmarks, roads, and symbols on a map.",
+          "learning_outcome": "Students will be able to locate specific places using a simple map."
+        },
+        {
+          "name": "Drawing Simple Maps",
+          "description": "Simple maps of classrooms, homes, schools, and neighbourhoods help students understand spatial relationships and relative positions.",
+          "learning_outcome": "Students will be able to draw simple maps using appropriate symbols and directions."
+        },
+        {
+          "name": "Scale Awareness",
+          "description": "Although not measured precisely at this level, students understand that maps represent large areas in a reduced size.",
+          "learning_outcome": "Students will be able to explain that maps use reduced representations of real places."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Maps in Everyday Life",
+      "concepts": [
+        {
+          "name": "Navigation",
+          "description": "Maps assist people in travelling, finding addresses, and exploring unfamiliar places using printed or digital maps.",
+          "learning_outcome": "Students will be able to explain how maps are used for navigation in everyday life."
+        },
+        {
+          "name": "Landmarks",
+          "description": "Landmarks such as schools, hospitals, parks, and temples help people identify locations and navigate effectively.",
+          "learning_outcome": "Students will be able to identify important landmarks on a simple map."
+        },
+        {
+          "name": "Spatial Reasoning",
+          "description": "Reading maps develops the ability to understand positions, distances, directions, and relationships between places.",
+          "learning_outcome": "Students will be able to use spatial reasoning to interpret and describe map-based information."
+        }
+      ]
+    },
+    {
+      "sequence": 5,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Understanding Maps and Navigation",
+          "description": "This chapter develops students' ability to read, interpret, and draw simple maps while understanding directions, symbols, landmarks, and navigation.",
+          "learning_outcome": "Students will be able to read maps, interpret symbols, identify directions, and use maps to locate places and plan routes."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "sequence": 2,
+  "title": "Shapes and Angles",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Identifying Shapes in the Environment",
+      "concepts": [
+        {
+          "name": "Two-Dimensional Shapes",
+          "description": "Students observe common objects and identify basic two-dimensional shapes such as triangles, squares, rectangles, circles, and polygons. They relate geometric shapes to their everyday surroundings.",
+          "learning_outcome": "Students will be able to identify and classify common two-dimensional shapes found in their surroundings."
+        },
+        {
+          "name": "Properties of Shapes",
+          "description": "Each geometric shape has unique characteristics based on its sides, corners, and angles. Understanding these properties helps distinguish one shape from another.",
+          "learning_outcome": "Students will be able to compare geometric shapes based on the number of sides, vertices, and angles."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Understanding Angles",
+      "concepts": [
+        {
+          "name": "Angle as a Measure of Turn",
+          "description": "An angle represents the amount of turning between two rays meeting at a common point. Students explore angles through body movements, doors, clocks, and rotating objects.",
+          "learning_outcome": "Students will be able to recognize angles as measures of turning in everyday situations."
+        },
+        {
+          "name": "Parts of an Angle",
+          "description": "Every angle consists of a vertex and two arms. These components help describe and compare different angles.",
+          "learning_outcome": "Students will be able to identify the vertex and arms of an angle."
+        },
+        {
+          "name": "Comparing Angles",
+          "description": "Angles can be compared visually without measurement by observing the amount of opening between their arms.",
+          "learning_outcome": "Students will be able to compare two angles and identify which is larger or smaller."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Types of Angles",
+      "concepts": [
+        {
+          "name": "Right Angle",
+          "description": "A right angle measures exactly 90° and serves as a reference for identifying other types of angles.",
+          "learning_outcome": "Students will be able to identify right angles in geometric figures and real-life objects."
+        },
+        {
+          "name": "Acute and Obtuse Angles",
+          "description": "Angles smaller than a right angle are acute angles, while those larger than a right angle but smaller than a straight angle are obtuse angles.",
+          "learning_outcome": "Students will be able to classify angles as acute, right, or obtuse."
+        },
+        {
+          "name": "Straight Angle",
+          "description": "A straight angle forms a straight line and measures 180°. It helps students understand angle relationships.",
+          "learning_outcome": "Students will be able to recognize and identify straight angles."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Patterns Using Shapes and Angles",
+      "concepts": [
+        {
+          "name": "Shape Patterns",
+          "description": "Repeated arrangements of shapes create geometric patterns found in rangoli, tiles, fabrics, and architecture.",
+          "learning_outcome": "Students will be able to identify and extend patterns formed using geometric shapes."
+        },
+        {
+          "name": "Symmetry in Shapes",
+          "description": "Many shapes exhibit symmetry, where one half mirrors the other. Symmetry is common in nature, art, and design.",
+          "learning_outcome": "Students will be able to identify lines of symmetry in simple geometric figures."
+        },
+        {
+          "name": "Practical Applications of Geometry",
+          "description": "Knowledge of shapes and angles is applied in construction, drawing, design, and everyday problem-solving.",
+          "learning_outcome": "Students will be able to relate geometric concepts to practical situations in daily life."
+        }
+      ]
+    },
+    {
+      "sequence": 5,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Understanding Shapes and Angles",
+          "description": "This chapter develops students' understanding of geometric shapes, angle types, symmetry, and spatial reasoning through observation and hands-on activities.",
+          "learning_outcome": "Students will be able to identify, compare, classify, and apply knowledge of shapes and angles to solve elementary geometry problems."
+        }
+      ]
+    }
+  ]
+}

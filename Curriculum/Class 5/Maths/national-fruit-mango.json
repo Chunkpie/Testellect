@@ -1,0 +1,91 @@
+{
+  "sequence": 1,
+  "title": "Our National Fruit – Mango",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Counting Mangoes and Large Numbers",
+      "concepts": [
+        {
+          "name": "Reading and Writing Large Numbers",
+          "description": "Students explore large numbers through the context of mango production, trade, and counting. They learn to read, write, and represent numbers using the Indian place value system.",
+          "learning_outcome": "Students will be able to read, write, and represent large whole numbers using the Indian place value system."
+        },
+        {
+          "name": "Place Value and Face Value",
+          "description": "The value of a digit depends on its position in a number. Understanding place value enables students to compare, arrange, and interpret large numbers correctly.",
+          "learning_outcome": "Students will be able to determine the place value and face value of digits in large numbers."
+        },
+        {
+          "name": "Comparing Large Numbers",
+          "description": "Large numbers can be compared using their place values to determine which quantity is greater or smaller.",
+          "learning_outcome": "Students will be able to compare and arrange large numbers in ascending and descending order."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Estimating Quantities",
+      "concepts": [
+        {
+          "name": "Estimation",
+          "description": "Estimation provides a quick method for approximating quantities without performing exact calculations. It helps verify whether answers are reasonable.",
+          "learning_outcome": "Students will be able to estimate numerical quantities and judge the reasonableness of answers."
+        },
+        {
+          "name": "Rounding Numbers",
+          "description": "Numbers are rounded to the nearest tens, hundreds, thousands, or lakhs to simplify calculations and estimation.",
+          "learning_outcome": "Students will be able to round whole numbers to specified place values."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Operations on Large Numbers",
+      "concepts": [
+        {
+          "name": "Addition and Subtraction",
+          "description": "Real-life situations involving mango production, transportation, and sales are used to practice addition and subtraction of large numbers.",
+          "learning_outcome": "Students will be able to solve addition and subtraction problems involving large numbers."
+        },
+        {
+          "name": "Multiplication of Large Numbers",
+          "description": "Multiplication is introduced as repeated addition and grouping to solve practical problems involving large quantities.",
+          "learning_outcome": "Students will be able to solve multiplication problems involving multi-digit numbers."
+        },
+        {
+          "name": "Word Problem Solving",
+          "description": "Students analyze everyday situations, identify the required mathematical operation, and solve contextual problems involving large numbers.",
+          "learning_outcome": "Students will be able to solve real-life word problems involving addition, subtraction, and multiplication."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Patterns and Number Sense",
+      "concepts": [
+        {
+          "name": "Recognizing Number Patterns",
+          "description": "Students observe patterns formed by counting, grouping, and arranging numbers to strengthen logical thinking and numerical reasoning.",
+          "learning_outcome": "Students will be able to identify and extend simple numerical patterns."
+        },
+        {
+          "name": "Reasonableness of Answers",
+          "description": "Checking the accuracy of answers using estimation and logical reasoning develops confidence in mathematical problem-solving.",
+          "learning_outcome": "Students will be able to verify the correctness of numerical answers using estimation and reasoning."
+        }
+      ]
+    },
+    {
+      "sequence": 5,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Number Sense with Large Numbers",
+          "description": "This chapter develops students' understanding of large numbers, place value, estimation, arithmetic operations, and practical problem-solving through familiar contexts involving mangoes.",
+          "learning_outcome": "Students will be able to apply concepts of large numbers and arithmetic operations to solve real-life mathematical problems."
+        }
+      ]
+    }
+  ]
+}

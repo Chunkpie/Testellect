@@ -1,0 +1,122 @@
+{
+  "sequence": 6,
+  "title": "Market",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Meaning and Classification of Market",
+      "concepts": [
+        {
+          "name": "Meaning of Market",
+          "description": "A market is an arrangement where buyers and sellers interact to exchange goods and services and determine prices. Markets may be physical or virtual and facilitate economic transactions.",
+          "learning_outcome": "Students will be able to define a market and explain its role in an economy."
+        },
+        {
+          "name": "Features of a Market",
+          "description": "A market consists of buyers and sellers, commodities for exchange, communication between participants, and a price mechanism that facilitates transactions.",
+          "learning_outcome": "Students will be able to identify the essential features of a market."
+        },
+        {
+          "name": "Classification of Markets",
+          "description": "Markets can be classified based on area, time, competition, commodities, and the nature of transactions.",
+          "learning_outcome": "Students will be able to classify markets using different economic criteria."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Market Structures",
+      "concepts": [
+        {
+          "name": "Perfect Competition",
+          "description": "Perfect competition is a market structure with a large number of buyers and sellers, homogeneous products, free entry and exit, and perfect information. Individual firms have no control over market price.",
+          "learning_outcome": "Students will be able to explain the characteristics of perfect competition."
+        },
+        {
+          "name": "Monopoly",
+          "description": "A monopoly exists when a single seller supplies a product with no close substitutes and faces little or no competition due to barriers to entry.",
+          "learning_outcome": "Students will be able to identify the features and implications of a monopoly market."
+        },
+        {
+          "name": "Monopolistic Competition and Oligopoly",
+          "description": "Monopolistic competition involves many firms selling differentiated products, whereas an oligopoly consists of a few large firms whose decisions influence one another.",
+          "learning_outcome": "Students will be able to compare monopolistic competition and oligopoly."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Price Determination",
+      "concepts": [
+        {
+          "name": "Demand and Supply Interaction",
+          "description": "Market price is determined through the interaction of demand and supply. Changes in either demand or supply influence the equilibrium price and quantity.",
+          "learning_outcome": "Students will be able to explain how demand and supply determine market price."
+        },
+        {
+          "name": "Market Equilibrium",
+          "description": "Market equilibrium occurs when the quantity demanded equals the quantity supplied, resulting in a stable market price.",
+          "learning_outcome": "Students will be able to identify equilibrium price and equilibrium quantity using demand and supply analysis."
+        },
+        {
+          "name": "Changes in Equilibrium",
+          "description": "Shifts in demand or supply due to economic factors cause changes in equilibrium price and quantity in the market.",
+          "learning_outcome": "Students will be able to analyze how changes in demand or supply affect market equilibrium."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Role of Markets in the Economy",
+      "concepts": [
+        {
+          "name": "Resource Allocation",
+          "description": "Markets help allocate scarce resources efficiently by directing production toward goods and services demanded by consumers.",
+          "learning_outcome": "Students will be able to explain how markets contribute to efficient resource allocation."
+        },
+        {
+          "name": "Competition and Consumer Welfare",
+          "description": "Competition encourages efficiency, innovation, improved quality, and fair pricing, thereby benefiting consumers and promoting economic growth.",
+          "learning_outcome": "Students will be able to explain the relationship between competition and consumer welfare."
+        },
+        {
+          "name": "Government Intervention",
+          "description": "Governments regulate markets to prevent unfair practices, control monopolies, protect consumers, and maintain economic stability.",
+          "learning_outcome": "Students will be able to explain the need for government intervention in different market situations."
+        }
+      ]
+    },
+    {
+      "sequence": 5,
+      "title": "Applications of Market Concepts",
+      "concepts": [
+        {
+          "name": "Business Decision-Making",
+          "description": "Businesses analyze market structures and competition to determine pricing, production, and marketing strategies.",
+          "learning_outcome": "Students will be able to relate market structures to business decision-making."
+        },
+        {
+          "name": "Consumer Choice",
+          "description": "Consumers make purchasing decisions based on price, product availability, quality, and competition within the market.",
+          "learning_outcome": "Students will be able to explain how market conditions influence consumer choices."
+        },
+        {
+          "name": "Real-World Market Examples",
+          "description": "Different industries demonstrate various market structures, allowing students to connect theoretical concepts with practical economic situations.",
+          "learning_outcome": "Students will be able to identify examples of different market structures in the real economy."
+        }
+      ]
+    },
+    {
+      "sequence": 6,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Understanding Markets",
+          "description": "This chapter introduces the meaning, classification, and structures of markets, along with price determination, market equilibrium, and the role of markets in economic development.",
+          "learning_outcome": "Students will be able to analyze market structures, explain price determination, and apply market concepts to real-world economic scenarios."
+        }
+      ]
+    }
+  ]
+}

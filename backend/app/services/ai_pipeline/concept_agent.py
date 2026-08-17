@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.curriculum import Chapter, Concept, KnowledgeChunk, Topic
-from app.services.ai_pipeline.gemini_client import GeminiClient as OllamaClient
+from app.services.ai_pipeline.client_factory import get_ai_client
 
 logger = logging.getLogger(__name__)
 
@@ -24,18 +24,26 @@ Only use the provided text. Respond ONLY with valid JSON, no other text:
   ]
 }"""
 
+
 class ConceptAgentResult:
-    def __init__(self, success: bool, concepts_created: int = 0, failed_topics: int = 0, error: str | None = None):
+    def __init__(
+        self,
+        success: bool,
+        concepts_created: int = 0,
+        failed_topics: int = 0,
+        error: str | None = None,
+    ):
         self.success = success
         self.concepts_created = concepts_created
         self.failed_topics = failed_topics
         self.error = error
 
+
 class ConceptAgent:
     stage_name = "extracting_concepts"
 
-    def __init__(self, ollama: OllamaClient | None = None):
-        self.ollama = ollama or OllamaClient()
+    def __init__(self, ollama=None):
+        self.ollama = ollama or get_ai_client()
 
     async def run(self, db: AsyncSession, book_id: int) -> ConceptAgentResult:
         ch_result = await db.execute(
@@ -49,7 +57,9 @@ class ConceptAgent:
         for chapter in chapters:
             try:
                 t_result = await db.execute(
-                    select(Topic).where(Topic.chapter_id == chapter.id).order_by(Topic.sequence)
+                    select(Topic)
+                    .where(Topic.chapter_id == chapter.id)
+                    .order_by(Topic.sequence)
                 )
                 topics = t_result.scalars().all()
 
@@ -63,7 +73,7 @@ class ConceptAgent:
                 )
                 chapter_chunks = chunks_result.scalars().all()
                 chunk_texts = "\n\n".join(c.chunk_text for c in chapter_chunks)
-                
+
                 # Limit chunk size to avoid massive prompts if the chapter is huge
                 if len(chunk_texts) > 25000:
                     chunk_texts = chunk_texts[:25000] + "\n...[truncated]"
@@ -78,11 +88,16 @@ class ConceptAgent:
                 )
 
                 import asyncio
+
                 await asyncio.sleep(4)
+                from app.services.ai_pipeline.ollama_settings import AGENT_MODEL_MAP
+                
                 result_data = await self.ollama.generate_structured(
                     prompt=prompt,
                     system=CONCEPT_EXTRACTION_SYSTEM,
                     temperature=0.2,
+                    num_ctx=6000,
+                    model=AGENT_MODEL_MAP["concept_agent"],
                 )
 
                 concepts = result_data.get("concepts", [])
@@ -101,7 +116,12 @@ class ConceptAgent:
                 await db.flush()
 
             except RuntimeError as e:
-                logger.warning("Concept extraction failed for chapter %d (%s): %s", chapter.id, chapter.title_en, e)
+                logger.warning(
+                    "Concept extraction failed for chapter %d (%s): %s",
+                    chapter.id,
+                    chapter.title_en,
+                    e,
+                )
                 failed_chapters += 1
                 continue
 

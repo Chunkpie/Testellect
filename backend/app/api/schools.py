@@ -18,7 +18,9 @@ async def list_schools(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role not in ("administrator", "deo"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
+        )
 
     stmt = select(School)
     if current_user.role == "administrator" and current_user.school_id:
@@ -42,15 +44,21 @@ async def get_school(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role not in ("administrator", "deo", "principal"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
+        )
 
     result = await db.execute(select(School).where(School.id == school_id))
     school = result.scalar_one_or_none()
     if not school:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="School not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="School not found"
+        )
 
     if current_user.role == "principal" and current_user.school_id != school.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Access denied"
+        )
 
     return school
 
@@ -62,7 +70,9 @@ async def create_school(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role != "deo":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only DEO can create schools")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Only DEO can create schools"
+        )
 
     school = School(**data.model_dump())
     db.add(school)
@@ -79,14 +89,36 @@ async def create_school(
     )
     # Auto-create grades 1-12 for the new school
     from datetime import datetime
+
     current_year = datetime.now().year
     academic_year = f"{current_year}-{str(current_year + 1)[-2:]}"
     for grade in range(1, 13):
         if grade in (11, 12):
-            db.add(Class(school_id=school.id, grade=grade, section="Science", academic_year=academic_year))
-            db.add(Class(school_id=school.id, grade=grade, section="Commerce", academic_year=academic_year))
+            db.add(
+                Class(
+                    school_id=school.id,
+                    grade=grade,
+                    section="Science",
+                    academic_year=academic_year,
+                )
+            )
+            db.add(
+                Class(
+                    school_id=school.id,
+                    grade=grade,
+                    section="Commerce",
+                    academic_year=academic_year,
+                )
+            )
         else:
-            db.add(Class(school_id=school.id, grade=grade, section=None, academic_year=academic_year))
+            db.add(
+                Class(
+                    school_id=school.id,
+                    grade=grade,
+                    section=None,
+                    academic_year=academic_year,
+                )
+            )
     await db.commit()
 
     return school
@@ -100,15 +132,21 @@ async def update_school(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role not in ("administrator", "deo"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
+        )
 
     result = await db.execute(select(School).where(School.id == school_id))
     school = result.scalar_one_or_none()
     if not school:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="School not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="School not found"
+        )
 
     if current_user.role == "administrator" and current_user.school_id != school.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Can only update own school")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Can only update own school"
+        )
 
     for key, val in data.model_dump(exclude_unset=True).items():
         setattr(school, key, val)

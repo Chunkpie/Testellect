@@ -1,0 +1,122 @@
+{
+  "sequence": 11,
+  "title": "Economic Thoughts",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Introduction to Economic Thought",
+      "concepts": [
+        {
+          "name": "Meaning of Economic Thought",
+          "description": "Economic thought refers to the systematic ideas, theories, and principles developed by economists to explain how economies function and how economic problems can be addressed. These ideas have evolved over time in response to changing social and economic conditions.",
+          "learning_outcome": "Students will be able to define economic thought and explain its importance in understanding economic systems."
+        },
+        {
+          "name": "Evolution of Economic Ideas",
+          "description": "Economic thought has developed from classical theories to modern approaches, reflecting changes in production, trade, technology, and public policy.",
+          "learning_outcome": "Students will be able to describe how economic ideas have evolved over time."
+        },
+        {
+          "name": "Importance of Economic Thinkers",
+          "description": "The ideas of great economists have influenced economic policies, business practices, and national development across the world.",
+          "learning_outcome": "Students will be able to explain the significance of economic thinkers in shaping modern economies."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Classical Economic Thinkers",
+      "concepts": [
+        {
+          "name": "Adam Smith",
+          "description": "Adam Smith is regarded as the Father of Modern Economics. He advocated free markets, division of labour, and the concept of the 'invisible hand' in resource allocation.",
+          "learning_outcome": "Students will be able to explain Adam Smith's contributions to classical economics."
+        },
+        {
+          "name": "David Ricardo",
+          "description": "David Ricardo introduced the theory of comparative advantage, demonstrating how countries benefit from specialization and international trade.",
+          "learning_outcome": "Students will be able to explain Ricardo's theory of comparative advantage with examples."
+        },
+        {
+          "name": "Thomas Robert Malthus",
+          "description": "Malthus proposed the theory that population tends to grow faster than food production, creating challenges for economic development if left unchecked.",
+          "learning_outcome": "Students will be able to describe Malthus' theory of population and its economic implications."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Modern Economic Thinkers",
+      "concepts": [
+        {
+          "name": "Alfred Marshall",
+          "description": "Alfred Marshall developed important concepts of demand, supply, consumer surplus, and price determination, making significant contributions to microeconomics.",
+          "learning_outcome": "Students will be able to explain Alfred Marshall's contributions to economic theory."
+        },
+        {
+          "name": "John Maynard Keynes",
+          "description": "Keynes emphasized the importance of aggregate demand and government intervention in stabilizing the economy during periods of recession and unemployment.",
+          "learning_outcome": "Students will be able to explain Keynesian economic principles and their importance."
+        },
+        {
+          "name": "Modern Economic Approaches",
+          "description": "Modern economics combines market mechanisms with government policies to address inflation, unemployment, growth, and social welfare.",
+          "learning_outcome": "Students will be able to compare classical and modern approaches to economic management."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Indian Economic Thinkers",
+      "concepts": [
+        {
+          "name": "Mahatma Gandhi's Economic Philosophy",
+          "description": "Mahatma Gandhi advocated self-reliance, rural development, cottage industries, and sustainable economic practices centered on human welfare.",
+          "learning_outcome": "Students will be able to explain the key features of Gandhian economic thought."
+        },
+        {
+          "name": "Dr. B. R. Ambedkar's Economic Contributions",
+          "description": "Dr. B. R. Ambedkar emphasized industrialization, equitable resource distribution, labour welfare, and inclusive economic development.",
+          "learning_outcome": "Students will be able to describe Dr. Ambedkar's contributions to Indian economic thought."
+        },
+        {
+          "name": "Contributions of Indian Economists",
+          "description": "Indian economists have significantly influenced policies related to planning, agriculture, poverty reduction, education, and sustainable development.",
+          "learning_outcome": "Students will be able to identify major contributions of Indian economists to national development."
+        }
+      ]
+    },
+    {
+      "sequence": 5,
+      "title": "Relevance of Economic Thought",
+      "concepts": [
+        {
+          "name": "Economic Thought in Policy Making",
+          "description": "Economic theories guide governments in designing policies related to taxation, employment, trade, inflation, and economic growth.",
+          "learning_outcome": "Students will be able to explain how economic thought influences public policy."
+        },
+        {
+          "name": "Application in Everyday Life",
+          "description": "Economic ideas help individuals, businesses, and governments make informed decisions regarding production, consumption, investment, and resource allocation.",
+          "learning_outcome": "Students will be able to relate economic theories to practical decision-making situations."
+        },
+        {
+          "name": "Comparing Economic Ideas",
+          "description": "Different economic thinkers proposed different solutions to economic problems based on the circumstances of their time, offering valuable perspectives for modern economies.",
+          "learning_outcome": "Students will be able to compare the contributions of major economic thinkers."
+        }
+      ]
+    },
+    {
+      "sequence": 6,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Understanding Economic Thoughts",
+          "description": "This chapter introduces the evolution of economic thought and the contributions of major classical, modern, and Indian economists whose ideas continue to influence economic theory and public policy.",
+          "learning_outcome": "Students will be able to explain the major contributions of important economists and evaluate the relevance of their ideas in contemporary economic development."
+        }
+      ]
+    }
+  ]
+}

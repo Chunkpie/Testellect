@@ -1,0 +1,75 @@
+{
+  "sequence": 10,
+  "title": "Circles",
+  "topics": [
+    {
+      "sequence": 1,
+      "title": "Introduction",
+      "concepts": [
+        {
+          "name": "Circle and Its Elements",
+          "description": "A circle is the set of all points in a plane that are at a fixed distance from a fixed point called the center. Its important elements include the radius, diameter, chord, arc, tangent, and secant.",
+          "learning_outcome": "Students will be able to identify the fundamental parts of a circle and describe their properties."
+        },
+        {
+          "name": "Tangents to a Circle",
+          "description": "A tangent is a line that touches a circle at exactly one point without intersecting its interior. It plays a significant role in understanding circle geometry.",
+          "learning_outcome": "Students will be able to distinguish between tangents, secants, and chords of a circle."
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "title": "Tangent to a Circle",
+      "concepts": [
+        {
+          "name": "Perpendicularity of Radius and Tangent",
+          "description": "The radius drawn to the point of contact of a tangent is always perpendicular to the tangent. This theorem is fundamental in solving geometrical problems involving circles.",
+          "learning_outcome": "Students will be able to prove and apply the theorem that the radius is perpendicular to the tangent at the point of contact."
+        },
+        {
+          "name": "Uniqueness of Tangent",
+          "description": "Exactly one tangent can be drawn to a circle at any given point on its circumference. This property helps establish several geometric proofs.",
+          "learning_outcome": "Students will be able to explain why only one tangent exists at a given point on a circle."
+        },
+        {
+          "name": "Applications of Tangent Properties",
+          "description": "Properties of tangents are applied to determine unknown angles, lengths, and relationships in geometric constructions.",
+          "learning_outcome": "Students will be able to solve geometry problems involving tangents and radii."
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "title": "Number of Tangents from a Point on a Circle",
+      "concepts": [
+        {
+          "name": "Tangents from External, Internal, and Circumference Points",
+          "description": "The number of tangents that can be drawn depends on the position of the point relative to the circle: two from an external point, one from a point on the circle, and none from an interior point.",
+          "learning_outcome": "Students will be able to determine the number of tangents that can be drawn from different positions relative to a circle."
+        },
+        {
+          "name": "Equal Tangent Segments",
+          "description": "The lengths of the two tangent segments drawn from the same external point to a circle are always equal.",
+          "learning_outcome": "Students will be able to prove and apply the theorem that tangent segments from an external point are equal."
+        },
+        {
+          "name": "Applications of Equal Tangents",
+          "description": "Equal tangent properties are widely used in proving geometric theorems and finding unknown lengths in circle-based constructions.",
+          "learning_outcome": "Students will be able to solve geometric problems involving tangent lengths and circle properties."
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "title": "Summary",
+      "concepts": [
+        {
+          "name": "Key Concepts of Circles",
+          "description": "This chapter summarizes the properties of tangents, the relationship between radii and tangents, and the characteristics of tangent segments drawn from external points.",
+          "learning_outcome": "Students will be able to apply the fundamental theorems of tangents to solve geometric proofs and numerical problems involving circles."
+        }
+      ]
+    }
+  ]
+}

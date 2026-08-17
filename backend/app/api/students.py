@@ -8,7 +8,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.deps import get_db, get_current_user
 from app.core.audit import log_audit_entry
 from app.models.models import User, Class, Student, School
-from app.schemas.students import ClassCreate, ClassResponse, StudentCreate, StudentResponse, StudentUpdate
+from app.schemas.students import (
+    ClassCreate,
+    ClassResponse,
+    StudentCreate,
+    StudentResponse,
+    StudentUpdate,
+)
 
 router = APIRouter()
 
@@ -21,6 +27,7 @@ def _school_scope_filter(model, user):
 
 # ---- Classes ----
 
+
 @router.get("/classes")
 async def list_classes(
     limit: int = Query(50, ge=1, le=200),
@@ -29,7 +36,9 @@ async def list_classes(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role not in ("teacher", "principal", "administrator"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
+        )
 
     stmt = select(Class)
     scope = _school_scope_filter(Class, current_user)
@@ -54,7 +63,10 @@ async def create_class(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role != "administrator":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only administrators can create classes")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can create classes",
+        )
 
     cls = Class(**data.model_dump())
     db.add(cls)
@@ -62,8 +74,12 @@ async def create_class(
     await db.refresh(cls)
 
     await log_audit_entry(
-        db=db, user_id=current_user.id, school_id=cls.school_id,
-        action="create", resource_type="class", resource_id=cls.id,
+        db=db,
+        user_id=current_user.id,
+        school_id=cls.school_id,
+        action="create",
+        resource_type="class",
+        resource_id=cls.id,
     )
 
     return cls
@@ -77,12 +93,17 @@ async def update_class(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role != "administrator":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only administrators can update classes")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can update classes",
+        )
 
     result = await db.execute(select(Class).where(Class.id == class_id))
     cls = result.scalar_one_or_none()
     if not cls:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Class not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Class not found"
+        )
 
     for key, val in data.model_dump(exclude_unset=True).items():
         setattr(cls, key, val)
@@ -91,8 +112,12 @@ async def update_class(
     await db.refresh(cls)
 
     await log_audit_entry(
-        db=db, user_id=current_user.id, school_id=cls.school_id,
-        action="update", resource_type="class", resource_id=cls.id,
+        db=db,
+        user_id=current_user.id,
+        school_id=cls.school_id,
+        action="update",
+        resource_type="class",
+        resource_id=cls.id,
     )
 
     return cls
@@ -105,23 +130,33 @@ async def delete_class(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role != "administrator":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only administrators can delete classes")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can delete classes",
+        )
 
     result = await db.execute(select(Class).where(Class.id == class_id))
     cls = result.scalar_one_or_none()
     if not cls:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Class not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Class not found"
+        )
 
     await db.delete(cls)
     await db.commit()
 
     await log_audit_entry(
-        db=db, user_id=current_user.id, school_id=cls.school_id,
-        action="delete", resource_type="class", resource_id=class_id,
+        db=db,
+        user_id=current_user.id,
+        school_id=cls.school_id,
+        action="delete",
+        resource_type="class",
+        resource_id=class_id,
     )
 
 
 # ---- Students ----
+
 
 @router.get("/students")
 async def list_students(
@@ -133,16 +168,24 @@ async def list_students(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role not in ("teacher", "principal", "administrator"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
+        )
 
-    stmt = select(Student).options(joinedload(Student.school), joinedload(Student.class_obj)).where(Student.is_deleted == False)
+    stmt = (
+        select(Student)
+        .options(joinedload(Student.school), joinedload(Student.class_obj))
+        .where(Student.is_deleted == False)
+    )
     scope = _school_scope_filter(Student, current_user)
     if scope is not None:
         stmt = stmt.where(scope)
     if class_id is not None:
         stmt = stmt.where(Student.class_id == class_id)
     if grade is not None:
-        stmt = stmt.join(Class, Student.class_id == Class.id).where(Class.grade == grade)
+        stmt = stmt.join(Class, Student.class_id == Class.id).where(
+            Class.grade == grade
+        )
 
     count_stmt = select(func.count()).select_from(stmt.subquery())
     total_result = await db.execute(count_stmt)
@@ -162,14 +205,18 @@ async def get_student(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role not in ("teacher", "principal", "administrator"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
+        )
 
     result = await db.execute(
         select(Student).where(Student.id == student_id, Student.is_deleted == False)
     )
     student = result.scalar_one_or_none()
     if not student:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Student not found"
+        )
 
     scope = _school_scope_filter(Student, current_user)
 
@@ -183,8 +230,9 @@ async def create_student(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role not in ("administrator", "deo", "principal", "teacher"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
-
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
+        )
 
     student = Student(**data.model_dump())
     db.add(student)
@@ -192,8 +240,12 @@ async def create_student(
     await db.refresh(student)
 
     await log_audit_entry(
-        db=db, user_id=current_user.id, school_id=student.school_id,
-        action="create", resource_type="student", resource_id=student.id,
+        db=db,
+        user_id=current_user.id,
+        school_id=student.school_id,
+        action="create",
+        resource_type="student",
+        resource_id=student.id,
     )
 
     return student
@@ -206,7 +258,9 @@ async def bulk_import_students(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role not in ("administrator", "deo", "principal", "teacher"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
+        )
 
     content = await file.read()
     text = content.decode("utf-8")
@@ -215,7 +269,7 @@ async def bulk_import_students(
     schools_result = await db.execute(select(School))
     schools = schools_result.scalars().all()
     school_name_to_id = {s.name.lower(): s.id for s in schools}
-    
+
     classes_result = await db.execute(select(Class))
     classes = classes_result.scalars().all()
     # map (school_id, grade) to class_id
@@ -223,7 +277,7 @@ async def bulk_import_students(
 
     students = []
     errors = []
-    
+
     for row in reader:
         try:
             raw_school = str(row.get("school_id") or row.get("school") or "").strip()
@@ -231,15 +285,20 @@ async def bulk_import_students(
 
             is_school_scoped = current_user.role in ("teacher", "principal")
             if not row.get("name") or (not is_school_scoped and not raw_school):
-                errors.append(f"Row missing required fields (name, school/school_id): {row}")
+                errors.append(
+                    f"Row missing required fields (name, school/school_id): {row}"
+                )
                 continue
-            
+
             # Resolve School
             if is_school_scoped:
                 school_id = current_user.school_id
                 if raw_school and not raw_school.isdigit():
                     user_school = await db.get(School, school_id)
-                    if user_school and user_school.name in ("Model High School", "Adarsh Vidyalaya", "Unity") and user_school.name.lower() != raw_school.lower():
+                    if (
+                        user_school
+                        and user_school.name.lower() != raw_school.lower()
+                    ):
                         user_school.name = raw_school
                         await db.commit()
             else:
@@ -260,19 +319,28 @@ async def bulk_import_students(
             # Resolve Class
             class_id = None
             if raw_class:
-                clean_class = raw_class.lower().replace("th", "").replace("st", "").replace("nd", "").replace("rd", "").strip()
+                clean_class = (
+                    raw_class.lower()
+                    .replace("th", "")
+                    .replace("st", "")
+                    .replace("nd", "")
+                    .replace("rd", "")
+                    .strip()
+                )
                 if clean_class.isdigit():
                     grade = int(clean_class)
                     class_id = school_grade_to_class_id.get((school_id, grade))
                     if not class_id:
                         # Auto-create class
-                        new_class = Class(school_id=school_id, grade=grade, academic_year="2026-2027")
+                        new_class = Class(
+                            school_id=school_id, grade=grade, academic_year="2026-2027"
+                        )
                         db.add(new_class)
                         await db.commit()
                         await db.refresh(new_class)
                         school_grade_to_class_id[(school_id, grade)] = new_class.id
                         class_id = new_class.id
-                    
+
             student = Student(
                 full_name=row.get("name"),
                 roll_number=row.get("roll_number") or None,
@@ -291,8 +359,11 @@ async def bulk_import_students(
             await db.refresh(s)
 
         await log_audit_entry(
-            db=db, user_id=current_user.id, school_id=students[0].school_id,
-            action="bulk_import", resource_type="student",
+            db=db,
+            user_id=current_user.id,
+            school_id=students[0].school_id,
+            action="bulk_import",
+            resource_type="student",
             extra_data={"count": len(students)},
         )
 
@@ -307,17 +378,26 @@ async def update_student(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role not in ("administrator", "deo", "principal", "teacher"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
+        )
 
     result = await db.execute(
         select(Student).where(Student.id == student_id, Student.is_deleted == False)
     )
     student = result.scalar_one_or_none()
     if not student:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Student not found"
+        )
 
-    if current_user.role in ("principal", "teacher") and student.school_id != current_user.school_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+    if (
+        current_user.role in ("principal", "teacher")
+        and student.school_id != current_user.school_id
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Access denied"
+        )
 
     for key, val in data.model_dump(exclude_unset=True).items():
         setattr(student, key, val)
@@ -326,8 +406,12 @@ async def update_student(
     await db.refresh(student)
 
     await log_audit_entry(
-        db=db, user_id=current_user.id, school_id=student.school_id,
-        action="update", resource_type="student", resource_id=student.id,
+        db=db,
+        user_id=current_user.id,
+        school_id=student.school_id,
+        action="update",
+        resource_type="student",
+        resource_id=student.id,
     )
 
     return student
@@ -340,22 +424,35 @@ async def delete_student(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role not in ("administrator", "deo", "principal", "teacher"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
+        )
 
     result = await db.execute(
         select(Student).where(Student.id == student_id, Student.is_deleted == False)
     )
     student = result.scalar_one_or_none()
     if not student:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Student not found"
+        )
 
-    if current_user.role in ("principal", "teacher") and student.school_id != current_user.school_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+    if (
+        current_user.role in ("principal", "teacher")
+        and student.school_id != current_user.school_id
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Access denied"
+        )
 
     student.is_deleted = True
     await db.commit()
 
     await log_audit_entry(
-        db=db, user_id=current_user.id, school_id=student.school_id,
-        action="delete", resource_type="student", resource_id=student_id,
+        db=db,
+        user_id=current_user.id,
+        school_id=student.school_id,
+        action="delete",
+        resource_type="student",
+        resource_id=student_id,
     )

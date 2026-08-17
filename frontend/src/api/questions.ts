@@ -31,7 +31,7 @@ export async function createQuestion(
 
 export async function updateQuestion(
   id: string,
-  question: Partial<Question>
+  question: Partial<Question> & { remove_image?: boolean }
 ): Promise<Question> {
   const { data } = await api.patch(`/questions/${id}`, question)
   return data
