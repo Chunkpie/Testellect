@@ -35,10 +35,24 @@ It's designed to run **fully offline on school hardware for zero-cost** using lo
 *   **Hybrid AI Generation:** The core AI pipeline uses local open-source LLMs (`llama3.2`) via Ollama for zero-cost, no-internet operation. If connected, it uses cloud models (e.g., `gemini-2.5-flash`) for faster generation.
 *   **Curriculum Aligned & Extracted:** Upload GSEB chapter PDFs. The system extracts text (via PyMuPDF/pdfplumber), chunks it into ChromaDB, and extracts topics and concepts mapped to Bloom's Taxonomy.
 *   **Automated Question Paper Generation:** Using Blueprints, the platform can auto-generate complete PDF question papers balancing various difficulty levels and competencies.
+
+<p align="center">
+  <img src="assets/images/question_generation_mockup.jpg" alt="Question Generation Interface" width="800" />
+</p>
+
 *   **Multi-Language Mastery:** Automatically generates MCQs in English, Hindi, and Gujarati.
 *   **Automated OMR Grading:** Integrated Computer Vision (OpenCV/PyZbar) for scanning student physical OMR sheets directly from a webcam or uploaded image, processing grades instantly.
+
+<p align="center">
+  <img src="assets/images/omr_scanning_mockup.jpg" alt="OMR Scanning Interface" width="800" />
+</p>
+
 *   **📱 WhatsApp Bot Integration:** We've built a Twilio/WhatsApp Webhook integration! Teachers can simply snap a photo of the student's OMR sheet on their phone, send it to the WhatsApp Bot, and the background AI instantly grades it.
 *   **Deep Competency Analytics & Reports:** Tracks performance across specific competencies (e.g., Knowledge, Understanding, Application). Generates downloadable PDF reports. Multi-tier dashboards cater to Teachers, Principals, and DEOs (District Education Officers) for remediation tracking and automated alerts.
+
+<p align="center">
+  <img src="assets/images/dashboard_mockup.jpg" alt="Analytics Dashboard" width="800" />
+</p>
 
 ---
 
