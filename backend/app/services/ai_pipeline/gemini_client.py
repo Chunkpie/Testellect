@@ -7,8 +7,14 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 
+import asyncio
+import time
+
+_gemini_lock = None
+_last_request_time = 0.0
+
 class GeminiClient:
-    """Now acting as an OpenRouter Client, but keeping the name to prevent refactoring the whole codebase"""
+    """Google Gemini API client using the OpenAI-compatible endpoint"""
 
     def __init__(
         self,
@@ -16,14 +22,11 @@ class GeminiClient:
         model: str | None = None,
         timeout_seconds: int = 120,
     ):
-        self.api_key = (
-            api_key
-            or "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"
-        )
-        self.model = "nvidia/nemotron-3-ultra-550b-a55b:free"
+        self.api_key = api_key or settings.GEMINI_API_KEY
+        self.model = model or "gemini-2.5-flash-lite"
         self.timeout_seconds = timeout_seconds
         self.timeout = httpx.Timeout(self.timeout_seconds)
-        self.base_url = "https://openrouter.ai/api/v1/chat/completions"
+        self.base_url = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
 
     async def generate(
         self,
@@ -34,13 +37,13 @@ class GeminiClient:
         model: str | None = None,
     ) -> str:
         if not self.api_key:
-            raise RuntimeError("OpenRouter API key is missing")
+            raise RuntimeError("Gemini API key is missing. Set GEMINI_API_KEY in config.")
+        
+        logger.info("Sending request to Gemini API...")
 
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
-            "HTTP-Referer": "https://testellect.local",
-            "X-Title": "Testellect",
         }
 
         messages = []
@@ -50,7 +53,7 @@ class GeminiClient:
         messages.append({"role": "user", "content": prompt})
 
         payload: dict[str, Any] = {
-            "model": self.model,
+            "model": model or self.model,
             "messages": messages,
             "temperature": temperature if temperature is not None else 0.2,
         }
@@ -144,11 +147,9 @@ class GeminiClient:
                 import asyncio
 
                 if isinstance(parsed, dict):
-                    await asyncio.sleep(1.5)
                     return parsed
                 if isinstance(parsed, list):
                     if all(isinstance(i, dict) for i in parsed):
-                        await asyncio.sleep(1.5)
                         return {"items": parsed}
                 logger.error(f"Failed to parse JSON. Raw output: {raw}")
                 raise json.JSONDecodeError(

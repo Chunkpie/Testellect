@@ -9,9 +9,9 @@ class Settings(BaseSettings):
     OLLAMA_BASE_URL: str = "http://ollama:11434"
     OLLAMA_MODEL: str = "llama3.2"
     OLLAMA_VISION_MODEL: str = "llava"
-    GEMINI_API_KEY: str | None = None
-    AI_PROVIDER_MODE: str = "local" # 'local' | 'cloud' | 'auto'
-    AI_MODE: str = "local_llm" # 'local_llm' | 'edge_retrieval' | 'cloud_api'
+    GEMINI_API_KEY: str | None = "AQ.Ab8RN6JsUcfwh4EdYhR05EmhJyqRWvWFwPHl5whBK_2oi8Fcdg"
+    AI_PROVIDER_MODE: str = "auto" # 'local' | 'cloud' | 'auto'
+    AI_MODE: str = "cloud_api" # 'local_llm' | 'edge_retrieval' | 'cloud_api'
     OLLAMA_FALLBACK_MODELS: list[str] = []
     OLLAMA_TIMEOUT: int = 300
     OLLAMA_NUM_THREAD: int = 8

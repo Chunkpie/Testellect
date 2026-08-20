@@ -51,7 +51,11 @@ VALID JSON EXAMPLE:
 
 class LearningAnalyticsService:
     def __init__(self, ollama: OllamaClient | None = None):
-        self.ollama = ollama or OllamaClient()
+        if ollama is None:
+            from app.services.ai_pipeline.client_factory import get_ai_client
+            self.ollama = get_ai_client()
+        else:
+            self.ollama = ollama
 
     async def generate_student_insights(
         self, db: AsyncSession, student_id: int, assessment_id: int | None = None

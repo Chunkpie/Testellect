@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 import logging
 
-from app.db.database import get_db
-from app.services.omr_service import OMRService
+from app.core.database import get_db
+from app.core.database import get_db
 
 router = APIRouter(prefix="/whatsapp", tags=["WhatsApp Integration"])
 logger = logging.getLogger(__name__)

@@ -238,7 +238,10 @@ async def export_paper_pdf(
 
     filename = f"Paper_{paper_id}_{lang}.pdf"
 
-    return Response(content=pdf_buffer.getvalue(), media_type="application/pdf")
+    headers = {
+        "Content-Disposition": f'attachment; filename="{filename}"'
+    }
+    return Response(content=pdf_buffer.getvalue(), media_type="application/pdf", headers=headers)
 
 
 from pydantic import BaseModel
@@ -256,6 +259,7 @@ class CustomPaperRequest(BaseModel):
     difficulty: str = "medium"
     bloom_level: str = "understand"
     num_sets: int = 1
+    ai_provider: str = "local"
 
 
 @router.post("/custom-generate")
@@ -330,6 +334,7 @@ async def _bg_generate_custom_paper(
     req_subject_id = req_dict["subject_id"]
     req_chapter_ids = req_dict["chapter_ids"]
     req_bloom_level = req_dict.get("bloom_level", "understand")
+    req_ai_provider = req_dict.get("ai_provider", "local")
 
     num_concepts_to_use = min(len(concept_ids), req_total_questions * req_num_sets)
     chosen_concepts = random.sample(concept_ids, num_concepts_to_use)
@@ -338,7 +343,7 @@ async def _bg_generate_custom_paper(
     base_count = total_questions_to_generate // num_concepts_to_use
     remainder = total_questions_to_generate % num_concepts_to_use
 
-    ai_service = AiService()
+    ai_service = AiService(ai_provider=req_ai_provider)
     sem = asyncio.Semaphore(5)
 
     async def generate_for_concept(cid, count):
@@ -641,4 +646,9 @@ async def export_all_paper_sets_pdf(
     merged_pdf.save(out_buffer)
     merged_pdf.close()
 
-    return Response(content=out_buffer.getvalue(), media_type="application/pdf")
+    filename = f"All_Sets_{blueprint_id}_{lang}.pdf"
+    headers = {
+        "Content-Disposition": f'attachment; filename="{filename}"'
+    }
+
+    return Response(content=out_buffer.getvalue(), media_type="application/pdf", headers=headers)

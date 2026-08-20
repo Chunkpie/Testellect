@@ -47,14 +47,14 @@ CRITICAL: Respond with ONLY a valid JSON object. No markdown, no code fences, no
 
 VALID JSON EXAMPLE:
 {{
-  "question_text": "...",
+  "question_text": "A farmer has 12 apples and gives 4 to his friend. How many apples does he have left?",
   "options": [
-    {{ "text": "...", "is_correct": true }},
-    {{ "text": "...", "is_correct": false }},
-    {{ "text": "...", "is_correct": false }},
-    {{ "text": "...", "is_correct": false }}
+    {{ "text": "16", "is_correct": false }},
+    {{ "text": "8", "is_correct": true }},
+    {{ "text": "4", "is_correct": false }},
+    {{ "text": "12", "is_correct": false }}
   ],
-  "explanation": "...",
+  "explanation": "12 - 4 = 8 apples remaining.",
   "estimated_time_seconds": 60,
   "marks_suggestion": 1{image_tag_example}
 }}"""
@@ -101,7 +101,7 @@ def _validate_question(data: dict) -> str | None:
     if any(len(t) < 1 for t in texts):
         return "one or more option texts are empty"
     if len(set(t.lower() for t in texts)) < len(texts):
-        return "duplicate option texts detected"
+        return f"duplicate option texts detected: {texts}"
 
     correct = sum(1 for o in options if isinstance(o, dict) and o.get("is_correct"))
     if correct != 1:
@@ -141,8 +141,12 @@ def _normalise_one_correct(options: list[dict]) -> list[dict]:
 
 
 class AiService:
-    def __init__(self, ollama: OllamaClient | None = None):
-        self.ollama = ollama or OllamaClient()
+    def __init__(self, ollama=None, ai_provider: str | None = None):
+        if ollama is None:
+            from app.services.ai_pipeline.client_factory import get_ai_client
+            self.ollama = get_ai_client(ai_provider=ai_provider)
+        else:
+            self.ollama = ollama
         self.orchestrator = PipelineOrchestrator(self.ollama)
         self.chromadb = ChromaDBClient(ollama=self.ollama)
 
@@ -229,7 +233,13 @@ class AiService:
                     temperature=temperature,
                     max_retries=15,
                 )
-                error = _validate_question(result)
+                
+                # If it's a batch, validate the first item as a sanity check
+                if "items" in result and isinstance(result["items"], list) and len(result["items"]) > 0:
+                    error = _validate_question(result["items"][0])
+                else:
+                    error = _validate_question(result)
+                    
                 if error:
                     logger.warning(
                         "Validation failed (attempt %d): %s — raw keys=%s",
@@ -319,11 +329,14 @@ class AiService:
                     logger.warning("Batch failed after all retries")
                     continue
 
-                items = (
-                    result.get("items", [result])
-                    if isinstance(result, dict)
-                    else result
-                )
+                items = result
+                if isinstance(result, dict):
+                    if "items" in result:
+                        items = result["items"]
+                    elif "questions" in result:
+                        items = result["questions"]
+                    else:
+                        items = [result]
                 if not isinstance(items, list):
                     items = [items]
 

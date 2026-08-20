@@ -88,12 +88,24 @@ class OllamaClient:
         return text
 
     def _parse_json_lenient(self, text: str) -> dict | list | None:
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError:
+            pass
+            
+        extracted = self._extract_json(text)
+        if extracted:
+            try:
+                return json.loads(extracted)
+            except json.JSONDecodeError:
+                pass
+                
         fixed = self._fix_json(text)
-        extracted = self._extract_json(fixed)
-        if not extracted:
+        extracted_fixed = self._extract_json(fixed)
+        if not extracted_fixed:
             return None
         try:
-            return json.loads(extracted)
+            return json.loads(extracted_fixed)
         except json.JSONDecodeError:
             return None
 

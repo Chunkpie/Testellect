@@ -12,3 +12,9 @@ node_modules/
 dist/
 .vite/
 *.db
+
+scratch/
+student-omr/
+Student-Data/
+
+video/

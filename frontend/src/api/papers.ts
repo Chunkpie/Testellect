@@ -89,6 +89,7 @@ export async function customGeneratePaper(params: {
   difficulty: string
   bloom_level: string
   num_sets?: number
+  ai_provider?: string
 }): Promise<{ message: string; job_id: string }> {
   const { data } = await api.post('/papers/custom-generate', params)
   return data

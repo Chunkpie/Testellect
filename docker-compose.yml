@@ -45,6 +45,13 @@ services:
     volumes:
       - ollama_data:/root/.ollama
     restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 
   backend:
     build:
@@ -58,6 +65,7 @@ services:
     #     condition: service_started
     volumes:
       - ./backend:/app
+      - /app/dist
       - ./uploads:/app/uploads
       - ./reports:/app/reports
       - ./database:/app/database
@@ -67,7 +75,8 @@ services:
     environment:
       # Use SQLite Lite Mode natively
       - DB_MODE=sqlite
-      - AI_PROVIDER_MODE=local
+      - AI_PROVIDER_MODE=auto
+      - OLLAMA_HAS_GPU=true
     ports:
       - "8000:8000"
     restart: unless-stopped

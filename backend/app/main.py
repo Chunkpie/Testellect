@@ -19,6 +19,9 @@ _warmup_task: asyncio.Task | None = None
 
 
 async def _warmup_ollama():
+    if settings.AI_PROVIDER_MODE.lower() == "cloud":
+        logger.info("Cloud AI mode enabled. Skipping Ollama warmup.")
+        return
     try:
         from app.services.ai_pipeline.ollama_client import OllamaClient
 

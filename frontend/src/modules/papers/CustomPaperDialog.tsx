@@ -35,6 +35,7 @@ export function CustomPaperDialog({
   const [difficulty, setDifficulty] = useState<string>('medium')
   const [bloomLevel, setBloomLevel] = useState<string>('understand')
   const [numSets, setNumSets] = useState<number>(1)
+  const [aiProvider, setAiProvider] = useState<string>('local')
   const [activeJobId, setActiveJobId] = useState<string | null>(null)
 
   // Fetch subjects
@@ -70,6 +71,7 @@ export function CustomPaperDialog({
         difficulty: difficulty,
         bloom_level: bloomLevel,
         num_sets: numSets,
+        ai_provider: aiProvider,
       }),
     onSuccess: (data) => {
       setActiveJobId(data.job_id)
@@ -215,6 +217,17 @@ export function CustomPaperDialog({
                 max={10}
                 value={numSets}
                 onChange={(e) => setNumSets(parseInt(e.target.value) || 1)}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">AI Provider</label>
+              <Select
+                options={[
+                  { value: 'local', label: 'Local GPU (Ollama)' },
+                  { value: 'gemini', label: 'Gemini Fast (Cloud)' },
+                ]}
+                value={aiProvider}
+                onChange={(e) => setAiProvider(e.target.value)}
               />
             </div>
           </div>
