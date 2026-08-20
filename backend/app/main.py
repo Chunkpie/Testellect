@@ -101,22 +101,14 @@ def create_app() -> FastAPI:
     async def health():
         return {
             "status": "ok",
-            "app": (
-                settings.APP_NAME
-                if hasattr(settings, "APP_NAME")
-                else "Testellect Platform"
-            ),
+            "app": settings.APP_NAME,
         }
 
     @application.get("/health/ready")
     async def health_ready(request: Request):
         return {
             "status": "ready",
-            "app": (
-                settings.APP_NAME
-                if hasattr(settings, "APP_NAME")
-                else "Testellect Platform"
-            ),
+            "app": settings.APP_NAME,
         }
 
     import os

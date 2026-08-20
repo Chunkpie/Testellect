@@ -2,14 +2,15 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
+    APP_NAME: str = "Testellect Platform"
     DATABASE_URL: str = "sqlite+aiosqlite:///./database/app.db"
-    JWT_SECRET_KEY: str = "change-me-in-production-use-a-real-secret"
+    SECRET_KEY: str = "change-me-in-production-use-a-real-secret"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 14
     OLLAMA_BASE_URL: str = "http://ollama:11434"
     OLLAMA_MODEL: str = "llama3.2"
     OLLAMA_VISION_MODEL: str = "llava"
-    GEMINI_API_KEY: str | None = "AQ.Ab8RN6JsUcfwh4EdYhR05EmhJyqRWvWFwPHl5whBK_2oi8Fcdg"
+    GEMINI_API_KEY: str | None = None
     AI_PROVIDER_MODE: str = "auto" # 'local' | 'cloud' | 'auto'
     AI_MODE: str = "cloud_api" # 'local_llm' | 'edge_retrieval' | 'cloud_api'
     OLLAMA_FALLBACK_MODELS: list[str] = []
